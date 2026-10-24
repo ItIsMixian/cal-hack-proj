@@ -1,4 +1,8 @@
 import { useMemo, useState } from 'react';
+import PixelRoom, { type RoomObject } from './PixelRoom';
+import RoomDialog from './RoomDialog';
+import Diary from './Diary';
+import './pixel-room.css';
 import { useReducer, useTable } from 'spacetimedb/react';
 import { reducers, tables } from './module_bindings';
 import type { MirrorCard } from './module_bindings/types';
@@ -11,6 +15,7 @@ import { ownWords, parseWhatsApp, type ParsedChat } from './importers';
 const MAX_UPLOAD = 30_000;
 
 export default function MirrorRoom(props: { mirrorId: bigint; onBack: () => void }) {
+  const [activeObject, setActiveObject] = useState<RoomObject | null>(null);
   const [myMirrors] = useTable(tables.myMirrors);
   const [allCards] = useTable(tables.myCards);
   const [imports] = useTable(tables.myImports);
@@ -28,76 +33,53 @@ export default function MirrorRoom(props: { mirrorId: bigint; onBack: () => void
   const personal = cards.filter((c) => c.personal);
   const sharedHere = cards.filter((c) => isVisibleIn(c, 'venue')).length;
 
+  const titles: Record<RoomObject, string> = {
+    mirror: 'Looking in the mirror', diary: 'Your diary', cards: 'Your card collection',
+    desk: 'At the writing desk', contacts: 'Your address book',
+  };
   return (
-    <section className="room">
-      <button className="ghost small back" onClick={props.onBack}>
-        ← Back to town
-      </button>
-
-      <div className="room-head">
-        <CharacterAvatar look={mirror.look} name={mirror.name} />
-        <div>
-          <h2>{mirror.name}'s Mirror Room</h2>
-          <p className="muted">How your mirror understands you, and which side of you it brings where.</p>
-        </div>
+    <section className="pixel-room" aria-label={`${mirror.name}'s Mirror Room`}>
+      <div className="room-hud">
+        <button className="room-exit" autoFocus onClick={props.onBack}>← Back to town</button>
+        <div><p className="room-kicker">MIRRORVILLE / HOME</p><h1>{mirror.name}'s room</h1></div>
+        <span className="room-private">Just for you</span>
       </div>
-
-      <ContactField key={String(mirror.id)} mirrorId={mirror.id} saved={mirror.contact} />
-
-      <div className="portrait">
-        <p className="portrait-lead">Your mirror sees you as someone who…</p>
-        <p>{mirror.selfCard}</p>
-        <p className="muted small">
-          Today: {mirror.intent || 'No intent set'} · Showing {sharedHere} of {cards.length} cards at Cal Hacks
-        </p>
-      </div>
-
-      {cards.length === 0 && (
-        <p className="muted">Nothing here yet beyond your personality check. Add something below and your mirror will get to know you better.</p>
-      )}
-
-      {FACETS.map((facet) => {
-        const group = everyday.filter((c) => c.facet === facet);
-        if (group.length === 0) return null;
-        return (
-          <div key={facet} className="facet">
-            <h3>{FACET_LABELS[facet]}</h3>
-            {group.map((card) => (
-              <CardView key={String(card.id)} card={card} />
-            ))}
-          </div>
-        );
-      })}
-
-      {personal.length > 0 && (
-        <div className="facet private">
-          <h3>Only you see these</h3>
-          <p className="muted small">
-            These sounded personal, so your mirror keeps them to itself. Turn one on for a room if you want it to know.
-          </p>
-          {personal.map((card) => (
-            <CardView key={String(card.id)} card={card} />
-          ))}
-        </div>
-      )}
-
-      <p className="muted small rooms-note">
-        Defaults: strangers at Cal Hacks and teammates see who you are, what you do and what you're into; what you've been up to
-        and your softer side stay with old friends. Only the Cal Hacks room is open so far; your choices carry over.
-      </p>
-
-      <details className="add-more" open={cards.length === 0}>
-        <summary>Add more of you</summary>
-        <Importer mirrorId={mirror.id} busy={latestImport?.status === 'processing'} />
-        {latestImport && (
-          <p className={latestImport.status === 'failed' ? 'error small' : 'muted small'}>
-            {latestImport.status === 'processing'
-              ? `Reading ${latestImport.source}… this takes a few seconds.`
-              : `${latestImport.source}: ${latestImport.message}`}
-          </p>
-        )}
-        <AddCard mirrorId={mirror.id} />
-      </details>
+      <PixelRoom name={mirror.name} look={mirror.look} onOpen={setActiveObject} />
+      <p className="room-art-credit">Character: Cup Nooble · Sprout Lands</p>
+      {activeObject && <RoomDialog title={titles[activeObject]} onClose={() => setActiveObject(null)}>
+        {activeObject === 'mirror' && <>
+          <div className="room-portrait"><CharacterAvatar look={mirror.look} name={mirror.name} />
+            <div><h3>{mirror.name}</h3><p>Your mirror sees you as someone who…</p></div></div>
+          <p className="room-self-card">{mirror.selfCard}</p>
+          <p className="muted">Today: {mirror.intent || 'No intent set. A little room to wander.'}</p>
+          <p className="muted small">Showing {sharedHere} of {cards.length} cards at Cal Hacks. You decide which sides of you your mirror brings along.</p>
+          <button onClick={() => setActiveObject('cards')}>Open the card collection →</button>
+        </>}
+        {activeObject === 'diary' && <Diary mirrorId={mirror.id} />}
+        {activeObject === 'contacts' && <ContactField key={String(mirror.id)} mirrorId={mirror.id} saved={mirror.contact} />}
+        {activeObject === 'cards' && <>
+          {cards.length === 0 && <div className="room-empty"><h3>A collection waiting to grow</h3>
+            <p>Your personality check is already part of your mirror. Add your own writing at the desk to help it get to know you.</p>
+            <button onClick={() => setActiveObject('desk')}>Sit at the writing desk →</button></div>}
+          {FACETS.map((facet) => {
+            const group = everyday.filter((c) => c.facet === facet);
+            return group.length > 0 && <div key={facet} className="facet"><h3>{FACET_LABELS[facet]}</h3>
+              {group.map(card => <CardView key={String(card.id)} card={card} />)}</div>;
+          })}
+          {personal.length > 0 && <div className="facet private"><h3>Only you see these</h3>
+            <p className="muted small">These sounded personal, so your mirror keeps them to itself. Turn one on for a room if you want it to know.</p>
+            {personal.map(card => <CardView key={String(card.id)} card={card} />)}</div>}
+          <p className="muted small rooms-note">Defaults: strangers at Cal Hacks and teammates see who you are, what you do and what you're into; what you've been up to and your softer side stay with old friends. Only the Cal Hacks room is open so far; your choices carry over.</p>
+          <AddCard mirrorId={mirror.id} />
+        </>}
+        {activeObject === 'desk' && <>
+          <p>A few of your words can help your mirror understand you better.</p>
+          <Importer mirrorId={mirror.id} busy={latestImport?.status === 'processing'} />
+          {latestImport && <p role="status" className={latestImport.status === 'failed' ? 'error small' : 'muted small'}>
+            {latestImport.status === 'processing' ? `Reading ${latestImport.source}… this takes a few seconds.` : `${latestImport.source}: ${latestImport.message}`}</p>}
+          <h3>Leave a little note</h3><AddCard mirrorId={mirror.id} />
+        </>}
+      </RoomDialog>}
     </section>
   );
 }
@@ -169,6 +151,7 @@ function CardView({ card }: { card: MirrorCard }) {
           <button
             key={room}
             className={isVisibleIn(card, room) ? 'chip on' : 'chip'}
+            aria-pressed={isVisibleIn(card, room)}
             onClick={() => toggle(room)}
             title={isVisibleIn(card, room) ? `Shown in ${ROOM_LABELS[room]}` : `Hidden in ${ROOM_LABELS[room]}`}
           >
@@ -253,7 +236,7 @@ function Importer({ mirrorId, busy }: { mirrorId: bigint; busy: boolean }) {
         before anything is sent. Nothing you upload is stored.
       </p>
       <div className="import-row">
-        <input type="file" accept=".txt,text/plain" onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])} />
+        <input type="file" aria-label="Import your writing or chat export" accept=".txt,text/plain" onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])} />
         <label>
           Chats with my{' '}
           <select value={relation} onChange={(e) => setRelation(e.target.value as (typeof RELATIONS)[number])}>
@@ -281,6 +264,7 @@ function Importer({ mirrorId, busy }: { mirrorId: bigint; busy: boolean }) {
         </div>
       ) : (
         <textarea
+          aria-label="Your own messages or writing"
           rows={3}
           value={pasted}
           onChange={(e) => setPasted(e.target.value)}
@@ -308,7 +292,7 @@ function AddCard({ mirrorId }: { mirrorId: bigint }) {
   };
   return (
     <div className="add-card">
-      <select value={facet} onChange={(e) => setFacet(e.target.value as Facet)}>
+      <select aria-label="Note topic" value={facet} onChange={(e) => setFacet(e.target.value as Facet)}>
         {FACETS.map((f) => (
           <option key={f} value={f}>
             {FACET_LABELS[f]}
@@ -316,6 +300,7 @@ function AddCard({ mirrorId }: { mirrorId: bigint }) {
         ))}
       </select>
       <input
+        aria-label="Your note"
         value={text}
         maxLength={200}
         onChange={(e) => setText(e.target.value)}

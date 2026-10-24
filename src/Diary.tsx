@@ -8,9 +8,9 @@ const dateFormat = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Ang
 const timeFormat = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', minute: '2-digit' });
 const dateOf = (entry: DiaryItem) => new Date(Number(entry.createdAt.microsSinceUnixEpoch / 1000n));
 
-export default function Diary() {
+export default function Diary({ mirrorId }: { mirrorId?: bigint } = {}) {
   const [entries] = useTable(tables.myDiary);
-  const sorted = [...entries].sort((a, b) => a.createdAt.microsSinceUnixEpoch > b.createdAt.microsSinceUnixEpoch ? -1
+  const sorted = [...entries].filter(entry => mirrorId === undefined || entry.mirrorId === mirrorId).sort((a, b) => a.createdAt.microsSinceUnixEpoch > b.createdAt.microsSinceUnixEpoch ? -1
     : a.createdAt.microsSinceUnixEpoch < b.createdAt.microsSinceUnixEpoch ? 1 : 0);
   const days = new Map<string, DiaryItem[]>();
   for (const entry of sorted) {
