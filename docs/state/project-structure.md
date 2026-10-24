@@ -33,12 +33,12 @@ Per-visitor views: `my_mirrors`, `my_postcards`, `my_human_messages`, `my_cards`
 - Five demo mirrors seeded on init; visitors create up to 3 mirrors each, 60 total.
 - Daily rhythm, visible activities, extraversion-weighted initiative, relationship sightings/talks,
   conversation length by familiarity, natural endings (`[END]`).
-- Postcards per 0004 with server-side evidence check; waves; private chat.
+- Postcards per 0004 with server-side evidence check; waves; private chat. To be replaced by the diary, visible interest and contact unlock (0008).
 - Mirror Room per 0005; only venue-visible cards reach prompts.
 
 ## Known gaps
 
 - Only the venue room is live; teammates and old-friends rooms are visibility settings only.
 - No triadic referral, journal postcards, group conversations, or Messenger/36-questions import.
-- Not deployed publicly; runs on the dev machine (see HANDOFF; a deployment draft is on branch `yw/proposals`).
+- Not deployed publicly; runs on the dev machine (see HANDOFF; plan in decision 0007).
 - Changing table columns requires `--delete-data`, which wipes everything including keys.

@@ -1,6 +1,7 @@
 # 0004 Mirror conduct rules and evidence-checked connections
 
-Status: Accepted (2026-10-24). Implemented.
+Status: Accepted (2026-10-24). Implemented. The exact-phrase evidence rule is under review (may be too
+strict; see backlog). The conduct rules are not in question.
 
 ## Context
 

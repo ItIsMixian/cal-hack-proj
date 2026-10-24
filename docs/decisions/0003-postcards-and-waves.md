@@ -1,7 +1,9 @@
 # 0003 Postcards and mutual waves instead of popups and yes/no
 
 Status: Accepted (2026-10-24). Implemented. Supersedes the earlier encounter cards with
-"I'd like to meet / Not now".
+"I'd like to meet / Not now". **Partly superseded by [0008](0008-diary-and-mutual-interest.md):** the
+diary replaces match-only postcards, interest becomes visible, and contact details replace the in-app
+chat. The no-popup, no-expiry, no-decline rules here still hold.
 
 ## Context
 

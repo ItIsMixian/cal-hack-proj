@@ -23,10 +23,12 @@ is implemented. Later decisions amend or supersede earlier ones instead of rewri
 | --- | --- | --- |
 | [0001](0001-spacetimedb-rewrite.md) | Build from scratch on SpacetimeDB, no AI Town code | Yes |
 | [0002](0002-model-split.md) | DeepSeek for mirror chatter, Claude for judgments | Partly (Claude path untested) |
-| [0003](0003-postcards-and-waves.md) | Postcards and mutual waves instead of popups and yes/no | Yes |
-| [0004](0004-evidence-and-conduct.md) | Mirror conduct rules and evidence-checked connections | Yes |
+| [0003](0003-postcards-and-waves.md) | No popups: postcards and mutual waves instead of yes/no (partly superseded by 0008) | Yes |
+| [0004](0004-evidence-and-conduct.md) | Mirror conduct rules and evidence-checked connections (evidence rule under review) | Yes |
 | [0005](0005-mirror-room-privacy.md) | Mirror Room: local redaction, facets, personal cards, per-room defaults | Yes (venue room only) |
 | [0006](0006-marglo-as-a-source.md) | Marglo is one data source among many | No |
+| [0007](0007-public-deployment.md) | Public deployment: Maincloud + static frontend, tunnels as fallback | No |
+| [0008](0008-diary-and-mutual-interest.md) | Mirror diaries; visible interest; mutual interest unlocks contact details | No |
 
 ## Proposed
 
