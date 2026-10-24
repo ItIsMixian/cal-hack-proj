@@ -64,7 +64,9 @@ friends, board games, arranging gatherings). It also showed where the importer i
 
 ### C. From small talk to fit (needs a decision first)
 
-These change 0004's evidence rule, so record a decision amending 0004 before starting C.
+These change 0004's evidence rule. The decision is drafted as `docs/decisions/proposed-graded-fit.md` on
+branch `yw/proposals` (evidence from the conversation, personality never counts, good / maybe / none,
+a "didn't click" line, and an eight-case eval set from the server log); start C once it is numbered.
 
 10. **Needs and offers.** The import also extracts, per mirror, up to three "looking for" and three
     "can offer" items (private, shown in the Mirror Room, editable like cards).
