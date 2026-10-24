@@ -26,7 +26,9 @@ function useVenueClock() {
   return hour;
 }
 
-export default function App() {
+export default function App({ sessionLabel, onExit, accountMode = false }: {
+  sessionLabel: string; onExit: () => void; accountMode?: boolean;
+}) {
   const { isActive, identity } = useSpacetimeDB();
   const seenKey = `${SEEN_KEY}/${identity?.toHexString() ?? 'connecting'}`;
   const [mirrors] = useTable(tables.mirror);
@@ -101,6 +103,8 @@ export default function App() {
           <p className="tagline">Your mirrors meet first. Then you do.</p>
         </div>
         <div className="header-actions">
+          <span className="session-label" title={sessionLabel}>{sessionLabel}</span>
+          <button className="ghost small" onClick={onExit}>{accountMode ? 'Sign out' : 'Leave town'}</button>
           <span className={isActive ? 'status on' : 'status'}>{isActive ? 'Live' : 'Connecting…'}</span>
           {myMirrors.length > 0 && (
             <button onClick={() => setRoomFor(myMirrors[0].id)} disabled={!isActive}>

@@ -11,11 +11,14 @@
     "publish:local": "spacetime publish mirrorville --module-path spacetimedb --server local --yes",
     "set-keys": "node scripts/set-keys.mjs",
     "test:diary": "node --test scripts/test-diary.mjs",
+    "test:auth": "node --test scripts/test-auth-session.mjs",
     "check-decisions": "node scripts/check-decisions.mjs"
   },
   "dependencies": {
+    "oidc-client-ts": "^3.5.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-oidc-context": "^3.3.1",
     "spacetimedb": "2.13.*"
   },
   "devDependencies": {

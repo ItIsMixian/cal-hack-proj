@@ -11,6 +11,10 @@
   color-scheme: light;
 }
 
+.session-label { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; color: var(--muted); }
+.connection-error { max-width: 520px; margin: 15vh auto; padding: 24px; }
+.connection-error button { margin-right: 8px; }
+
 .diary-day { font-size: 15px; padding: 12px 0; border-bottom: 1px solid var(--line); }
 .diary-entry { padding: 14px 0 20px; border-bottom: 1px solid var(--line); }
 .diary-entry h3 { margin: 4px 0 10px; }
