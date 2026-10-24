@@ -4,6 +4,7 @@ import { reducers } from './module_bindings';
 import { TIPI_ITEMS, buildSelfCard } from '../spacetimedb/src/tipi';
 import { LOOK_COLORS, findLandmark, landmarkForIntent } from '../spacetimedb/src/world';
 import Modal from './Modal';
+import CharacterAvatar from './CharacterAvatar';
 
 export default function CreateMirror(props: { onClose: () => void; onCreated: (name: string) => void }) {
   const createMirror = useReducer(reducers.createMirror);
@@ -47,7 +48,8 @@ export default function CreateMirror(props: { onClose: () => void; onCreated: (n
       </label>
 
       <div className="field">
-        <span>Color</span>
+        <span>Your character & marker color</span>
+        <CharacterAvatar look={look} name={name || 'Your mirror'} />
         <div className="looks">
           {LOOK_COLORS.map((color, i) => (
             <button

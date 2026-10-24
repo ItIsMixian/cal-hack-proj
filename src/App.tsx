@@ -130,6 +130,7 @@ export default function App({ sessionLabel, onExit, accountMode = false }: {
             {clockLabel(hour)} in town{event ? ` · ${event.label} at the ${findLandmark(event.landmark).label}` : ''} ·{' '}
             {mirrors.length} mirrors · tap one to listen in
           </p>
+          <p className="muted art-credit">Character art: Cup Nooble · Sprout Lands</p>
         </div>
 
         <aside className="panel">

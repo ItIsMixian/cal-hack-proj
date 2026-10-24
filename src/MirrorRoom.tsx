@@ -5,7 +5,7 @@ import type { MirrorCard } from './module_bindings/types';
 import {
   FACETS, FACET_LABELS, RELATIONS, ROOMS, ROOM_LABELS, isVisibleIn, redact, type Facet, type Room,
 } from '../spacetimedb/src/redact';
-import { LOOK_COLORS } from '../spacetimedb/src/world';
+import CharacterAvatar from './CharacterAvatar';
 import { ownWords, parseWhatsApp, type ParsedChat } from './importers';
 
 const MAX_UPLOAD = 30_000;
@@ -35,10 +35,7 @@ export default function MirrorRoom(props: { mirrorId: bigint; onBack: () => void
       </button>
 
       <div className="room-head">
-        <div className="avatar" style={{ background: LOOK_COLORS[mirror.look % LOOK_COLORS.length] }}>
-          <span />
-          <span />
-        </div>
+        <CharacterAvatar look={mirror.look} name={mirror.name} />
         <div>
           <h2>{mirror.name}'s Mirror Room</h2>
           <p className="muted">How your mirror understands you, and which side of you it brings where.</p>

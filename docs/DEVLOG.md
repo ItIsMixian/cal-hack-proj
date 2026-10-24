@@ -19,3 +19,7 @@ Complete deliveries and important changes only.
 - Added the team's pixel-art Figma login entry using exported source layers and a locally hosted font;
   integrated SpacetimeAuth account sessions alongside preserved browser guests. An empty Maincloud
   database hosts auth configuration; the simulation remains local. See `validation/login-figma-and-auth.md`.
+
+- Reused the teammate's existing Cup Nooble character sheet for four-direction walking/idle mirrors;
+  updated Mirror Room/creation previews, sprite hit areas, depth and bubble spacing. Source attribution
+  and license retained; checks and Pending items are in `validation/character-sprites.md`.
