@@ -1,0 +1,61 @@
+{
+  "commit": "329e7e8553e54956f131518deff5d1feee13bcd9",
+  "scene": "mirrorvile/Town map.tscn",
+  "textures": [
+    {
+      "file": "ground.png",
+      "source": "mirrorvile/ArtAsset/34f63188-9482-4b62-9970-ed569433db65.png",
+      "sha256": "0d3938963476784b067793a377b2ad197b454333e9c324622de0444a2928cb79"
+    },
+    {
+      "file": "cafe.png",
+      "source": "mirrorvile/ArtAsset/3b848336-3266-43bb-94e3-6eb33408d09e.png",
+      "sha256": "76c893bee6dac39a9365037b19adeb9e3e57ee6a751a1314371d37410ed299d6"
+    },
+    {
+      "file": "gym.png",
+      "source": "mirrorvile/ArtAsset/a6700190-48c9-4943-808e-8fb1e7e77a42.png",
+      "sha256": "4746f29be7bebb2d6943e3f39d65c74523f08444769db798616a0dafd2f0ae97"
+    },
+    {
+      "file": "restaurant.png",
+      "source": "mirrorvile/ArtAsset/3b2809d8-648a-453a-aa42-74e40e0cc645.png",
+      "sha256": "f69a8db4cb88efec122215cc4eb7fa89722f27832aa4adcc0af23363f707c38e"
+    },
+    {
+      "file": "park.png",
+      "source": "mirrorvile/ArtAsset/e6c00022-4e61-4eb5-9fa6-d0eb9d98a0bf.png",
+      "sha256": "2336b761b621d8b1800fc2a0e7bbd894267f6a1f738a4d6730f8ff3b1e3c584d"
+    },
+    {
+      "file": "clock-hall.png",
+      "source": "mirrorvile/ArtAsset/ba605885-c30f-4767-9afb-3bef137d62ae.png",
+      "sha256": "fcc39a8980d890cd0d1343ffe45321998e3edefe88bbd316f96572cbc3b07c8a"
+    },
+    {
+      "file": "cloud.png",
+      "source": "mirrorvile/ArtAsset/5d1c95af-64d0-446d-b477-b9815811be79.png",
+      "sha256": "37796f81eb2909e4429f3cc4bd82c88af70be6ca2e816b0ec291f1718b1c4218"
+    },
+    {
+      "file": "farm.png",
+      "source": "mirrorvile/ArtAsset/8b0c1bea-4a60-4ad9-bb97-4f3d229ee3a9.png",
+      "sha256": "c650d525a559e02481c4a012e9e287d552ed04268567bc190ec527d47c7fb2d3"
+    },
+    {
+      "file": "small_House_light_with_door_grass.png",
+      "source": "mirrorvile/ArtAsset/Sprout Sorry pack/Sprout Sorry pack/Early Access/Village pack/houses/small house/small_House_light_with_door_grass.png",
+      "sha256": "2f398d515027dc3d443d63958ad640bdb4f9ca7ae5d5c3b6c923a868cb08fd7c"
+    },
+    {
+      "file": "small_huts_with_doors_grass.png",
+      "source": "mirrorvile/ArtAsset/Sprout Sorry pack/Sprout Sorry pack/Early Access/Village pack/houses/small hut/small_huts_with_doors_grass.png",
+      "sha256": "80563302972ca6aaebab08995870edf55caea88f91670ac403974fcd90d010ed"
+    },
+    {
+      "file": "Trees, stumps and bushes v2.png",
+      "source": "mirrorvile/ArtAsset/Sprout Sorry pack/Sprout Sorry pack/Early Access/Plant update 2/Trees, stumps and bushes v2.png",
+      "sha256": "e46202b96e7df7f3421ac64d451a157efbbb4d5350db60d90486b401c3a82d15"
+    }
+  ]
+}

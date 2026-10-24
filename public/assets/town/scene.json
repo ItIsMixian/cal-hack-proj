@@ -1,0 +1,1723 @@
+{
+  "source": "329e7e8:mirrorvile/Town map.tscn",
+  "tileSize": 16,
+  "nodes": [
+    {
+      "name": "floor",
+      "type": "sprite",
+      "texture": "ground.png",
+      "position": [
+        -1,
+        1
+      ],
+      "scale": [
+        0.4716797,
+        0.4716797
+      ],
+      "rotation": 0,
+      "skew": 0
+    },
+    {
+      "name": "Coffee",
+      "type": "sprite",
+      "texture": "cafe.png",
+      "position": [
+        -154.00002,
+        -31
+      ],
+      "scale": [
+        0.12679426,
+        0.12679426
+      ],
+      "rotation": 0,
+      "skew": 0
+    },
+    {
+      "name": "Body_builder",
+      "type": "sprite",
+      "texture": "gym.png",
+      "position": [
+        70.6515,
+        -95.93754
+      ],
+      "scale": [
+        0.11722318,
+        0.117223196
+      ],
+      "rotation": 0,
+      "skew": 0
+    },
+    {
+      "name": "Restaurant",
+      "type": "sprite",
+      "texture": "restaurant.png",
+      "position": [
+        281,
+        17
+      ],
+      "scale": [
+        0.11086902,
+        0.10792902
+      ],
+      "rotation": 0,
+      "skew": 0
+    },
+    {
+      "name": "Park",
+      "type": "sprite",
+      "texture": "park.png",
+      "position": [
+        274,
+        220.00002
+      ],
+      "scale": [
+        0.25276247,
+        0.25276244
+      ],
+      "rotation": 0,
+      "skew": 0
+    },
+    {
+      "name": "Clockbuilding",
+      "type": "sprite",
+      "texture": "clock-hall.png",
+      "position": [
+        -287,
+        122
+      ],
+      "scale": [
+        0.18102074,
+        0.18102074
+      ],
+      "rotation": 0,
+      "skew": 0
+    },
+    {
+      "name": "Cloud_up",
+      "type": "sprite",
+      "texture": "cloud.png",
+      "position": [
+        7.8750305,
+        -397.99997
+      ],
+      "scale": [
+        0.6190812,
+        0.576381
+      ],
+      "rotation": 0,
+      "skew": 0
+    },
+    {
+      "name": "Farm",
+      "type": "sprite",
+      "texture": "farm.png",
+      "position": [
+        -220,
+        -203
+      ],
+      "scale": [
+        0.19487427,
+        0.19487426
+      ],
+      "rotation": 0,
+      "skew": 0
+    },
+    {
+      "name": "Cloud_right",
+      "type": "sprite",
+      "texture": "cloud.png",
+      "position": [
+        505,
+        57
+      ],
+      "scale": [
+        0.500704,
+        0.5052183
+      ],
+      "rotation": 1.5583936,
+      "skew": 0.0016517639
+    },
+    {
+      "name": "Cloud_left",
+      "type": "sprite",
+      "texture": "cloud.png",
+      "position": [
+        -467.99997,
+        -36
+      ],
+      "scale": [
+        0.43494472,
+        0.41231397
+      ],
+      "rotation": -1.5612735,
+      "skew": 0.0012602806
+    },
+    {
+      "name": "Cloud_down",
+      "type": "sprite",
+      "texture": "cloud.png",
+      "position": [
+        20,
+        370.00003
+      ],
+      "scale": [
+        0.6022759,
+        0.522059
+      ],
+      "rotation": 3.1316524,
+      "skew": 0
+    },
+    {
+      "name": "House",
+      "type": "tiles",
+      "cells": [
+        {
+          "x": -13,
+          "y": 8,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 0,
+          "ay": 4
+        },
+        {
+          "x": -13,
+          "y": 9,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 0,
+          "ay": 5
+        },
+        {
+          "x": -13,
+          "y": 10,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 0,
+          "ay": 6
+        },
+        {
+          "x": -13,
+          "y": 11,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 0,
+          "ay": 7
+        },
+        {
+          "x": -12,
+          "y": 8,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 1,
+          "ay": 4
+        },
+        {
+          "x": -12,
+          "y": 9,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 1,
+          "ay": 5
+        },
+        {
+          "x": -12,
+          "y": 10,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 1,
+          "ay": 6
+        },
+        {
+          "x": -12,
+          "y": 11,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 1,
+          "ay": 7
+        },
+        {
+          "x": -11,
+          "y": 8,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 2,
+          "ay": 4
+        },
+        {
+          "x": -11,
+          "y": 9,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 2,
+          "ay": 5
+        },
+        {
+          "x": -11,
+          "y": 10,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 2,
+          "ay": 6
+        },
+        {
+          "x": -11,
+          "y": 11,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 2,
+          "ay": 7
+        },
+        {
+          "x": -10,
+          "y": 8,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 3,
+          "ay": 4
+        },
+        {
+          "x": -10,
+          "y": 9,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 3,
+          "ay": 5
+        },
+        {
+          "x": -10,
+          "y": 10,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 3,
+          "ay": 6
+        },
+        {
+          "x": -10,
+          "y": 11,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 3,
+          "ay": 7
+        },
+        {
+          "x": 1,
+          "y": 1,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 8,
+          "ay": 4
+        },
+        {
+          "x": 1,
+          "y": 2,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 8,
+          "ay": 5
+        },
+        {
+          "x": 1,
+          "y": 3,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 8,
+          "ay": 6
+        },
+        {
+          "x": 1,
+          "y": 4,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 8,
+          "ay": 7
+        },
+        {
+          "x": 2,
+          "y": 1,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 9,
+          "ay": 4
+        },
+        {
+          "x": 2,
+          "y": 2,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 9,
+          "ay": 5
+        },
+        {
+          "x": 2,
+          "y": 3,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 9,
+          "ay": 6
+        },
+        {
+          "x": 2,
+          "y": 4,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 9,
+          "ay": 7
+        },
+        {
+          "x": 3,
+          "y": 1,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 10,
+          "ay": 4
+        },
+        {
+          "x": 3,
+          "y": 2,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 10,
+          "ay": 5
+        },
+        {
+          "x": 3,
+          "y": 3,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 10,
+          "ay": 6
+        },
+        {
+          "x": 3,
+          "y": 4,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 10,
+          "ay": 7
+        },
+        {
+          "x": 4,
+          "y": 1,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 11,
+          "ay": 4
+        },
+        {
+          "x": 4,
+          "y": 2,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 11,
+          "ay": 5
+        },
+        {
+          "x": 4,
+          "y": 3,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 11,
+          "ay": 6
+        },
+        {
+          "x": 4,
+          "y": 4,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 11,
+          "ay": 7
+        },
+        {
+          "x": 17,
+          "y": -10,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 4,
+          "ay": 8
+        },
+        {
+          "x": 17,
+          "y": -9,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 4,
+          "ay": 9
+        },
+        {
+          "x": 17,
+          "y": -8,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 4,
+          "ay": 10
+        },
+        {
+          "x": 17,
+          "y": -7,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 4,
+          "ay": 11
+        },
+        {
+          "x": 18,
+          "y": -10,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 5,
+          "ay": 8
+        },
+        {
+          "x": 18,
+          "y": -9,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 5,
+          "ay": 9
+        },
+        {
+          "x": 18,
+          "y": -8,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 5,
+          "ay": 10
+        },
+        {
+          "x": 18,
+          "y": -7,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 5,
+          "ay": 11
+        },
+        {
+          "x": 19,
+          "y": -10,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 6,
+          "ay": 8
+        },
+        {
+          "x": 19,
+          "y": -9,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 6,
+          "ay": 9
+        },
+        {
+          "x": 19,
+          "y": -8,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 6,
+          "ay": 10
+        },
+        {
+          "x": 19,
+          "y": -7,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 6,
+          "ay": 11
+        },
+        {
+          "x": 20,
+          "y": -10,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 7,
+          "ay": 8
+        },
+        {
+          "x": 20,
+          "y": -9,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 7,
+          "ay": 9
+        },
+        {
+          "x": 20,
+          "y": -8,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 7,
+          "ay": 10
+        },
+        {
+          "x": 20,
+          "y": -7,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 7,
+          "ay": 11
+        },
+        {
+          "x": 0,
+          "y": -15,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 0,
+          "ay": 8
+        },
+        {
+          "x": 0,
+          "y": -14,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 0,
+          "ay": 9
+        },
+        {
+          "x": 0,
+          "y": -13,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 0,
+          "ay": 10
+        },
+        {
+          "x": 0,
+          "y": -12,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 0,
+          "ay": 11
+        },
+        {
+          "x": 1,
+          "y": -15,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 1,
+          "ay": 8
+        },
+        {
+          "x": 1,
+          "y": -14,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 1,
+          "ay": 9
+        },
+        {
+          "x": 1,
+          "y": -13,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 1,
+          "ay": 10
+        },
+        {
+          "x": 1,
+          "y": -12,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 1,
+          "ay": 11
+        },
+        {
+          "x": 2,
+          "y": -15,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 2,
+          "ay": 8
+        },
+        {
+          "x": 2,
+          "y": -14,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 2,
+          "ay": 9
+        },
+        {
+          "x": 2,
+          "y": -13,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 2,
+          "ay": 10
+        },
+        {
+          "x": 2,
+          "y": -12,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 2,
+          "ay": 11
+        },
+        {
+          "x": 3,
+          "y": -15,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 3,
+          "ay": 8
+        },
+        {
+          "x": 3,
+          "y": -14,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 3,
+          "ay": 9
+        },
+        {
+          "x": 3,
+          "y": -13,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 3,
+          "ay": 10
+        },
+        {
+          "x": 3,
+          "y": -12,
+          "texture": "small_House_light_with_door_grass.png",
+          "ax": 3,
+          "ay": 11
+        },
+        {
+          "x": -6,
+          "y": 5,
+          "texture": "small_huts_with_doors_grass.png",
+          "ax": 4,
+          "ay": 0
+        },
+        {
+          "x": -6,
+          "y": 6,
+          "texture": "small_huts_with_doors_grass.png",
+          "ax": 4,
+          "ay": 1
+        },
+        {
+          "x": -6,
+          "y": 7,
+          "texture": "small_huts_with_doors_grass.png",
+          "ax": 4,
+          "ay": 2
+        },
+        {
+          "x": -6,
+          "y": 8,
+          "texture": "small_huts_with_doors_grass.png",
+          "ax": 4,
+          "ay": 3
+        },
+        {
+          "x": -5,
+          "y": 5,
+          "texture": "small_huts_with_doors_grass.png",
+          "ax": 5,
+          "ay": 0
+        },
+        {
+          "x": -5,
+          "y": 6,
+          "texture": "small_huts_with_doors_grass.png",
+          "ax": 5,
+          "ay": 1
+        },
+        {
+          "x": -5,
+          "y": 7,
+          "texture": "small_huts_with_doors_grass.png",
+          "ax": 5,
+          "ay": 2
+        },
+        {
+          "x": -5,
+          "y": 8,
+          "texture": "small_huts_with_doors_grass.png",
+          "ax": 5,
+          "ay": 3
+        },
+        {
+          "x": -4,
+          "y": 5,
+          "texture": "small_huts_with_doors_grass.png",
+          "ax": 6,
+          "ay": 0
+        },
+        {
+          "x": -4,
+          "y": 6,
+          "texture": "small_huts_with_doors_grass.png",
+          "ax": 6,
+          "ay": 1
+        },
+        {
+          "x": -4,
+          "y": 7,
+          "texture": "small_huts_with_doors_grass.png",
+          "ax": 6,
+          "ay": 2
+        },
+        {
+          "x": -4,
+          "y": 8,
+          "texture": "small_huts_with_doors_grass.png",
+          "ax": 6,
+          "ay": 3
+        },
+        {
+          "x": -3,
+          "y": 5,
+          "texture": "small_huts_with_doors_grass.png",
+          "ax": 7,
+          "ay": 0
+        },
+        {
+          "x": -3,
+          "y": 6,
+          "texture": "small_huts_with_doors_grass.png",
+          "ax": 7,
+          "ay": 1
+        },
+        {
+          "x": -3,
+          "y": 7,
+          "texture": "small_huts_with_doors_grass.png",
+          "ax": 7,
+          "ay": 2
+        },
+        {
+          "x": -3,
+          "y": 8,
+          "texture": "small_huts_with_doors_grass.png",
+          "ax": 7,
+          "ay": 3
+        },
+        {
+          "x": 11,
+          "y": -15,
+          "texture": "small_huts_with_doors_grass.png",
+          "ax": 0,
+          "ay": 8
+        },
+        {
+          "x": 11,
+          "y": -14,
+          "texture": "small_huts_with_doors_grass.png",
+          "ax": 0,
+          "ay": 9
+        },
+        {
+          "x": 11,
+          "y": -13,
+          "texture": "small_huts_with_doors_grass.png",
+          "ax": 0,
+          "ay": 10
+        },
+        {
+          "x": 11,
+          "y": -12,
+          "texture": "small_huts_with_doors_grass.png",
+          "ax": 0,
+          "ay": 11
+        },
+        {
+          "x": 12,
+          "y": -15,
+          "texture": "small_huts_with_doors_grass.png",
+          "ax": 1,
+          "ay": 8
+        },
+        {
+          "x": 12,
+          "y": -14,
+          "texture": "small_huts_with_doors_grass.png",
+          "ax": 1,
+          "ay": 9
+        },
+        {
+          "x": 12,
+          "y": -13,
+          "texture": "small_huts_with_doors_grass.png",
+          "ax": 1,
+          "ay": 10
+        },
+        {
+          "x": 12,
+          "y": -12,
+          "texture": "small_huts_with_doors_grass.png",
+          "ax": 1,
+          "ay": 11
+        },
+        {
+          "x": 13,
+          "y": -15,
+          "texture": "small_huts_with_doors_grass.png",
+          "ax": 2,
+          "ay": 8
+        },
+        {
+          "x": 13,
+          "y": -14,
+          "texture": "small_huts_with_doors_grass.png",
+          "ax": 2,
+          "ay": 9
+        },
+        {
+          "x": 13,
+          "y": -13,
+          "texture": "small_huts_with_doors_grass.png",
+          "ax": 2,
+          "ay": 10
+        },
+        {
+          "x": 13,
+          "y": -12,
+          "texture": "small_huts_with_doors_grass.png",
+          "ax": 2,
+          "ay": 11
+        },
+        {
+          "x": 14,
+          "y": -15,
+          "texture": "small_huts_with_doors_grass.png",
+          "ax": 3,
+          "ay": 8
+        },
+        {
+          "x": 14,
+          "y": -14,
+          "texture": "small_huts_with_doors_grass.png",
+          "ax": 3,
+          "ay": 9
+        },
+        {
+          "x": 14,
+          "y": -13,
+          "texture": "small_huts_with_doors_grass.png",
+          "ax": 3,
+          "ay": 10
+        },
+        {
+          "x": 14,
+          "y": -12,
+          "texture": "small_huts_with_doors_grass.png",
+          "ax": 3,
+          "ay": 11
+        }
+      ]
+    },
+    {
+      "name": "Decoration",
+      "type": "tiles",
+      "cells": [
+        {
+          "x": 53,
+          "y": 6,
+          "texture": "small_huts_with_doors_grass.png",
+          "ax": 0,
+          "ay": 8
+        },
+        {
+          "x": -15,
+          "y": 2,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 6,
+          "ay": 0
+        },
+        {
+          "x": -15,
+          "y": 3,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 6,
+          "ay": 1
+        },
+        {
+          "x": -15,
+          "y": 4,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 6,
+          "ay": 2
+        },
+        {
+          "x": -14,
+          "y": 2,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 7,
+          "ay": 0
+        },
+        {
+          "x": -14,
+          "y": 3,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 7,
+          "ay": 1
+        },
+        {
+          "x": -14,
+          "y": 4,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 7,
+          "ay": 2
+        },
+        {
+          "x": -13,
+          "y": 2,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 8,
+          "ay": 0
+        },
+        {
+          "x": -13,
+          "y": 3,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 8,
+          "ay": 1
+        },
+        {
+          "x": -13,
+          "y": 4,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 8,
+          "ay": 2
+        },
+        {
+          "x": -17,
+          "y": -8,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 6,
+          "ay": 0
+        },
+        {
+          "x": -17,
+          "y": -7,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 6,
+          "ay": 1
+        },
+        {
+          "x": -17,
+          "y": -6,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 6,
+          "ay": 2
+        },
+        {
+          "x": -16,
+          "y": -8,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 7,
+          "ay": 0
+        },
+        {
+          "x": -16,
+          "y": -7,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 7,
+          "ay": 1
+        },
+        {
+          "x": -16,
+          "y": -6,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 7,
+          "ay": 2
+        },
+        {
+          "x": -15,
+          "y": -8,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 8,
+          "ay": 0
+        },
+        {
+          "x": -15,
+          "y": -7,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 8,
+          "ay": 1
+        },
+        {
+          "x": -15,
+          "y": -6,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 8,
+          "ay": 2
+        },
+        {
+          "x": -4,
+          "y": -12,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 3,
+          "ay": 1
+        },
+        {
+          "x": -4,
+          "y": -11,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 3,
+          "ay": 2
+        },
+        {
+          "x": 9,
+          "y": -7,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 3,
+          "ay": 1
+        },
+        {
+          "x": 9,
+          "y": -6,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 3,
+          "ay": 2
+        },
+        {
+          "x": 5,
+          "y": 3,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 3,
+          "ay": 1
+        },
+        {
+          "x": 5,
+          "y": 4,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 3,
+          "ay": 2
+        },
+        {
+          "x": 17,
+          "y": 5,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 3,
+          "ay": 1
+        },
+        {
+          "x": 17,
+          "y": 6,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 3,
+          "ay": 2
+        },
+        {
+          "x": -4,
+          "y": 10,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 3,
+          "ay": 1
+        },
+        {
+          "x": -4,
+          "y": 11,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 3,
+          "ay": 2
+        },
+        {
+          "x": -7,
+          "y": 11,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 8,
+          "ay": 4
+        },
+        {
+          "x": 6,
+          "y": 5,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 8,
+          "ay": 4
+        },
+        {
+          "x": -12,
+          "y": 3,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 8,
+          "ay": 4
+        },
+        {
+          "x": 8,
+          "y": -2,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 8,
+          "ay": 4
+        },
+        {
+          "x": 18,
+          "y": -6,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 8,
+          "ay": 4
+        },
+        {
+          "x": 12,
+          "y": -11,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 8,
+          "ay": 4
+        },
+        {
+          "x": -18,
+          "y": -6,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 8,
+          "ay": 4
+        },
+        {
+          "x": -20,
+          "y": -1,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 8,
+          "ay": 4
+        },
+        {
+          "x": 19,
+          "y": 6,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 8,
+          "ay": 4
+        },
+        {
+          "x": 0,
+          "y": 11,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 4,
+          "ay": 7
+        },
+        {
+          "x": 1,
+          "y": 11,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 5,
+          "ay": 7
+        },
+        {
+          "x": -2,
+          "y": 1,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 4,
+          "ay": 7
+        },
+        {
+          "x": -1,
+          "y": 1,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 5,
+          "ay": 7
+        },
+        {
+          "x": 10,
+          "y": -3,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 4,
+          "ay": 7
+        },
+        {
+          "x": 11,
+          "y": -3,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 5,
+          "ay": 7
+        },
+        {
+          "x": 8,
+          "y": -14,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 4,
+          "ay": 7
+        },
+        {
+          "x": 9,
+          "y": -14,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 5,
+          "ay": 7
+        },
+        {
+          "x": -4,
+          "y": -9,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 4,
+          "ay": 7
+        },
+        {
+          "x": -3,
+          "y": -9,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 5,
+          "ay": 7
+        },
+        {
+          "x": -6,
+          "y": -5,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 4,
+          "ay": 7
+        },
+        {
+          "x": -5,
+          "y": -5,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 5,
+          "ay": 7
+        },
+        {
+          "x": -19,
+          "y": -3,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 4,
+          "ay": 5
+        },
+        {
+          "x": -19,
+          "y": -2,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 4,
+          "ay": 6
+        },
+        {
+          "x": -18,
+          "y": -3,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 5,
+          "ay": 5
+        },
+        {
+          "x": -18,
+          "y": -2,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 5,
+          "ay": 6
+        },
+        {
+          "x": 8,
+          "y": 1,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 4,
+          "ay": 5
+        },
+        {
+          "x": 8,
+          "y": 2,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 4,
+          "ay": 6
+        },
+        {
+          "x": 9,
+          "y": 1,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 5,
+          "ay": 5
+        },
+        {
+          "x": 9,
+          "y": 2,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 5,
+          "ay": 6
+        },
+        {
+          "x": 0,
+          "y": 5,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 4,
+          "ay": 5
+        },
+        {
+          "x": 0,
+          "y": 6,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 4,
+          "ay": 6
+        },
+        {
+          "x": 1,
+          "y": 5,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 5,
+          "ay": 5
+        },
+        {
+          "x": 1,
+          "y": 6,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 5,
+          "ay": 6
+        },
+        {
+          "x": -10,
+          "y": 6,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 6,
+          "ay": 5
+        },
+        {
+          "x": -10,
+          "y": 7,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 6,
+          "ay": 6
+        },
+        {
+          "x": -9,
+          "y": 6,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 7,
+          "ay": 5
+        },
+        {
+          "x": -9,
+          "y": 7,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 7,
+          "ay": 6
+        },
+        {
+          "x": 4,
+          "y": 10,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 6,
+          "ay": 5
+        },
+        {
+          "x": 4,
+          "y": 11,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 6,
+          "ay": 6
+        },
+        {
+          "x": 5,
+          "y": 10,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 7,
+          "ay": 5
+        },
+        {
+          "x": 5,
+          "y": 11,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 7,
+          "ay": 6
+        },
+        {
+          "x": 19,
+          "y": -6,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 6,
+          "ay": 5
+        },
+        {
+          "x": 19,
+          "y": -5,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 6,
+          "ay": 6
+        },
+        {
+          "x": 20,
+          "y": -6,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 7,
+          "ay": 5
+        },
+        {
+          "x": 20,
+          "y": -5,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 7,
+          "ay": 6
+        },
+        {
+          "x": -2,
+          "y": -13,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 6,
+          "ay": 5
+        },
+        {
+          "x": -2,
+          "y": -12,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 6,
+          "ay": 6
+        },
+        {
+          "x": -1,
+          "y": -13,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 7,
+          "ay": 5
+        },
+        {
+          "x": -1,
+          "y": -12,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 7,
+          "ay": 6
+        },
+        {
+          "x": -3,
+          "y": -11,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 6,
+          "ay": 5
+        },
+        {
+          "x": -3,
+          "y": -10,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 6,
+          "ay": 6
+        },
+        {
+          "x": -2,
+          "y": -11,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 7,
+          "ay": 5
+        },
+        {
+          "x": -2,
+          "y": -10,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 7,
+          "ay": 6
+        },
+        {
+          "x": 5,
+          "y": 1,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 0,
+          "ay": 5
+        },
+        {
+          "x": 5,
+          "y": 2,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 0,
+          "ay": 6
+        },
+        {
+          "x": 6,
+          "y": 1,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 1,
+          "ay": 5
+        },
+        {
+          "x": 6,
+          "y": 2,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 1,
+          "ay": 6
+        },
+        {
+          "x": 9,
+          "y": 4,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 0,
+          "ay": 5
+        },
+        {
+          "x": 9,
+          "y": 5,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 0,
+          "ay": 6
+        },
+        {
+          "x": 10,
+          "y": 4,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 1,
+          "ay": 5
+        },
+        {
+          "x": 10,
+          "y": 5,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 1,
+          "ay": 6
+        },
+        {
+          "x": -8,
+          "y": 8,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 0,
+          "ay": 5
+        },
+        {
+          "x": -8,
+          "y": 9,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 0,
+          "ay": 6
+        },
+        {
+          "x": -7,
+          "y": 8,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 1,
+          "ay": 5
+        },
+        {
+          "x": -7,
+          "y": 9,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 1,
+          "ay": 6
+        },
+        {
+          "x": 12,
+          "y": -7,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 0,
+          "ay": 5
+        },
+        {
+          "x": 12,
+          "y": -6,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 0,
+          "ay": 6
+        },
+        {
+          "x": 13,
+          "y": -7,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 1,
+          "ay": 5
+        },
+        {
+          "x": 13,
+          "y": -6,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 1,
+          "ay": 6
+        },
+        {
+          "x": -14,
+          "y": -7,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 2,
+          "ay": 5
+        },
+        {
+          "x": -14,
+          "y": -6,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 2,
+          "ay": 6
+        },
+        {
+          "x": -13,
+          "y": -7,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 3,
+          "ay": 5
+        },
+        {
+          "x": -13,
+          "y": -6,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 3,
+          "ay": 6
+        },
+        {
+          "x": 21,
+          "y": -12,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 2,
+          "ay": 5
+        },
+        {
+          "x": 21,
+          "y": -11,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 2,
+          "ay": 6
+        },
+        {
+          "x": 22,
+          "y": -12,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 3,
+          "ay": 5
+        },
+        {
+          "x": 22,
+          "y": -11,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 3,
+          "ay": 6
+        },
+        {
+          "x": 20,
+          "y": 5,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 2,
+          "ay": 5
+        },
+        {
+          "x": 20,
+          "y": 6,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 2,
+          "ay": 6
+        },
+        {
+          "x": 21,
+          "y": 5,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 3,
+          "ay": 5
+        },
+        {
+          "x": 21,
+          "y": 6,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 3,
+          "ay": 6
+        },
+        {
+          "x": -6,
+          "y": 9,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 9,
+          "ay": 7
+        },
+        {
+          "x": -5,
+          "y": 9,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 10,
+          "ay": 7
+        },
+        {
+          "x": -14,
+          "y": 11,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 9,
+          "ay": 7
+        },
+        {
+          "x": -13,
+          "y": 11,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 10,
+          "ay": 7
+        },
+        {
+          "x": 1,
+          "y": -1,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 9,
+          "ay": 7
+        },
+        {
+          "x": 2,
+          "y": -1,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 10,
+          "ay": 7
+        },
+        {
+          "x": 6,
+          "y": -2,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 9,
+          "ay": 7
+        },
+        {
+          "x": 7,
+          "y": -2,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 10,
+          "ay": 7
+        },
+        {
+          "x": 10,
+          "y": -5,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 9,
+          "ay": 7
+        },
+        {
+          "x": 11,
+          "y": -5,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 10,
+          "ay": 7
+        },
+        {
+          "x": 10,
+          "y": -10,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 9,
+          "ay": 7
+        },
+        {
+          "x": 11,
+          "y": -10,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 10,
+          "ay": 7
+        },
+        {
+          "x": -4,
+          "y": -13,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 9,
+          "ay": 7
+        },
+        {
+          "x": -3,
+          "y": -13,
+          "texture": "Trees, stumps and bushes v2.png",
+          "ax": 10,
+          "ay": 7
+        }
+      ]
+    }
+  ]
+}
