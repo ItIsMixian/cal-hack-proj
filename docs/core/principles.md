@@ -9,6 +9,27 @@ Status: agreed in discussion on 2026-10-24. Change only together, and record why
 of themselves. Mirrors live in a shared 2D town, get to know each other, and only when there is a real
 reason does anything reach the humans, and only if both want it.
 
+## The premise
+
+**People have to feel that their mirror is them, living on in a world that continues their real one.**
+Without that sense of ownership and identification, the diary is someone else's story, people read
+it as spectators, and nobody reaches out to the people in it. Everything below depends on this, so it
+is treated as an assumption to test, not a given.
+
+Where it comes from:
+
+- **Shaping it yourself**: small choices while making and correcting the mirror (the IKEA effect,
+  Norton, Mochon & Ariely 2012), not a profile generated for you.
+- **Recognizing yourself**: it says things you would say, about things you actually care about.
+- **Continuity with real life**: what it does today comes from what you really mean to do today, and
+  the diary answers back to that.
+- **A little care**: a ten-second "before you head out" ritual (today's intent, one thing to bring
+  up), like packing for the frog in Travel Frog.
+- **Real stakes**: the people in the diary are real people.
+
+How we test it: owners pick their mirror's line out of three (their own, their mirror's, someone
+else's mirror's); and whether they open the diary again and show interest in someone.
+
 ## The core feature
 
 **Your mirror does the first encounter for you, writes it down in its diary, and you decide whether to

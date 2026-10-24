@@ -9,6 +9,10 @@ said which feature everything else serves. Discussion settled on one core loop.
 
 ## Proposal
 
+State the premise first: people must feel their mirror is them, continuing their real life.
+Without it the core loop does not work, so it is written as an assumption to test, with how to test it.
+
+
 Add a "core feature" section: the mirror does the first encounter, writes it in its diary, and the
 owner decides whether to pick it up (meet → diary → mutual interest → contact). Make the priority test
 explicit, mark the Mirror Room and the town rhythm as supporting, everything else optional. Update the
