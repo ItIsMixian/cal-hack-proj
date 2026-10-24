@@ -23,5 +23,5 @@ removes rejection, and hiding one-sided waves removes the awkwardness of being i
 
 ## Consequences
 
-- Open question (backlog): postcards may quote the other person's self-card ("quiet but funny"). Decide
-  whether postcards should only use the other person's public intent and what was said aloud.
+- Open question: postcards may quote the other person's self-card ("quiet but funny"). See
+  [proposed-postcard-privacy](proposed-postcard-privacy.md).

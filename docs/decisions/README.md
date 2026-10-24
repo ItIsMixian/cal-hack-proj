@@ -4,11 +4,32 @@ Each record covers one question: context, choice, reasons, alternatives, consequ
 Proposed / Accepted / Superseded; Accepted does not mean implemented, so each file also says whether it
 is implemented. Later decisions amend or supersede earlier ones instead of rewriting them.
 
-| # | Decision | Status | Implemented |
-| --- | --- | --- | --- |
-| [0001](0001-spacetimedb-rewrite.md) | Build from scratch on SpacetimeDB, no AI Town code | Accepted | Yes |
-| [0002](0002-model-split.md) | DeepSeek for mirror chatter, Claude for judgments | Accepted | Partly (Claude path untested) |
-| [0003](0003-postcards-and-waves.md) | Postcards and mutual waves instead of popups and yes/no | Accepted | Yes |
-| [0004](0004-evidence-and-conduct.md) | Mirror conduct rules and evidence-checked connections | Accepted | Yes |
-| [0005](0005-mirror-room-privacy.md) | Mirror Room: local redaction, facets, personal cards, per-room defaults | Accepted | Yes (venue room only) |
-| [0006](0006-marglo-as-a-source.md) | Marglo is one data source among many | Accepted | No |
+## How we work on decisions (two people, two branches)
+
+- Everyone works on their own branch off `main` (e.g. `yw/postcard-privacy`) and merges through a PR
+  the other person has looked at.
+- A new decision starts **unnumbered** as `proposed-<topic>.md` with `Status: Proposed`. Drafts on
+  different branches never collide.
+- Numbers are only assigned on `main`: when both agree, rename it to the next free number
+  (`0007-<topic>.md`), set `Status: Accepted (date)`, and add it to the table below in the same PR.
+- Ideas that nobody has evaluated yet go to `../backlog.md`, not here. A Proposed decision is a concrete
+  choice with alternatives that only needs agreement.
+
+## Accepted
+
+| # | Decision | Implemented |
+| --- | --- | --- |
+| [0001](0001-spacetimedb-rewrite.md) | Build from scratch on SpacetimeDB, no AI Town code | Yes |
+| [0002](0002-model-split.md) | DeepSeek for mirror chatter, Claude for judgments | Partly (Claude path untested) |
+| [0003](0003-postcards-and-waves.md) | Postcards and mutual waves instead of popups and yes/no | Yes |
+| [0004](0004-evidence-and-conduct.md) | Mirror conduct rules and evidence-checked connections | Yes |
+| [0005](0005-mirror-room-privacy.md) | Mirror Room: local redaction, facets, personal cards, per-room defaults | Yes (venue room only) |
+| [0006](0006-marglo-as-a-source.md) | Marglo is one data source among many | No |
+
+## Proposed
+
+| Draft | Question |
+| --- | --- |
+| [postcard-privacy](proposed-postcard-privacy.md) | What may a postcard say about the other person? |
+| [public-deployment](proposed-public-deployment.md) | How do people at the venue reach Mirrorville? |
+| [creao-team-brief](proposed-creao-team-brief.md) | Should a CREAO agent write a team brief after both wave? |

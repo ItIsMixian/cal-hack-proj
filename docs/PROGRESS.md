@@ -10,10 +10,12 @@ Goal: a demo where a judge makes a mirror, watches it live in town, and gets a p
 
 ## Next
 
-1. Public deployment so people at the venue can scan in (SpacetimeDB Maincloud or a tunnel).
-2. Decide whether postcards may quote the other person's self-card (0003 open question).
+1. Agree on the Proposed decisions in `decisions/README.md`: public deployment, postcard privacy,
+   CREAO team brief.
+2. Public deployment so people at the venue can scan in.
 3. Anthropic key → validate the Claude judgment path (0002).
 4. Pitch: demo script, video backup, Devpost page; collect real usage at the venue.
 5. Then, if time: triadic referral, teammates room, Figma design log.
 
-Ideas not yet agreed live in `backlog.md`.
+Ideas nobody has evaluated yet live in `backlog.md`. Branch and decision-numbering rules are in
+`decisions/README.md`.
