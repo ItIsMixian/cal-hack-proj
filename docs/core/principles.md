@@ -1,6 +1,7 @@
 # Principles
 
 Status: agreed in discussion on 2026-10-24. Change only together, and record why in `docs/decisions/`.
+**This branch proposes changes; see `docs/decisions/proposed-core-loop.md`.**
 
 ## Goal
 
@@ -8,24 +9,39 @@ Status: agreed in discussion on 2026-10-24. Change only together, and record why
 of themselves. Mirrors live in a shared 2D town, get to know each other, and only when there is a real
 reason does anything reach the humans, and only if both want it.
 
+## The core feature
+
+**Your mirror does the first encounter for you, writes it down in its diary, and you decide whether to
+pick it up.** One loop, and the product does not work without any part of it:
+
+1. **Meet**: the mirror lives in town by your intent and personality, runs into people, and talks.
+2. **Diary**: you read who it met today, what came up, and who seemed like a good fit.
+3. **Mutual interest**: you show interest; if they do too, real contact details unlock.
+
+Supporting it, but not the core: the Mirror Room (how much the mirror is like you, and what it may
+say) and the town's daily rhythm (so people with the same intent meet at the right time). Everything
+else (more rooms, referrals, group chats, more sources, voice) is optional.
+
+**Priority test:** does this make "mirror meets someone → they appear in the diary → both are
+interested → contact unlocks" faster or more trustworthy? If yes, it comes first.
+
 ## The demo loop (minimum that must work on stage)
 
 1. A judge scans a QR code and makes a mirror in under a minute.
-2. The mirror walks into town and goes about its day (place, activity, people around it).
-3. It talks to other mirrors in a way that feels like real life.
-4. A postcard arrives about someone worth meeting, with evidence from both people.
-5. Both wave → a private human-to-human chat opens.
+2. Within a few minutes the mirror meets someone and a diary entry appears.
+3. The judge shows interest; the other side (a demo mirror) is interested too; contact details unlock.
 
 ## Invariants
 
 - **The endpoint is two people.** AI starts the conversation; humans have it. Mirrors never speak to
   real people on their owner's behalf.
-- **No pressure.** Nothing pops up, nothing expires, nothing asks for an answer. The only response to
-  a postcard is an optional wave, invisible until both wave. There is no "decline".
+- **No pressure.** Nothing pops up, nothing expires, nothing asks for an answer. Showing interest is
+  optional, ignoring it sends nothing back, and there is no "decline".
 - **Mirrors never overreach.** They only say what their owner's information supports, never promise,
   never make plans, never offer intros they can't back up.
-- **Connections need evidence.** A postcard requires an exact phrase from each person's own
-  information, checked by the server. Generic overlap ("both like AI") never counts. At most two a day.
+- **Good fits need a reason.** A "good fit" needs one of the three reasons in 0004, grounded in what the
+  two people actually shared. Generic overlap ("both like AI") never counts. (How strictly this is
+  checked is under review.)
 - **Privacy by construction.** Imports are parsed in the browser; only the owner's own lines leave
   the device, redacted. Nothing about third parties is kept. Raw text is never stored. Personal cards
   are hidden everywhere until the owner turns them on.
