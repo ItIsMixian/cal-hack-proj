@@ -113,6 +113,15 @@ test('file UI combines CSVs, submits only sanitized own text, and blocks a bad r
   assert.equal(submitted[0].text, preview.props.value);
   assert.equal(submitted[0].source, 'WeChat / PyWxDump · friends');
   assert.ok(!JSON.stringify({ ...submitted[0], mirrorId: '1' }).includes('private'));
+  await choose([
+    file('ai-one.txt', '# Mirrorville scene: ai\n' + 'A'.repeat(30_000)),
+    file('ai-two.txt', '# Mirrorville scene: ai\n' + 'B'.repeat(30_000)),
+  ]);
+  await submit().props.onClick();
+  assert.equal(submitted[1].relation, 'ai');
+  assert.equal(submitted[1].source, 'AI assistant · ai');
+  assert.ok(submitted[1].text.length <= 30_000);
+  assert.equal(submitted[1].text.match(/A/g).length, submitted[1].text.match(/B/g).length);
   await choose([file('valid.csv', csv([[1, 1, '文本', 'This previous import is long enough to submit to the server.', 'me']]))]);
   await choose([file('bad.csv', 'sender,body\nother,SECRET')]);
   assert.equal(submit().props.disabled, true);

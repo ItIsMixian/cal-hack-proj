@@ -7,10 +7,11 @@ import { useReducer, useTable } from 'spacetimedb/react';
 import { reducers, tables } from './module_bindings';
 import type { MirrorCard } from './module_bindings/types';
 import {
-  FACETS, FACET_LABELS, RELATIONS, ROOMS, ROOM_LABELS, isVisibleIn, redact, type Facet, type Room,
+  FACETS, FACET_LABELS, RELATIONS, RELATION_LABELS, ROOMS, ROOM_LABELS, isVisibleIn, redact, type Facet, type Room,
 } from '../spacetimedb/src/redact';
+import { ownerWords } from '../spacetimedb/src/fidelity';
 import CharacterAvatar from './CharacterAvatar';
-import { decodeImportFile, looksLikeWeChatCsv, ownWords, parseWeChatCsv, parseWhatsApp, type ParsedChat, type WeChatImport } from './importers';
+import { decodeImportFile, looksLikeWeChatCsv, ownWords, parseWeChatCsv, parseWhatsApp, newestDate, sourceScene, sourceDate, sampleFiles, type ParsedChat, type WeChatImport } from './importers';
 
 const MAX_UPLOAD = 30_000;
 
@@ -18,6 +19,7 @@ export default function MirrorRoom(props: { mirrorId: bigint; onBack: () => void
   const [activeObject, setActiveObject] = useState<RoomObject | null>(null);
   const [myMirrors] = useTable(tables.myMirrors);
   const [allCards] = useTable(tables.myCards);
+  const [summaries] = useTable(tables.mySummaries);
   const [imports] = useTable(tables.myImports);
   const mirror = myMirrors.find((m) => m.id === props.mirrorId);
   const cards = useMemo(
@@ -44,6 +46,7 @@ export default function MirrorRoom(props: { mirrorId: bigint; onBack: () => void
         <div><p className="room-kicker">MIRRORVILLE / HOME</p><h1>{mirror.name}'s room</h1></div>
         <span className="room-private">Just for you</span>
       </div>
+      <p className="room-summary">{ownerWords(summaries.find(summary => summary.mirrorId === mirror.id)?.text || mirror.selfCard)}</p>
       <PixelRoom name={mirror.name} look={mirror.look} onOpen={object => {
         setActiveObject(object);
         if (object === 'diary') props.onDiaryOpen?.();
@@ -53,7 +56,7 @@ export default function MirrorRoom(props: { mirrorId: bigint; onBack: () => void
         {activeObject === 'mirror' && <>
           <div className="room-portrait"><CharacterAvatar look={mirror.look} name={mirror.name} />
             <div><h3>{mirror.name}</h3><p>Your mirror sees you as someone who…</p></div></div>
-          <p className="room-self-card">{mirror.selfCard}</p>
+          <p className="room-self-card">{ownerWords(mirror.selfCard)}</p>
           <p className="muted">Today: {mirror.intent || 'No intent set. A little room to wander.'}</p>
           <p className="muted small">Showing {sharedHere} of {cards.length} cards at Cal Hacks. You decide which sides of you your mirror brings along.</p>
           <button onClick={() => setActiveObject('cards')}>Open the card collection →</button>
@@ -67,11 +70,16 @@ export default function MirrorRoom(props: { mirrorId: bigint; onBack: () => void
           {FACETS.map((facet) => {
             const group = everyday.filter((c) => c.facet === facet);
             return group.length > 0 && <div key={facet} className="facet"><h3>{FACET_LABELS[facet]}</h3>
-              {group.map(card => <CardView key={String(card.id)} card={card} />)}</div>;
+              {group.slice(0, 2).map(card => <CardView key={String(card.id)} card={card} />)}</div>;
           })}
           {personal.length > 0 && <div className="facet private"><h3>Only you see these</h3>
             <p className="muted small">These sounded personal, so your mirror keeps them to itself. Turn one on for a room if you want it to know.</p>
-            {personal.map(card => <CardView key={String(card.id)} card={card} />)}</div>}
+            {FACETS.flatMap(facet => personal.filter(card => card.facet === facet).slice(0, Math.max(0, 2 - everyday.filter(card => card.facet === facet).length))).map(card => <CardView key={String(card.id)} card={card} />)}</div>}
+          {FACETS.some(facet => cards.filter(card => card.facet === facet).length > 2) && <details>
+            <summary>More cards kept from your edits or earlier imports</summary>
+            {FACETS.flatMap(facet => [...everyday.filter(card => card.facet === facet), ...personal.filter(card => card.facet === facet)].slice(2))
+              .map(card => <CardView key={String(card.id)} card={card} />)}
+          </details>}
           <p className="muted small rooms-note">Defaults: strangers at Cal Hacks and teammates see who you are, what you do and what you're into; what you've been up to and your softer side stay with old friends. Only the Cal Hacks room is open so far; your choices carry over.</p>
           <AddCard mirrorId={mirror.id} />
         </>}
@@ -147,7 +155,7 @@ function CardView({ card }: { card: MirrorCard }) {
           </button>
         </div>
       ) : (
-        <p className="mcard-text">{card.text}</p>
+        <p className="mcard-text">{ownerWords(card.text)}</p>
       )}
       <div className="chips">
         {ROOMS.map((room) => (
@@ -158,7 +166,7 @@ function CardView({ card }: { card: MirrorCard }) {
             onClick={() => toggle(room)}
             title={isVisibleIn(card, room) ? `Shown in ${ROOM_LABELS[room]}` : `Hidden in ${ROOM_LABELS[room]}`}
           >
-            {ROOM_LABELS[room]}
+            {isVisibleIn(card, room) ? '✓ ' : '✗ '}{ROOM_LABELS[room]}
           </button>
         ))}
       </div>
@@ -199,25 +207,35 @@ function Importer({ mirrorId, busy }: { mirrorId: bigint; busy: boolean }) {
   const [pasted, setPasted] = useState('');
   const [fileName, setFileName] = useState('');
   const [me, setMe] = useState('');
-  const [relation, setRelation] = useState<(typeof RELATIONS)[number]>('friends');
+  const [relation, setRelation] = useState<(typeof RELATIONS)[number]>('other');
+  const [latestAt, setLatestAt] = useState('');
+  const [changingScene, setChangingScene] = useState(false);
   const [error, setError] = useState('');
 
   const onFiles = async (files: File[]) => {
-    setError(''); setChat(null); setWechat(null); setPasted(''); setMe(''); setFileName('');
+    setError(''); setChat(null); setWechat(null); setPasted(''); setMe(''); setFileName(''); setLatestAt('');
     setReading(true);
     try {
       if (files.length > 20 || files.reduce((sum, file) => sum + file.size, 0) > 10 * 1024 * 1024) throw new Error('Please choose up to 20 files, under 10 MB in total.');
       const values = await Promise.all(files.map(async file => decodeImportFile(await file.arrayBuffer())));
       const value = values[0];
-      if (files.length > 1 || /\.csv$/i.test(files[0].name) || looksLikeWeChatCsv(value)) {
+      const csv = files.every((file, index) => /\.csv$/i.test(file.name) || looksLikeWeChatCsv(values[index]));
+      if (csv) {
         const parsed = values.map(parseWeChatCsv);
-        setWechat({ text: parsed.map(item => item.text).filter(Boolean).join('\n'),
+        const date = newestDate(...parsed.map(item => item.latestAt));
+        setWechat({ text: sampleFiles(parsed.map(item => item.text)), latestAt: date,
           total: parsed.reduce((sum, item) => sum + item.total, 0), kept: parsed.reduce((sum, item) => sum + item.kept, 0),
           dropped: parsed.reduce((sum, item) => sum + item.dropped, 0) });
+        setLatestAt(date); setRelation('friends');
       } else {
-        const parsed = parseWhatsApp(value);
-        if (parsed) setChat(parsed);
-        else setPasted(value);
+        if (files.some((file,index) => /\.csv$/i.test(file.name) || looksLikeWeChatCsv(values[index]))) throw new Error('Select CSV exports separately from text files.');
+        const parsed = files.length === 1 ? parseWhatsApp(value) : null;
+        if (parsed) { setChat(parsed); setRelation('friends'); }
+        else {
+          setPasted(sampleFiles(values));
+          setRelation(values.every(value => sourceScene(value) === 'ai') ? 'ai' : values.every(value => sourceScene(value) === 'friends') ? 'friends' : 'other');
+          setLatestAt(newestDate(...values.map(sourceDate)));
+        }
       }
       setFileName(`${files.length} ${files.length === 1 ? 'file' : 'files'}`);
     } catch (e) {
@@ -228,13 +246,14 @@ function Importer({ mirrorId, busy }: { mirrorId: bigint; busy: boolean }) {
   const pastedCsv = !chat && !wechat && looksLikeWeChatCsv(pasted);
   const text = wechat ? wechat.text : chat ? (me ? ownWords(chat, me) : '') : pastedCsv ? '' : redact(pasted);
   // Do not send filenames, contact IDs, timestamps or the other speakers' names.
-  const source = `${wechat ? 'WeChat / PyWxDump' : chat ? 'WhatsApp' : 'Your words'} · ${relation}`;
+  const source = `${relation === 'ai' ? 'AI assistant' : wechat ? 'WeChat / PyWxDump' : chat ? 'WhatsApp' : 'Your words'} · ${relation}`;
+  const messageLatestAt = chat ? newestDate(...chat.lines.filter(line => line.speaker === me).map(line => line.at)) : latestAt;
 
   const submit = async () => {
     if (reading || busy || text.trim().length < 40) return;
     setError('');
     try {
-      await importText({ mirrorId, relation, source, text: text.slice(0, MAX_UPLOAD) });
+      await importText({ mirrorId, relation, source, text: text.slice(0, MAX_UPLOAD), latestAt: messageLatestAt });
       setChat(null);
       setWechat(null);
       setPasted('');
@@ -256,18 +275,12 @@ function Importer({ mirrorId, busy }: { mirrorId: bigint; busy: boolean }) {
           event.currentTarget.value = '';
           if (files.length) void onFiles(files);
         }} />
-        <label>
-          Chats with my{' '}
-          <select value={relation} onChange={(e) => setRelation(e.target.value as (typeof RELATIONS)[number])}>
-            {RELATIONS.map((r) => (
-              <option key={r} value={r}>
-                {r}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="scene-choice"><span>Read as: <strong>{RELATION_LABELS[relation]}</strong></span>{' '}
+          <button className="ghost small" aria-expanded={changingScene} onClick={() => setChangingScene(!changingScene)}>change</button>
+          {changingScene && <div className="speakers">{RELATIONS.map(scene => <button key={scene} aria-pressed={relation === scene} onClick={() => { setRelation(scene); setChangingScene(false); }}>{RELATION_LABELS[scene]}</button>)}</div>}
+        </div>
       </div>
-      <p className="muted small">You can select several WeChat CSV files together.</p>
+      <p className="muted small">You can select several CSV exports or AI scene text files together. Each file gets an equal share of the reading limit.</p>
       {reading && <p role="status">Reading the file locally…</p>}
       {wechat ? <div className="wechat-summary" role="status">
         <strong>WeChat / PyWxDump recognized</strong>
@@ -292,7 +305,7 @@ function Importer({ mirrorId, busy }: { mirrorId: bigint; busy: boolean }) {
           aria-label="Your own messages or writing"
           rows={3}
           value={pasted}
-          onChange={(e) => setPasted(e.target.value)}
+          onChange={(e) => { setPasted(e.target.value); setRelation('other'); setLatestAt(''); }}
           placeholder="…or paste your own messages, a bio, an old post"
         />
       )}
@@ -300,6 +313,7 @@ function Importer({ mirrorId, busy }: { mirrorId: bigint; busy: boolean }) {
       {text && <details className="import-preview"><summary>Preview what your mirror will read ({Math.min(text.length, MAX_UPLOAD)} characters)</summary>
         <textarea aria-label="Filtered and redacted import preview" readOnly rows={6} value={text.slice(0, MAX_UPLOAD)} />
       </details>}
+      {messageLatestAt && <p className="muted small">Newest message: {messageLatestAt.slice(0, 10)}</p>}
       {text && text.trim().length < 40 && <p className="muted small">Not enough text yet (at least 40 characters). Select more WeChat CSV files together, or add a note below.</p>}
       {text.length > MAX_UPLOAD && <p className="muted small">Only the first {MAX_UPLOAD.toLocaleString()} characters shown in the preview will be sent.</p>}
       {fileName && <p className="muted small">{fileName} ready in this browser. Filenames are not sent.</p>}

@@ -103,6 +103,7 @@ export const ImportJob = __t.object("ImportJob", {
   relation: __t.string(),
   source: __t.string(),
   text: __t.string(),
+  latestAt: __t.string(),
 });
 export type ImportJob = __Infer<typeof ImportJob>;
 
@@ -186,6 +187,14 @@ export const MirrorProfile = __t.object("MirrorProfile", {
 });
 export type MirrorProfile = __Infer<typeof MirrorProfile>;
 
+export const MirrorSummary = __t.object("MirrorSummary", {
+  mirrorId: __t.u64(),
+  owner: __t.identity(),
+  text: __t.string(),
+  updatedAt: __t.timestamp(),
+});
+export type MirrorSummary = __Infer<typeof MirrorSummary>;
+
 export const MyCards = __t.object("MyCards", {});
 export type MyCards = __Infer<typeof MyCards>;
 
@@ -207,6 +216,9 @@ export type MyMirror = __Infer<typeof MyMirror>;
 
 export const MyMirrors = __t.object("MyMirrors", {});
 export type MyMirrors = __Infer<typeof MyMirrors>;
+
+export const MySummaries = __t.object("MySummaries", {});
+export type MySummaries = __Infer<typeof MySummaries>;
 
 export const Relation = __t.object("Relation", {
   id: __t.u64(),

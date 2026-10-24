@@ -58,6 +58,7 @@ import MyCardsRow from "./my_cards_table";
 import MyDiaryRow from "./my_diary_table";
 import MyImportsRow from "./my_imports_table";
 import MyMirrorsRow from "./my_mirrors_table";
+import MySummariesRow from "./my_summaries_table";
 
 /** Type-only namespace exports for generated type groups. */
 
@@ -127,6 +128,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyMirrorsRow),
+  mySummaries: __table({
+    name: 'my_summaries',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MySummariesRow),
 });
 
 /** The schema information for all reducers in this module. This is defined the same way as the reducers would have been defined in the server, except the body of the reducer is omitted in code generation. */

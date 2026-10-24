@@ -16,6 +16,10 @@
 .pixel-room button:focus-visible, .room-dialog :focus-visible { outline: 3px solid #465e3c; outline-offset: 5px; }
 .pixel-room .room-exit { font-family: 'Pixelify Sans', monospace; white-space: nowrap; font-size: 18px; padding: 8px 12px; }
 .room-private { font-family: 'Pixelify Sans', monospace; font-size: 18px; border-left: 3px solid #9da886; padding-left: 10px; white-space: nowrap; }
+.room-summary { margin: 0 0 14px; padding: 10px 14px; border-left: 4px solid #81936a; background: #eee9d5; font-size: 15px; line-height: 1.5; }
+.room-dialog .chip { background: transparent; border: 2px dashed #776d59; color: #514b3e; }
+.room-dialog .chip.on { background: #536746; color: #fffbea; border: 2px solid #405135; }
+.scene-choice button[aria-pressed='true'] { background: #536746; color: #fffbea; }
 .room-world { padding: 10px; background: #e3ddc9; border: 3px solid #9b9477; box-shadow: 0 6px 0 #c9c0a5, inset 0 0 0 3px #f6f0d9; }
 .room-scene { width: 100%; aspect-ratio: 720 / 460; position: relative; isolation: isolate; }
 .room-interior { position: absolute; inset: 0; width: 100%; height: 100%; }
@@ -33,7 +37,7 @@
 .room-resident .character-avatar { background: transparent; border: 0; width: 64px; height: 72px; border-radius: 0; overflow: visible; }
 .room-resident .character-avatar::before { content: ''; position: absolute; bottom: 0; left: 10px; right: 10px; height: 8px; background: #4c543545; border-radius: 50%; }
 .room-resident .character-avatar-sprite { transform: scale(2.5); }
-.room-resident > span { background: #e7e8c7; font-size: 15px; }
+.room-resident > span { background: #e7e8c7; font-size: 15px; width: max-content; max-width: 110px; }
 .room-dialogue { display: flex; align-items: center; gap: 18px; background: #f7efd9; border: 3px solid #9c8a69; padding: 14px 20px; margin: 8px 8px 4px; min-height: 92px; box-shadow: inset 0 0 0 3px #e8ddbe; }
 .room-dialogue-mark { color: #7c916c; font-size: 34px; }
 .room-dialogue strong { font-family: 'Pixelify Sans', monospace; font-size: 23px; font-weight: 500; }
@@ -55,7 +59,7 @@
 .room-dialog .importer { background: transparent; border: 0; padding: 0; margin: 0 0 24px; }
 .room-dialog .mcard { opacity: 1; border: 2px solid #d9caab; background: #fffaed; border-radius: 2px; padding: 12px; }
 .room-dialog .chip { font-size: 13px; box-shadow: none; }
-.room-dialog .chip.on { background: #e3e8cf; color: #425b35; border: 2px solid #83956f; }
+.room-dialog .chip.on { background: #536746; color: #fffbea; border: 2px solid #405135; }
 .room-dialog .mcard-edit { flex-wrap: wrap; }
 .room-dialog .mcard-edit input { flex: 1 1 100%; }
 .room-dialog .add-card button { flex-shrink: 0; white-space: nowrap; }

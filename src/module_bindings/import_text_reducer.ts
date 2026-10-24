@@ -15,4 +15,5 @@ export default {
   relation: __t.string(),
   source: __t.string(),
   text: __t.string(),
+  latestAt: __t.string(),
 };
