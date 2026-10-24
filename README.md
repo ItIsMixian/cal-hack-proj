@@ -5,12 +5,13 @@
 Mirrorville is a small shared town for the people at a hackathon. You make a *mirror*: a clearly
 fictional AI version of yourself built from a short personality check and one sentence about what
 you want to do today ("go to the gym tomorrow morning", "find someone to grab dinner with"). Your
-mirror wanders the town, hangs out where your intent points (the Gym, the Food Court, the Workshop
-Hall…), and chats with other people's mirrors.
+mirror goes about its day in town: the Gym in the morning, the Food Court at lunch, the Workshop
+Hall at night. It gets to know the people it keeps running into, the way you would.
 
-When two mirrors find a real overlap, both humans get a card explaining what they share and a
-concrete idea for meeting. Nobody learns the other's answer unless **both** say yes; only then does
-a private human-to-human chat open. The AI starts the conversation. The humans have it.
+Now and then it sends you a **postcard** about someone worth meeting, with the evidence from both of
+you. Nothing pops up and nothing asks for an answer. If you feel like it, you wave; nobody sees a
+wave unless **both** people wave, and only then does a private human-to-human chat open. The AI
+starts the conversation. The humans have it.
 
 Built during Cal Hacks 13.0.
 
@@ -18,24 +19,29 @@ Built during Cal Hacks 13.0.
 
 | Piece | Where |
 | --- | --- |
-| Town layout, intent → place mapping | [`spacetimedb/src/world.ts`](spacetimedb/src/world.ts) |
+| Town layout, places, activities, daily schedule | [`spacetimedb/src/world.ts`](spacetimedb/src/world.ts) |
 | Personality check (TIPI) → self-card | [`spacetimedb/src/tipi.ts`](spacetimedb/src/tipi.ts) |
-| Movement, meeting, conversations, memory, encounters, mutual opt-in | [`spacetimedb/src/index.ts`](spacetimedb/src/index.ts) |
+| Redaction, facets, rooms and their default visibility | [`spacetimedb/src/redact.ts`](spacetimedb/src/redact.ts) |
+| World, relationships, conversations, postcards, Mirror Room | [`spacetimedb/src/index.ts`](spacetimedb/src/index.ts) |
 | Model calls (DeepSeek for chatter, Claude for judgments) | [`spacetimedb/src/llm.ts`](spacetimedb/src/llm.ts) |
 | Town renderer | [`src/WorldCanvas.tsx`](src/WorldCanvas.tsx) |
-| Make-a-mirror form, encounter cards, private chat | [`src/`](src) |
+| Mirror Room, postcards, private chat | [`src/`](src) |
 
 Everything server-side runs inside one **SpacetimeDB** module:
 
-- A scheduled `tick` reducer moves mirrors every second and starts a conversation when two free
-  mirrors are close.
-- A scheduled `run_llm_job` procedure writes each line of a conversation over HTTP, then wraps up:
-  it decides whether the two humans should meet and updates each mirror's memory.
-- Memory is kept **per person met** (`relation_note`), not as loose embeddings, so the next time two
-  mirrors meet they pick up where they left off.
-- Private tables hold owners and self-cards; per-visitor views (`my_mirrors`, `my_encounters`,
-  `my_human_messages`) expose only what belongs to the connected identity. A "no" is never revealed
-  to the other side.
+- A scheduled `tick` reducer moves mirrors every second. They follow the town's day (morning workout,
+  lunch, the evening workshop), do something visible wherever they are, and notice each other.
+  Strangers mostly just notice each other at first; outgoing mirrors start more conversations, and
+  people who keep running into each other talk more and for longer.
+- A scheduled `run_llm_job` procedure writes each line from the moment (time, place, what both are
+  doing, what they remember about each other). Mirrors may not promise anything or make plans for
+  their humans, and end a conversation when it has run its course.
+- After each talk, the relationship (`relation`) is updated, and a postcard is written only if there
+  is a real reason to meet: the same intent today, a need one person has that the other can meet, or
+  a specific shared interest, backed by an exact phrase from **each** person's own information. The
+  server checks the phrases; at most two postcards per person per day.
+- Private tables hold owners, self-cards and Mirror Room cards; per-visitor views (`my_mirrors`,
+  `my_postcards`, `my_cards`, `my_human_messages`) expose only what belongs to the connected identity.
 
 ## Run locally
 

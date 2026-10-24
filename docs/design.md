@@ -74,9 +74,15 @@ The pace is Travel Frog, not a chat app: you leave, your mirror lives its life, 
 
 ### 5. Back to people
 
-When two mirrors find a real overlap (a shared intent, a problem one of them already solved, a
-topic both care about), each human gets a card with the reason and a concrete idea. Neither side
-learns the other's answer unless both say yes. Then a private chat opens, written by the humans.
+Nothing pops up and nothing asks for an answer. A response request is exactly the obligation that
+keeps people from reaching out, so the only thing a postcard offers is an optional wave. A wave is
+invisible until the other person waves too; then a private chat opens, written by the humans.
+
+Mirrors behave like people, not matchmakers: they talk from the moment they're in, never promise
+anything for their humans, and never arrange plans. A postcard needs a real reason (same intent
+today, a need the other can meet, or a specific shared interest) backed by an exact phrase from each
+person's own information, and the server rejects anything it can't find there. Except for doing the
+same thing today, people have to have talked more than once. At most two postcards a day.
 
 The ending can be small: dinner, a call, one message with a good reason to send it.
 
@@ -107,8 +113,10 @@ Draw the line with AI Town early: AI Town is watching AI live; Mirrorville ends 
 
 ## What exists now vs. next
 
-Done: intent-zoned town, TIPI baseline card, per-person relation notes, encounter judging, mutual
-opt-in, private human chat.
+Done: a town with a daily rhythm and visible activities, personality-driven initiative,
+relationships that grow over repeated meetings, grounded conversations, evidence-checked postcards
+with mutual waves, private human chat, and the Mirror Room (WhatsApp/paste import, facets, personal
+cards, per-room defaults and overrides, rewrite/undo).
 
-Next, in order: Mirror Room (import → cards → toggle/edit) · correction flow · triadic referral
-("you should meet Marco") · rooms (teammates, old friends) · postcards.
+Next: triadic referral ("you should meet Marco") · teammate and old-friends rooms · daily journal
+postcards even without a match · group conversations · Messenger and 36-questions import.

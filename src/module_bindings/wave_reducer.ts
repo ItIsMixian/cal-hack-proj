@@ -11,6 +11,5 @@ import {
 } from "spacetimedb";
 
 export default {
-  cardId: __t.u64(),
-  enabled: __t.bool(),
+  encounterId: __t.u64(),
 };

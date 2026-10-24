@@ -39,14 +39,14 @@ import CreateMirrorReducer from "./create_mirror_reducer";
 import DeleteCardReducer from "./delete_card_reducer";
 import ImportTextReducer from "./import_text_reducer";
 import ResetWorldReducer from "./reset_world_reducer";
-import RespondToEncounterReducer from "./respond_to_encounter_reducer";
 import RewriteCardReducer from "./rewrite_card_reducer";
 import SendHumanMessageReducer from "./send_human_message_reducer";
-import SetCardEnabledReducer from "./set_card_enabled_reducer";
+import SetCardRoomReducer from "./set_card_room_reducer";
 import SetLlmConfigReducer from "./set_llm_config_reducer";
 import SetModelsReducer from "./set_models_reducer";
 import UndoCardEditReducer from "./undo_card_edit_reducer";
 import UpdateIntentReducer from "./update_intent_reducer";
+import WaveReducer from "./wave_reducer";
 
 // Import all procedure arg schemas
 
@@ -55,10 +55,10 @@ import ConversationRow from "./conversation_table";
 import LineRow from "./line_table";
 import MirrorRow from "./mirror_table";
 import MyCardsRow from "./my_cards_table";
-import MyEncountersRow from "./my_encounters_table";
 import MyHumanMessagesRow from "./my_human_messages_table";
 import MyImportsRow from "./my_imports_table";
 import MyMirrorsRow from "./my_mirrors_table";
+import MyPostcardsRow from "./my_postcards_table";
 
 /** Type-only namespace exports for generated type groups. */
 
@@ -107,13 +107,6 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyCardsRow),
-  myEncounters: __table({
-    name: 'my_encounters',
-    indexes: [
-    ],
-    constraints: [
-    ],
-  }, MyEncountersRow),
   myHumanMessages: __table({
     name: 'my_human_messages',
     indexes: [
@@ -135,6 +128,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyMirrorsRow),
+  myPostcards: __table({
+    name: 'my_postcards',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyPostcardsRow),
 });
 
 /** The schema information for all reducers in this module. This is defined the same way as the reducers would have been defined in the server, except the body of the reducer is omitted in code generation. */
@@ -144,14 +144,14 @@ const reducersSchema = __reducers(
   __reducerSchema("delete_card", DeleteCardReducer),
   __reducerSchema("import_text", ImportTextReducer),
   __reducerSchema("reset_world", ResetWorldReducer),
-  __reducerSchema("respond_to_encounter", RespondToEncounterReducer),
   __reducerSchema("rewrite_card", RewriteCardReducer),
   __reducerSchema("send_human_message", SendHumanMessageReducer),
-  __reducerSchema("set_card_enabled", SetCardEnabledReducer),
+  __reducerSchema("set_card_room", SetCardRoomReducer),
   __reducerSchema("set_llm_config", SetLlmConfigReducer),
   __reducerSchema("set_models", SetModelsReducer),
   __reducerSchema("undo_card_edit", UndoCardEditReducer),
   __reducerSchema("update_intent", UpdateIntentReducer),
+  __reducerSchema("wave", WaveReducer),
 );
 
 /** The schema information for all procedures in this module. This is defined the same way as the procedures would have been defined in the server. */

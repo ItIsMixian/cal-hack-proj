@@ -13,6 +13,7 @@ import {
 export default __t.row({
   id: __t.u64().primaryKey(),
   name: __t.string(),
+  look: __t.u8(),
   intent: __t.string(),
   selfCard: __t.string().name("self_card"),
 });

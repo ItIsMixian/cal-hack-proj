@@ -14,7 +14,9 @@ export default __t.row({
   id: __t.u64().primaryKey(),
   a: __t.u64(),
   b: __t.u64(),
+  place: __t.string(),
   turns: __t.u32(),
+  maxTurns: __t.u32().name("max_turns"),
   active: __t.bool(),
   startedAt: __t.timestamp().name("started_at"),
 });

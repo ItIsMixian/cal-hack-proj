@@ -24,7 +24,9 @@ export const Conversation = __t.object("Conversation", {
   id: __t.u64(),
   a: __t.u64(),
   b: __t.u64(),
+  place: __t.string(),
   turns: __t.u32(),
+  maxTurns: __t.u32(),
   active: __t.bool(),
   startedAt: __t.timestamp(),
 });
@@ -32,18 +34,21 @@ export type Conversation = __Infer<typeof Conversation>;
 
 export const Encounter = __t.object("Encounter", {
   id: __t.u64(),
-  conversationId: __t.u64(),
   a: __t.u64(),
   b: __t.u64(),
   aOwner: __t.identity(),
   bOwner: __t.identity(),
   aDemo: __t.bool(),
   bDemo: __t.bool(),
-  aResponse: __t.string(),
-  bResponse: __t.string(),
-  status: __t.string(),
-  reason: __t.string(),
-  meetup: __t.string(),
+  kind: __t.string(),
+  why: __t.string(),
+  evidenceA: __t.string(),
+  evidenceB: __t.string(),
+  storyA: __t.string(),
+  storyB: __t.string(),
+  place: __t.string(),
+  aWaved: __t.bool(),
+  bWaved: __t.bool(),
   createdAt: __t.timestamp(),
 });
 export type Encounter = __Infer<typeof Encounter>;
@@ -103,10 +108,13 @@ export const Mirror = __t.object("Mirror", {
   look: __t.u8(),
   intent: __t.string(),
   landmark: __t.string(),
+  place: __t.string(),
+  activity: __t.string(),
   x: __t.f32(),
   y: __t.f32(),
   targetX: __t.f32(),
   targetY: __t.f32(),
+  extraversion: __t.f32(),
   conversationId: __t.u64(),
   demo: __t.bool(),
   lastChatAt: __t.timestamp(),
@@ -120,7 +128,8 @@ export const MirrorCard = __t.object("MirrorCard", {
   facet: __t.string(),
   text: __t.string(),
   source: __t.string(),
-  enabled: __t.bool(),
+  personal: __t.bool(),
+  rooms: __t.string(),
   previousText: __t.string(),
   editedByOwner: __t.bool(),
   createdAt: __t.timestamp(),
@@ -136,21 +145,6 @@ export type MirrorProfile = __Infer<typeof MirrorProfile>;
 
 export const MyCards = __t.object("MyCards", {});
 export type MyCards = __Infer<typeof MyCards>;
-
-export const MyEncounter = __t.object("MyEncounter", {
-  id: __t.u64(),
-  myMirror: __t.string(),
-  otherMirror: __t.string(),
-  otherDemo: __t.bool(),
-  reason: __t.string(),
-  meetup: __t.string(),
-  myResponse: __t.string(),
-  connected: __t.bool(),
-});
-export type MyEncounter = __Infer<typeof MyEncounter>;
-
-export const MyEncounters = __t.object("MyEncounters", {});
-export type MyEncounters = __Infer<typeof MyEncounters>;
 
 export const MyHumanMessage = __t.object("MyHumanMessage", {
   id: __t.u64(),
@@ -170,6 +164,7 @@ export type MyImports = __Infer<typeof MyImports>;
 export const MyMirror = __t.object("MyMirror", {
   id: __t.u64(),
   name: __t.string(),
+  look: __t.u8(),
   intent: __t.string(),
   selfCard: __t.string(),
 });
@@ -178,14 +173,38 @@ export type MyMirror = __Infer<typeof MyMirror>;
 export const MyMirrors = __t.object("MyMirrors", {});
 export type MyMirrors = __Infer<typeof MyMirrors>;
 
-export const RelationNote = __t.object("RelationNote", {
+export const MyPostcard = __t.object("MyPostcard", {
   id: __t.u64(),
-  mirrorId: __t.u64(),
-  otherId: __t.u64(),
-  note: __t.string(),
-  lastMetAt: __t.timestamp(),
+  myMirror: __t.string(),
+  otherMirror: __t.string(),
+  otherDemo: __t.bool(),
+  otherIntent: __t.string(),
+  kind: __t.string(),
+  why: __t.string(),
+  myEvidence: __t.string(),
+  story: __t.string(),
+  place: __t.string(),
+  iWaved: __t.bool(),
+  connected: __t.bool(),
+  createdAt: __t.timestamp(),
 });
-export type RelationNote = __Infer<typeof RelationNote>;
+export type MyPostcard = __Infer<typeof MyPostcard>;
+
+export const MyPostcards = __t.object("MyPostcards", {});
+export type MyPostcards = __Infer<typeof MyPostcards>;
+
+export const Relation = __t.object("Relation", {
+  id: __t.u64(),
+  lo: __t.u64(),
+  hi: __t.u64(),
+  sightings: __t.u32(),
+  talks: __t.u32(),
+  noteByLo: __t.string(),
+  noteByHi: __t.string(),
+  lastSeenAt: __t.timestamp(),
+  lastTalkAt: __t.timestamp(),
+});
+export type Relation = __Infer<typeof Relation>;
 
 export const TickTimer = __t.object("TickTimer", {
   scheduledId: __t.u64(),

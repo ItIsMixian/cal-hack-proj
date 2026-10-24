@@ -1,11 +1,30 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSpacetimeDB, useTable } from 'spacetimedb/react';
 import { tables } from './module_bindings';
-import { findLandmark } from '../spacetimedb/src/world';
+import { clockLabel, currentEvent, findLandmark, venueHour } from '../spacetimedb/src/world';
 import WorldCanvas from './WorldCanvas';
 import CreateMirror from './CreateMirror';
-import Encounters from './Encounters';
+import Postcards from './Postcards';
 import MirrorRoom from './MirrorRoom';
+
+const SEEN_KEY = 'mirrorville-postcards-seen';
+
+function readSeen(): bigint {
+  try {
+    return BigInt(localStorage.getItem(SEEN_KEY) ?? '0');
+  } catch {
+    return 0n;
+  }
+}
+
+function useVenueClock() {
+  const [hour, setHour] = useState(() => venueHour(BigInt(Date.now()) * 1000n));
+  useEffect(() => {
+    const id = setInterval(() => setHour(venueHour(BigInt(Date.now()) * 1000n)), 30_000);
+    return () => clearInterval(id);
+  }, []);
+  return hour;
+}
 
 export default function App() {
   const { isActive } = useSpacetimeDB();
@@ -13,13 +32,31 @@ export default function App() {
   const [conversations] = useTable(tables.conversation);
   const [lines] = useTable(tables.line);
   const [myMirrors] = useTable(tables.myMirrors);
+  const [postcards] = useTable(tables.myPostcards);
   const [creating, setCreating] = useState(false);
   const [selected, setSelected] = useState<bigint | null>(null);
   const [notice, setNotice] = useState('');
   const [roomFor, setRoomFor] = useState<bigint | null>(null);
+  const [tab, setTab] = useState<'town' | 'postcards'>('town');
+  const [seen, setSeen] = useState(readSeen);
+  const hour = useVenueClock();
+  const event = currentEvent(hour);
 
   const mine = useMemo(() => new Set(myMirrors.map((m) => m.id)), [myMirrors]);
   const byId = useMemo(() => new Map(mirrors.map((m) => [m.id, m])), [mirrors]);
+  const newestPostcard = postcards.reduce((max, p) => (p.id > max ? p.id : max), 0n);
+  const hasNew = newestPostcard > seen;
+
+  // A quiet dot, not a notification: mark postcards as seen once the tab is open.
+  useEffect(() => {
+    if (tab !== 'postcards' || newestPostcard <= seen) return;
+    setSeen(newestPostcard);
+    try {
+      localStorage.setItem(SEEN_KEY, String(newestPostcard));
+    } catch {
+      // Private mode: the dot comes back next visit, which is fine.
+    }
+  }, [tab, newestPostcard, seen]);
 
   // Latest line of each active conversation, shown above whoever said it.
   const bubbles = useMemo(() => {
@@ -37,9 +74,7 @@ export default function App() {
 
   const focus = selected !== null ? byId.get(selected) : undefined;
   const focusConversation = focus
-    ? [...conversations]
-        .filter((c) => c.a === focus.id || c.b === focus.id)
-        .sort((a, b) => Number(b.id - a.id))[0]
+    ? [...conversations].filter((c) => c.a === focus.id || c.b === focus.id).sort((a, b) => Number(b.id - a.id))[0]
     : undefined;
   const focusLines = focusConversation
     ? lines
@@ -47,6 +82,14 @@ export default function App() {
         .sort((a, b) => (a.at.microsSinceUnixEpoch < b.at.microsSinceUnixEpoch ? -1 : 1))
     : [];
   const myCard = focus ? myMirrors.find((m) => m.id === focus.id) : undefined;
+
+  if (roomFor !== null) {
+    return (
+      <div className="app">
+        <MirrorRoom mirrorId={roomFor} onBack={() => setRoomFor(null)} />
+      </div>
+    );
+  }
 
   return (
     <div className="app">
@@ -74,18 +117,28 @@ export default function App() {
         </div>
       )}
 
-      <Encounters />
-
       <main>
         <div className="map">
           <WorldCanvas mirrors={mirrors} bubbles={bubbles} mine={mine} selected={selected} onSelect={setSelected} />
           <p className="muted hint">
-            {mirrors.length} mirrors in town · tap one to read its conversation
+            {clockLabel(hour)} in town{event ? ` · ${event.label} at the ${findLandmark(event.landmark).label}` : ''} ·{' '}
+            {mirrors.length} mirrors · tap one to listen in
           </p>
         </div>
 
         <aside className="panel">
-          {focus ? (
+          <div className="tabs">
+            <button className={tab === 'town' ? 'tab on' : 'tab'} onClick={() => setTab('town')}>
+              Town
+            </button>
+            <button className={tab === 'postcards' ? 'tab on' : 'tab'} onClick={() => setTab('postcards')}>
+              Postcards{hasNew && <span className="dot" aria-label="new" />}
+            </button>
+          </div>
+
+          {tab === 'postcards' ? (
+            <Postcards />
+          ) : focus ? (
             <>
               <h2>{focus.name}</h2>
               {focus.demo && <span className="tag">demo mirror</span>}
@@ -93,15 +146,10 @@ export default function App() {
               <p>
                 <b>Today:</b> {focus.intent}
               </p>
-              <p className="muted">Hangs out around the {findLandmark(focus.landmark).label}.</p>
-              {myCard && (
-                <>
-                  <p className="muted">
-                    <b>What it knows about you:</b> {myCard.selfCard}
-                  </p>
-                  <button onClick={() => setRoomFor(myCard.id)}>Open Mirror Room</button>
-                </>
-              )}
+              <p className="muted">
+                {focus.conversationId !== 0n ? 'Talking' : focus.activity} at the {findLandmark(focus.place).label}
+              </p>
+              {myCard && <button onClick={() => setRoomFor(myCard.id)}>Open Mirror Room</button>}
               <h3>{focusConversation?.active ? 'Talking now' : 'Last conversation'}</h3>
               {focusLines.length === 0 && <p className="muted">No conversations yet.</p>}
               <div className="transcript">
@@ -117,23 +165,21 @@ export default function App() {
               <h2>How it works</h2>
               <ol>
                 <li>Make a mirror: a short personality check and what you want to do today.</li>
-                <li>Your mirror wanders town and chats with other mirrors.</li>
-                <li>When two mirrors find a real overlap, both humans get asked.</li>
-                <li>Only if you both say yes does a chat open. Then go meet.</li>
+                <li>It goes about its day in town: the gym in the morning, the food court at lunch, the workshop at night.</li>
+                <li>It gets to know the people it keeps running into.</li>
+                <li>Now and then it sends you a postcard about someone worth meeting. Wave if you like; if they wave too, you can talk.</li>
               </ol>
             </>
           )}
         </aside>
       </main>
 
-      {roomFor !== null && <MirrorRoom mirrorId={roomFor} onClose={() => setRoomFor(null)} />}
-
       {creating && (
         <CreateMirror
           onClose={() => setCreating(false)}
           onCreated={(name) => {
             setCreating(false);
-            setNotice(`${name} is walking into Mirrorville. You'll see a card here when they find someone.`);
+            setNotice(`${name} is walking into Mirrorville. Come back later for postcards.`);
           }}
         />
       )}

@@ -138,6 +138,14 @@ function drawMirror(g: CanvasRenderingContext2D, m: Mirror, x: number, y: number
   g.strokeText(m.name, x, y + 24);
   g.fillStyle = '#222';
   g.fillText(m.name, x, y + 24);
+
+  const doing = m.conversationId !== 0n ? 'talking' : m.activity;
+  if (doing) {
+    g.font = '10px system-ui, sans-serif';
+    g.strokeText(doing, x, y + 36);
+    g.fillStyle = '#555';
+    g.fillText(doing, x, y + 36);
+  }
 }
 
 function drawBubble(g: CanvasRenderingContext2D, text: string, x: number, y: number) {

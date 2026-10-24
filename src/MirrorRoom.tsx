@@ -2,67 +2,182 @@ import { useMemo, useState } from 'react';
 import { useReducer, useTable } from 'spacetimedb/react';
 import { reducers, tables } from './module_bindings';
 import type { MirrorCard } from './module_bindings/types';
-import { FACETS, FACET_LABELS, RELATIONS, redact, type Facet } from '../spacetimedb/src/redact';
+import {
+  FACETS, FACET_LABELS, RELATIONS, ROOMS, ROOM_LABELS, isVisibleIn, redact, type Facet, type Room,
+} from '../spacetimedb/src/redact';
+import { LOOK_COLORS } from '../spacetimedb/src/world';
 import { ownWords, parseWhatsApp, type ParsedChat } from './importers';
-import Modal from './Modal';
 
 const MAX_UPLOAD = 30_000;
 
-export default function MirrorRoom(props: { mirrorId: bigint; onClose: () => void }) {
+export default function MirrorRoom(props: { mirrorId: bigint; onBack: () => void }) {
   const [myMirrors] = useTable(tables.myMirrors);
   const [allCards] = useTable(tables.myCards);
   const [imports] = useTable(tables.myImports);
   const mirror = myMirrors.find((m) => m.id === props.mirrorId);
-  const cards = allCards.filter((c) => c.mirrorId === props.mirrorId);
+  const cards = useMemo(
+    () => [...allCards].filter((c) => c.mirrorId === props.mirrorId).sort((a, b) => Number(a.id - b.id)),
+    [allCards, props.mirrorId],
+  );
   const latestImport = [...imports]
     .filter((i) => i.mirrorId === props.mirrorId)
     .sort((a, b) => Number(b.id - a.id))[0];
 
-  const byFacet = useMemo(() => {
-    const groups = new Map<string, MirrorCard[]>();
-    for (const c of [...cards].sort((a, b) => Number(a.id - b.id))) {
-      groups.set(c.facet, [...(groups.get(c.facet) ?? []), c]);
-    }
-    return groups;
-  }, [cards]);
-
   if (!mirror) return null;
-  const shared = cards.filter((c) => c.enabled).length;
+  const everyday = cards.filter((c) => !c.personal);
+  const personal = cards.filter((c) => c.personal);
+  const sharedHere = cards.filter((c) => isVisibleIn(c, 'venue')).length;
 
   return (
-    <Modal title={`${mirror.name}'s Mirror Room`} onClose={props.onClose}>
-      <p className="muted">
-        This is how your mirror understands you. Nothing here is used until you check it, and you can rewrite anything
-        that isn't you.
-      </p>
-      <div className="card-preview">
-        <strong>From your personality check</strong>
-        <p>{mirror.selfCard}</p>
+    <section className="room">
+      <button className="ghost small back" onClick={props.onBack}>
+        ← Back to town
+      </button>
+
+      <div className="room-head">
+        <div className="avatar" style={{ background: LOOK_COLORS[mirror.look % LOOK_COLORS.length] }}>
+          <span />
+          <span />
+        </div>
+        <div>
+          <h2>{mirror.name}'s Mirror Room</h2>
+          <p className="muted">How your mirror understands you, and which side of you it brings where.</p>
+        </div>
       </div>
 
-      <Importer mirrorId={mirror.id} busy={latestImport?.status === 'processing'} />
-      {latestImport && (
-        <p className={latestImport.status === 'failed' ? 'error' : 'muted'}>
-          {latestImport.status === 'processing'
-            ? `Reading ${latestImport.source}… this takes a few seconds.`
-            : `${latestImport.source}: ${latestImport.message}`}
+      <div className="portrait">
+        <p className="portrait-lead">Your mirror sees you as someone who…</p>
+        <p>{mirror.selfCard}</p>
+        <p className="muted small">
+          Today: {mirror.intent} · Showing {sharedHere} of {cards.length} cards at Cal Hacks
         </p>
+      </div>
+
+      {cards.length === 0 && (
+        <p className="muted">Nothing here yet beyond your personality check. Add something below and your mirror will get to know you better.</p>
       )}
 
-      <h3>
-        Cards <span className="muted">({shared} of {cards.length} shared with your mirror)</span>
-      </h3>
-      {cards.length === 0 && <p className="muted">Import something above, or write a card yourself.</p>}
-      {FACETS.filter((f) => byFacet.has(f)).map((facet) => (
-        <div key={facet} className="facet">
-          <h4>{FACET_LABELS[facet]}</h4>
-          {byFacet.get(facet)!.map((card) => (
-            <CardRow key={String(card.id)} card={card} />
+      {FACETS.map((facet) => {
+        const group = everyday.filter((c) => c.facet === facet);
+        if (group.length === 0) return null;
+        return (
+          <div key={facet} className="facet">
+            <h3>{FACET_LABELS[facet]}</h3>
+            {group.map((card) => (
+              <CardView key={String(card.id)} card={card} />
+            ))}
+          </div>
+        );
+      })}
+
+      {personal.length > 0 && (
+        <div className="facet private">
+          <h3>Only you see these</h3>
+          <p className="muted small">
+            These sounded personal, so your mirror keeps them to itself. Turn one on for a room if you want it to know.
+          </p>
+          {personal.map((card) => (
+            <CardView key={String(card.id)} card={card} />
           ))}
         </div>
-      ))}
-      <AddCard mirrorId={mirror.id} />
-    </Modal>
+      )}
+
+      <p className="muted small rooms-note">
+        Defaults: strangers at Cal Hacks and teammates see who you are, what you do and what you're into; what you've been up to
+        and your softer side stay with old friends. Only the Cal Hacks room is open so far; your choices carry over.
+      </p>
+
+      <details className="add-more" open={cards.length === 0}>
+        <summary>Add more of you</summary>
+        <Importer mirrorId={mirror.id} busy={latestImport?.status === 'processing'} />
+        {latestImport && (
+          <p className={latestImport.status === 'failed' ? 'error small' : 'muted small'}>
+            {latestImport.status === 'processing'
+              ? `Reading ${latestImport.source}… this takes a few seconds.`
+              : `${latestImport.source}: ${latestImport.message}`}
+          </p>
+        )}
+        <AddCard mirrorId={mirror.id} />
+      </details>
+    </section>
+  );
+}
+
+function CardView({ card }: { card: MirrorCard }) {
+  const setRoom = useReducer(reducers.setCardRoom);
+  const rewrite = useReducer(reducers.rewriteCard);
+  const undo = useReducer(reducers.undoCardEdit);
+  const remove = useReducer(reducers.deleteCard);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(card.text);
+
+  const toggle = (room: Room) => {
+    const visible = isVisibleIn(card, room);
+    const defaultVisible = isVisibleIn({ ...card, rooms: '' }, room);
+    // Flipping back to the default clears the override instead of pinning it.
+    const next = !visible === defaultVisible ? 'default' : visible ? 'off' : 'on';
+    void setRoom({ cardId: card.id, room, state: next });
+  };
+
+  return (
+    <div className="mcard">
+      {editing ? (
+        <div className="mcard-edit">
+          <input value={draft} maxLength={200} onChange={(e) => setDraft(e.target.value)} autoFocus />
+          <button
+            className="primary small"
+            onClick={async () => {
+              await rewrite({ cardId: card.id, text: draft });
+              setEditing(false);
+            }}
+          >
+            Save
+          </button>
+          <button className="ghost small" onClick={() => setEditing(false)}>
+            Cancel
+          </button>
+        </div>
+      ) : (
+        <p className="mcard-text">{card.text}</p>
+      )}
+      <div className="chips">
+        {ROOMS.map((room) => (
+          <button
+            key={room}
+            className={isVisibleIn(card, room) ? 'chip on' : 'chip'}
+            onClick={() => toggle(room)}
+            title={isVisibleIn(card, room) ? `Shown in ${ROOM_LABELS[room]}` : `Hidden in ${ROOM_LABELS[room]}`}
+          >
+            {ROOM_LABELS[room]}
+          </button>
+        ))}
+      </div>
+      {!editing && (
+        <div className="mcard-meta">
+          <span className="muted small">
+            {card.source}
+            {card.editedByOwner && ' · in your words'}
+          </span>
+          <button
+            className="ghost small"
+            onClick={() => {
+              setDraft(card.text);
+              setEditing(true);
+            }}
+          >
+            That's not me
+          </button>
+          {card.previousText && (
+            <button className="ghost small" onClick={() => undo({ cardId: card.id })}>
+              Undo
+            </button>
+          )}
+          <button className="ghost small" onClick={() => remove({ cardId: card.id })}>
+            Remove
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -92,7 +207,6 @@ function Importer({ mirrorId, busy }: { mirrorId: bigint; busy: boolean }) {
   };
 
   const text = chat ? (me ? ownWords(chat, me) : '') : redact(pasted);
-  const tooLong = text.length > MAX_UPLOAD;
   const source = chat ? `WhatsApp · ${relation}` : fileName ? `${fileName} · ${relation}` : `Your words · ${relation}`;
 
   const submit = async () => {
@@ -109,15 +223,15 @@ function Importer({ mirrorId, busy }: { mirrorId: bigint; busy: boolean }) {
 
   return (
     <div className="importer">
-      <h3>Bring in something you already have</h3>
       <p className="muted small">
-        A WhatsApp export (Chat → More → Export chat, without media), or anything you wrote yourself. It's read here in
-        your browser: only your own lines are kept, and emails, numbers and links are removed before anything is sent.
+        Hand over something that already exists: a WhatsApp export (Chat → More → Export chat, without media), or your own
+        writing. It's read here in your browser, only your own lines are kept, and emails, numbers and links are removed
+        before anything is sent. Nothing you upload is stored.
       </p>
       <div className="import-row">
         <input type="file" accept=".txt,text/plain" onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])} />
         <label>
-          These are chats with my{' '}
+          Chats with my{' '}
           <select value={relation} onChange={(e) => setRelation(e.target.value as (typeof RELATIONS)[number])}>
             {RELATIONS.map((r) => (
               <option key={r} value={r}>
@@ -143,82 +257,17 @@ function Importer({ mirrorId, busy }: { mirrorId: bigint; busy: boolean }) {
         </div>
       ) : (
         <textarea
-          rows={4}
+          rows={3}
           value={pasted}
           onChange={(e) => setPasted(e.target.value)}
           placeholder="…or paste your own messages, a bio, an old post"
         />
       )}
-      {tooLong && <small className="muted">Only the first {MAX_UPLOAD.toLocaleString()} characters will be used.</small>}
-      {error && <p className="error">{error}</p>}
+      {error && <p className="error small">{error}</p>}
       <div className="actions">
         <button className="primary" disabled={busy || text.trim().length < 40} onClick={submit}>
-          {busy ? 'Reading…' : 'Turn into cards'}
+          {busy ? 'Reading…' : 'Let my mirror read this'}
         </button>
-      </div>
-    </div>
-  );
-}
-
-function CardRow({ card }: { card: MirrorCard }) {
-  const setEnabled = useReducer(reducers.setCardEnabled);
-  const rewrite = useReducer(reducers.rewriteCard);
-  const undo = useReducer(reducers.undoCardEdit);
-  const remove = useReducer(reducers.deleteCard);
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(card.text);
-
-  return (
-    <div className={card.enabled ? 'mcard on' : 'mcard'}>
-      <label className="mcard-main">
-        <input type="checkbox" checked={card.enabled} onChange={(e) => setEnabled({ cardId: card.id, enabled: e.target.checked })} />
-        {editing ? (
-          <input value={draft} maxLength={200} onChange={(e) => setDraft(e.target.value)} autoFocus />
-        ) : (
-          <span>{card.text}</span>
-        )}
-      </label>
-      <div className="mcard-meta">
-        <span className="muted small">
-          {card.source}
-          {card.editedByOwner && ' · edited by you'}
-        </span>
-        {editing ? (
-          <>
-            <button
-              className="ghost small"
-              onClick={async () => {
-                await rewrite({ cardId: card.id, text: draft });
-                setEditing(false);
-              }}
-            >
-              Save
-            </button>
-            <button className="ghost small" onClick={() => setEditing(false)}>
-              Cancel
-            </button>
-          </>
-        ) : (
-          <>
-            <button
-              className="ghost small"
-              onClick={() => {
-                setDraft(card.text);
-                setEditing(true);
-              }}
-            >
-              That's not me
-            </button>
-            {card.previousText && (
-              <button className="ghost small" onClick={() => undo({ cardId: card.id })}>
-                Undo
-              </button>
-            )}
-            <button className="ghost small" onClick={() => remove({ cardId: card.id })}>
-              Delete
-            </button>
-          </>
-        )}
       </div>
     </div>
   );
@@ -247,7 +296,7 @@ function AddCard({ mirrorId }: { mirrorId: bigint }) {
         maxLength={200}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && submit()}
-        placeholder="Write a card yourself"
+        placeholder="Or tell it something in your own words"
       />
       <button onClick={submit}>Add</button>
     </div>
