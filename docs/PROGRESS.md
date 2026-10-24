@@ -1,5 +1,7 @@
 # 当前工作
 
+最新快照：[Home.tscn](../mirrorvile/Home.tscn) 与 5 张新增图片、对应导入文件随本次 yq 提交上传；工程与场景共 26 处资源引用检查通过，未运行 Godot。
+
 最新地图快照：[Town map.tscn](../mirrorvile/Town%20map.tscn) 与新增地图素材随本次 yq 提交上传。已检查 21 处资源引用，未运行 Godot 或验证互动。
 
 最新交付：按用户要求将 mirrorvile/ Godot 工程与现有素材快照上传到个人分支 yq；见 [结构说明](state/project-structure.md)。只做文件及资源引用检查，未运行或集成 Godot。

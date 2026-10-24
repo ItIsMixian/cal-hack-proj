@@ -1,5 +1,10 @@
 # 变更记录
 
+## 2026-10-24：上传 Home 场景与素材到 yq
+
+- 按用户要求提交 mirrorvile/Home.tscn、5 张新增图片及对应 import 文件，共 11 个工程文件，约 5.1 MiB。Home 包含 Background、Bookshelf、Mirror、Diary、Carddesk 节点。
+- 静态核对工程与场景的 26 处资源引用，均能定位；未运行 Godot 或验证场景互动，缓存继续排除，ADR 与 Proposed 不变。
+
 ## 2026-10-24：上传当前小镇地图与素材到 yq
 
 - 按用户要求提交 mirrorvile/Town map.tscn、新增地图图像与 import 元数据，以及房屋阴影素材的位置调整；场景包含 Coffee、Restaurant、Park 等节点和 House / Decoration 两个 TileMapLayer。
