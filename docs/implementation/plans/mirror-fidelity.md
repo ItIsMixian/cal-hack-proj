@@ -3,7 +3,7 @@
 Serves the premise (people must feel the mirror is them) and the two core contradictions: does the
 mirror resemble its owner, and can small talk turn into a judgment of fit. Start after `yw/diary` is
 merged into `main`; work on a new branch off `main`. Parts A and B touch the importer and Mirror Room
-only, so they can run alongside the demo-path plan.
+only, so they can run alongside the demo-path plan. Part D touches the importer and line writing.
 
 ## Why now
 
@@ -79,6 +79,28 @@ a "didn't click" line, and an eight-case eval set from the server log); start C 
     meet" / "shouldn't"), run against the judgment prompt after each change; record agreement in
     `docs/validation/`.
 
+### D. Speaking like the owner
+
+The owner read two of mixian's lines from the town ("future me is a stranger with bad memory", "group
+project in denial is the most reliable genre of café table") and said they would never say either. The
+content was theirs (their game level, their agent relay, their database course); the voice was the
+model's default witty English. Cards say what a mirror knows, nothing says how its owner talks.
+
+13. **A style card.** The same import call also returns a short private style card: sentence length,
+    how direct they are, how they ask things, what kind of humor (if any), words or habits they use, and
+    what they would never sound like. It describes, it does not quote; the raw text is still discarded
+    (0005). Merged on later imports like the other cards.
+14. **Example lines the owner marks.** The import also writes five short lines "you might say" in that
+    style (new lines, not quotes). The Mirror Room shows them with ✓ / ✗; marked lines are stored with
+    the style card. Owner choices are the strongest signal and are never overwritten by an import.
+15. **Lines follow the style.** `writeLine` adds the style card, the ✓ lines as examples and the ✗ lines
+    as "never like this", and drops anything that invites wit: "Talk the way your owner talks. Don't be
+    cleverer or more polished than they are." Town lines stay in English for judges; the style carries
+    over (short, plain, direct if that's who they are).
+16. **The blind test.** Mix five of the mirror's new lines with five things the owner actually said
+    (translated if needed); the owner and a friend try to pick the mirror's. Record how many they got
+    right. Passing means they can't tell reliably.
+
 ## Not doing
 
 A WeChat database reader or anything that needs a decrypted chat database (the existing PyWxDump CSV
@@ -95,6 +117,8 @@ questions; chatting with your own mirror; voice; deep import tiers beyond paste 
   what they said, including anything they rejected.
 - Mirror Room fits on a 375 px wide screen without scrolling past the summary to understand it; chip
   state is clear in a screenshot without colour.
+- For D: the owner marks at least four of five example lines ✓ after one round of corrections, and
+  the blind test is recorded.
 - For C: the eval set agrees with the labels on at least 8 of 10 pairs, and a good-fit diary entry in
   the town shows a grade and a "didn't click" line.
 - Typechecks pass; results recorded in `docs/validation/`.
