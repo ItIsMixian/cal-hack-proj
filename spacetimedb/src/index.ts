@@ -1,6 +1,6 @@
 import {
   schema, table, t, SenderError,
-  type InferSchema, type ReducerCtx, type ProcedureCtx,
+  type InferSchema, type ReducerCtx, type ProcedureCtx, type ViewCtx,
 } from 'spacetimedb/server';
 import { ScheduleAt, Timestamp, type Identity } from 'spacetimedb';
 import {
@@ -60,6 +60,7 @@ const mirrorProfile = table(
     mirrorId: t.u64().primaryKey(),
     owner: t.identity().index('btree'),
     selfCard: t.string(),
+    contact: t.string().default(''),
   },
 );
 
@@ -108,6 +109,7 @@ const relation = table(
   },
 );
 
+// Legacy postcard storage, retained for migration safety; no active API uses it.
 // A mirror's postcard home about someone worth meeting. Each human only learns
 // the other waved once both have.
 const encounter = table(
@@ -142,6 +144,34 @@ const humanMessage = table(
     sender: t.identity(),
     text: t.string(),
     at: t.timestamp(),
+  },
+);
+
+const diaryEntry = table(
+  { name: 'diary_entry', indexes: [{ accessor: 'by_conversation_mirror', algorithm: 'btree', columns: ['conversationId', 'mirrorId'] }] },
+  {
+    id: t.u64().primaryKey().autoInc(),
+    conversationId: t.u64(),
+    mirrorId: t.u64(),
+    owner: t.identity().index('btree'),
+    otherMirrorId: t.u64(),
+    place: t.string(),
+    text: t.string(),
+    goodFit: t.bool(),
+    fitReason: t.string(),
+    createdAt: t.timestamp(),
+  },
+);
+
+const interest = table(
+  { name: 'interest', indexes: [{ accessor: 'by_direction', algorithm: 'btree', columns: ['fromMirrorId', 'toMirrorId'] }] },
+  {
+    id: t.u64().primaryKey().autoInc(),
+    fromMirrorId: t.u64(),
+    toMirrorId: t.u64(),
+    fromOwner: t.identity(),
+    toOwner: t.identity(),
+    createdAt: t.timestamp(),
   },
 );
 
@@ -225,6 +255,8 @@ const spacetimedb = schema({
   relation,
   encounter,
   humanMessage,
+  diaryEntry,
+  interest,
   mirrorCard,
   importStatus,
   importJob,
@@ -333,7 +365,8 @@ function addMirror(
     demo: fields.demo,
     lastChatAt: ctx.timestamp,
   });
-  ctx.db.mirrorProfile.insert({ mirrorId: row.id, owner, selfCard: fields.selfCard });
+  ctx.db.mirrorProfile.insert({ mirrorId: row.id, owner, selfCard: fields.selfCard,
+    contact: fields.demo ? `${fields.name} · demo contact (placeholder)` : '' });
   return row;
 }
 
@@ -644,12 +677,12 @@ ${transcript}
    - shared_interest: a specific shared interest or project, not a generic one. "Both like AI/tech/coffee" does not count.
    Friendliness, curiosity, or politeness alone never count. Most conversations should have no connection.
    For evidence, copy a short exact phrase from each person's information above (not from the transcript).
-3. If there is a connection, write a short postcard from each mirror to its own human: 2-3 sentences, first person, warm and low-key, about what happened today and why this person seemed worth knowing. Don't ask the human to do anything.
+3. For EVERY conversation, write diaryForA and diaryForB, each from that mirror to its owner: 2-3 sentences in first person. Say where I was, what I was doing, who I talked to, and what actually came up. Be warm and low-key. Never invent facts, promise, make plans, or ask the human to act. Do this even when connection is null.
 
 Reply with only JSON:
-{"noteForA": "...", "noteForB": "...", "connection": null}
+{"noteForA": "...", "noteForB": "...", "diaryForA": "...", "diaryForB": "...", "connection": null}
 or
-{"noteForA": "...", "noteForB": "...", "connection": {"kind": "...", "evidenceA": "...", "evidenceB": "...", "why": "one sentence", "postcardForA": "...", "postcardForB": "..."}}`;
+{"noteForA": "...", "noteForB": "...", "diaryForA": "...", "diaryForB": "...", "connection": {"kind": "...", "evidenceA": "...", "evidenceB": "...", "why": "one sentence"}}`;
 
   let verdict: Record<string, unknown> | null = null;
   try {
@@ -671,6 +704,9 @@ or
   if (c && !valid) console.info(`connection rejected for conversation ${s.conv.id}: ${JSON.stringify(c).slice(0, 300)}`);
 
   ctx.withTx((tx) => {
+    // A scheduled retry must not write the same conversation twice.
+    const current = tx.db.conversation.id.find(s.conv.id);
+    if (!current?.active) return;
     const now = tx.timestamp;
     const rel = getOrCreateRelation(tx.db, s.a.id, s.b.id, now);
     const aIsLo = s.a.id < s.b.id;
@@ -684,52 +720,37 @@ or
       lastTalkAt: now,
     });
 
-    if (valid && !(s.a.demo && s.b.demo) && !hasEncounter(tx.db, s.a.id, s.b.id)) {
-      const dayStart = now.microsSinceUnixEpoch - 24n * 60n * MINUTE;
-      const tooMany = [s.a, s.b].some(
-        (side) => !side.demo && postcardsSince(tx.db, side.owner, dayStart) >= POSTCARDS_PER_DAY,
-      );
-      if (!tooMany) {
-        tx.db.encounter.insert({
-          id: 0n,
-          a: s.a.id,
-          b: s.b.id,
-          aOwner: s.a.owner,
-          bOwner: s.b.owner,
-          aDemo: s.a.demo,
-          bDemo: s.b.demo,
-          kind: String(c!.kind),
-          why: String(c!.why ?? '').slice(0, 300),
-          evidenceA: String(c!.evidenceA).slice(0, 200),
-          evidenceB: String(c!.evidenceB).slice(0, 200),
-          storyA: String(c!.postcardForA ?? '').slice(0, 600),
-          storyB: String(c!.postcardForB ?? '').slice(0, 600),
-          place: s.conv.place,
-          // Demo mirrors stand in for people who would wave back.
-          aWaved: s.a.demo,
-          bWaved: s.b.demo,
-          createdAt: now,
-        });
-      }
+    // Keep the existing pair and daily limits on good-fit marks, not on diary writing.
+    const dayStart = now.microsSinceUnixEpoch - 24n * 60n * MINUTE;
+    const goodFit = valid && !(s.a.demo && s.b.demo) && !hasGoodFit(tx.db, s.a.id, s.b.id)
+      && ![s.a, s.b].some(side => !side.demo && goodFitsSince(tx.db, side.owner, dayStart) >= POSTCARDS_PER_DAY);
+    for (const [me, other, raw] of [[s.a, s.b, verdict?.diaryForA], [s.b, s.a, verdict?.diaryForB]] as const) {
+      if ([...tx.db.diaryEntry.by_conversation_mirror.filter([s.conv.id, me.id])].length) continue;
+      // If the model fails, report only facts from the simulation, without inventing a verdict.
+      const fallback = `I was ${me.activity} at the ${findLandmark(s.conv.place).label}, where I talked with ${other.name}. I couldn't put together a fuller diary this time.`;
+      tx.db.diaryEntry.insert({
+        id: 0n, conversationId: s.conv.id, mirrorId: me.id, owner: me.owner,
+        otherMirrorId: other.id, place: s.conv.place,
+        text: typeof raw === 'string' && raw.trim() ? raw.trim().slice(0, 1000) : fallback,
+        goodFit, fitReason: goodFit ? String(c!.why ?? '').slice(0, 300) : '', createdAt: now,
+      });
     }
     endConversation(tx.db, s.conv.id, now);
   });
 }
 
-function hasEncounter(db: Db, a: bigint, b: bigint) {
-  for (const e of db.encounter.iter()) {
-    if ((e.a === a && e.b === b) || (e.a === b && e.b === a)) return true;
+function hasGoodFit(db: Db, a: bigint, b: bigint) {
+  for (const e of db.diaryEntry.iter()) {
+    if (e.goodFit && ((e.mirrorId === a && e.otherMirrorId === b) || (e.mirrorId === b && e.otherMirrorId === a))) return true;
   }
-  return false;
+  // Existing postcards still count after a data-preserving upgrade.
+  return [...db.encounter.iter()].some(e => (e.a === a && e.b === b) || (e.a === b && e.b === a));
 }
 
-function postcardsSince(db: Db, owner: Identity, sinceMicros: bigint) {
-  let n = 0;
-  for (const e of db.encounter.iter()) {
-    if (e.createdAt.microsSinceUnixEpoch < sinceMicros) continue;
-    if ((!e.aDemo && e.aOwner.equals(owner)) || (!e.bDemo && e.bOwner.equals(owner))) n++;
-  }
-  return n;
+function goodFitsSince(db: Db, owner: Identity, sinceMicros: bigint) {
+  return [...db.diaryEntry.owner.filter(owner)].filter(e => e.goodFit && e.createdAt.microsSinceUnixEpoch >= sinceMicros).length
+    + [...db.encounter.iter()].filter(e => e.createdAt.microsSinceUnixEpoch >= sinceMicros
+      && ((!e.aDemo && e.aOwner.equals(owner)) || (!e.bDemo && e.bOwner.equals(owner)))).length;
 }
 
 // ---------------------------------------------------------------------------
@@ -767,27 +788,33 @@ export const updateIntent = spacetimedb.reducer({ mirrorId: t.u64(), intent: t.s
   ctx.db.mirror.id.update({ ...m, intent, landmark, place: landmark, targetX: target.x, targetY: target.y });
 });
 
-// A wave is the only response a postcard asks for, and nobody is told about
-// one until both people have waved.
-export const wave = spacetimedb.reducer({ encounterId: t.u64() }, (ctx, { encounterId }) => {
-  const e = ctx.db.encounter.id.find(encounterId);
-  if (!e) throw new SenderError('No such postcard');
-  if (!e.aDemo && e.aOwner.equals(ctx.sender)) ctx.db.encounter.id.update({ ...e, aWaved: true });
-  else if (!e.bDemo && e.bOwner.equals(ctx.sender)) ctx.db.encounter.id.update({ ...e, bWaved: true });
-  else throw new SenderError('Not your postcard');
+function findInterest(db: ViewCtx<InferSchema<typeof spacetimedb>>['db'], from: bigint, to: bigint) {
+  return [...db.interest.by_direction.filter([from, to])][0];
+}
+
+function addInterest(ctx: Ctx, from: bigint, to: bigint, fromOwner: Identity, toOwner: Identity) {
+  if (!findInterest(ctx.db, from, to)) ctx.db.interest.insert({
+    id: 0n, fromMirrorId: from, toMirrorId: to, fromOwner, toOwner, createdAt: ctx.timestamp,
+  });
+}
+
+export const showInterest = spacetimedb.reducer({ diaryEntryId: t.u64() }, (ctx, { diaryEntryId }) => {
+  const entry = ctx.db.diaryEntry.id.find(diaryEntryId);
+  if (!entry || !entry.owner.equals(ctx.sender)) throw new SenderError('Not your diary entry');
+  requireOwnMirror(ctx, entry.mirrorId);
+  const other = ctx.db.mirror.id.find(entry.otherMirrorId);
+  const profile = ctx.db.mirrorProfile.mirrorId.find(entry.otherMirrorId);
+  if (!other || !profile) throw new SenderError('Mirror is no longer here');
+  addInterest(ctx, entry.mirrorId, other.id, ctx.sender, profile.owner);
+  if (other.demo) addInterest(ctx, other.id, entry.mirrorId, profile.owner, ctx.sender);
 });
 
-export const sendHumanMessage = spacetimedb.reducer(
-  { encounterId: t.u64(), text: t.string() },
-  (ctx, { encounterId, text }) => {
-    const e = ctx.db.encounter.id.find(encounterId);
-    if (!e || !(e.aWaved && e.bWaved)) throw new SenderError('Not connected');
-    if (!e.aOwner.equals(ctx.sender) && !e.bOwner.equals(ctx.sender)) throw new SenderError('Not your postcard');
-    ctx.db.humanMessage.insert({
-      id: 0n, encounterId, sender: ctx.sender, text: cleanText(text, 500, 'Message'), at: ctx.timestamp,
-    });
-  },
-);
+export const setContact = spacetimedb.reducer({ mirrorId: t.u64(), contact: t.string() }, (ctx, { mirrorId, contact }) => {
+  requireOwnMirror(ctx, mirrorId);
+  if (contact.length > 120) throw new SenderError('Contact must be at most 120 characters');
+  const profile = ctx.db.mirrorProfile.mirrorId.find(mirrorId)!;
+  ctx.db.mirrorProfile.mirrorId.update({ ...profile, contact: contact.trim() });
+});
 
 // ---------------------------------------------------------------------------
 // Per-visitor views
@@ -799,86 +826,42 @@ const MyMirror = t.row('MyMirror', {
   look: t.u8(),
   intent: t.string(),
   selfCard: t.string(),
+  contact: t.string(),
 });
 
 export const myMirrors = spacetimedb.view({ name: 'my_mirrors', public: true }, t.array(MyMirror), (ctx) => {
-  const rows: { id: bigint; name: string; look: number; intent: string; selfCard: string }[] = [];
+  const rows: { id: bigint; name: string; look: number; intent: string; selfCard: string; contact: string }[] = [];
   for (const p of ctx.db.mirrorProfile.owner.filter(ctx.sender)) {
     const m = ctx.db.mirror.id.find(p.mirrorId);
-    if (m && !m.demo) rows.push({ id: m.id, name: m.name, look: m.look, intent: m.intent, selfCard: p.selfCard });
+    if (m && !m.demo) rows.push({ id: m.id, name: m.name, look: m.look, intent: m.intent, selfCard: p.selfCard, contact: p.contact });
   }
   return rows;
 });
 
-const MyPostcard = t.row('MyPostcard', {
-  id: t.u64().primaryKey(),
-  myMirror: t.string(),
-  otherMirror: t.string(),
-  otherDemo: t.bool(),
-  otherIntent: t.string(),
-  kind: t.string(),
-  why: t.string(),
-  myEvidence: t.string(),
-  story: t.string(),
-  place: t.string(),
-  iWaved: t.bool(),
-  connected: t.bool(),
-  createdAt: t.timestamp(),
+const DiaryItem = t.row('DiaryItem', {
+  id: t.u64().primaryKey(), mirrorId: t.u64(), myMirror: t.string(), otherName: t.string(), otherDemo: t.bool(),
+  place: t.string(), text: t.string(), goodFit: t.bool(), fitReason: t.string(), createdAt: t.timestamp(),
+  iAmInterested: t.bool(), theyAreInterested: t.bool(), mutual: t.bool(), theirContact: t.string(),
 });
 
-export const myPostcards = spacetimedb.view({ name: 'my_postcards', public: true }, t.array(MyPostcard), (ctx) => {
-  const rows: {
-    id: bigint; myMirror: string; otherMirror: string; otherDemo: boolean; otherIntent: string; kind: string;
-    why: string; myEvidence: string; story: string; place: string; iWaved: boolean; connected: boolean; createdAt: Timestamp;
-  }[] = [];
-  for (const e of ctx.db.encounter.iter()) {
-    const side = !e.aDemo && e.aOwner.equals(ctx.sender) ? 'a' : !e.bDemo && e.bOwner.equals(ctx.sender) ? 'b' : null;
-    if (!side) continue;
-    const mine = ctx.db.mirror.id.find(side === 'a' ? e.a : e.b);
-    const other = ctx.db.mirror.id.find(side === 'a' ? e.b : e.a);
-    rows.push({
-      id: e.id,
-      myMirror: mine?.name ?? '?',
-      otherMirror: other?.name ?? '?',
-      otherDemo: side === 'a' ? e.bDemo : e.aDemo,
-      // Only what the other person already shows the whole town.
-      otherIntent: other?.intent ?? '',
-      kind: e.kind,
-      why: e.why,
-      myEvidence: side === 'a' ? e.evidenceA : e.evidenceB,
-      story: side === 'a' ? e.storyA : e.storyB,
-      place: e.place,
-      iWaved: side === 'a' ? e.aWaved : e.bWaved,
-      connected: e.aWaved && e.bWaved,
-      createdAt: e.createdAt,
-    });
-  }
-  return rows;
+export const myDiary = spacetimedb.view({ name: 'my_diary', public: true }, t.array(DiaryItem), (ctx) => {
+  return [...ctx.db.diaryEntry.owner.filter(ctx.sender)].map(entry => {
+    const mine = ctx.db.mirror.id.find(entry.mirrorId);
+    const other = ctx.db.mirror.id.find(entry.otherMirrorId);
+    const iAmInterested = !!findInterest(ctx.db, entry.mirrorId, entry.otherMirrorId);
+    const theyAreInterested = !!findInterest(ctx.db, entry.otherMirrorId, entry.mirrorId);
+    const mutual = iAmInterested && theyAreInterested;
+    // Never read or expose the other person's contact until both have opted in.
+    const profile = mutual ? ctx.db.mirrorProfile.mirrorId.find(entry.otherMirrorId) : null;
+    return {
+      id: entry.id, mirrorId: entry.mirrorId, myMirror: mine?.name ?? '?', otherName: other?.name ?? '?',
+      otherDemo: other?.demo ?? false, place: entry.place, text: entry.text, goodFit: entry.goodFit,
+      fitReason: entry.fitReason, createdAt: entry.createdAt, iAmInterested, theyAreInterested, mutual,
+      theirContact: mutual ? (profile?.contact || (other?.demo ? `${other.name} · demo contact (placeholder)` : '')) : '',
+    };
+  }).sort((a, b) => a.createdAt.microsSinceUnixEpoch > b.createdAt.microsSinceUnixEpoch ? -1
+    : a.createdAt.microsSinceUnixEpoch < b.createdAt.microsSinceUnixEpoch ? 1 : 0);
 });
-
-const MyHumanMessage = t.row('MyHumanMessage', {
-  id: t.u64().primaryKey(),
-  encounterId: t.u64(),
-  mine: t.bool(),
-  text: t.string(),
-  at: t.timestamp(),
-});
-
-export const myHumanMessages = spacetimedb.view(
-  { name: 'my_human_messages', public: true },
-  t.array(MyHumanMessage),
-  (ctx) => {
-    const rows: { id: bigint; encounterId: bigint; mine: boolean; text: string; at: Timestamp }[] = [];
-    for (const e of ctx.db.encounter.iter()) {
-      if (!(e.aWaved && e.bWaved)) continue;
-      if (!e.aOwner.equals(ctx.sender) && !e.bOwner.equals(ctx.sender)) continue;
-      for (const m of ctx.db.humanMessage.encounterId.filter(e.id)) {
-        rows.push({ id: m.id, encounterId: e.id, mine: m.sender.equals(ctx.sender), text: m.text, at: m.at });
-      }
-    }
-    return rows;
-  },
-);
 
 // ---------------------------------------------------------------------------
 // Mirror Room
@@ -1074,6 +1057,8 @@ export const resetWorld = spacetimedb.reducer((ctx) => {
   const c = requireAdmin(ctx);
   for (const row of [...ctx.db.mirrorCard.iter()]) ctx.db.mirrorCard.id.delete(row.id);
   for (const row of [...ctx.db.importStatus.iter()]) ctx.db.importStatus.id.delete(row.id);
+  for (const row of [...ctx.db.diaryEntry.iter()]) ctx.db.diaryEntry.id.delete(row.id);
+  for (const row of [...ctx.db.interest.iter()]) ctx.db.interest.id.delete(row.id);
   for (const row of [...ctx.db.humanMessage.iter()]) ctx.db.humanMessage.id.delete(row.id);
   for (const row of [...ctx.db.encounter.iter()]) ctx.db.encounter.id.delete(row.id);
   for (const row of [...ctx.db.relation.iter()]) ctx.db.relation.id.delete(row.id);
