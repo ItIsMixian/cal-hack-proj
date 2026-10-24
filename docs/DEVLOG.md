@@ -23,3 +23,6 @@ Complete deliveries and important changes only.
 - Reused the teammate's existing Cup Nooble character sheet for four-direction walking/idle mirrors;
   updated Mirror Room/creation previews, sprite hit areas, depth and bubble spacing. Source attribution
   and license retained; checks and Pending items are in `validation/character-sprites.md`.
+# Optional intent — 2026-10-24
+
+Made intent optional in the creation form and create/update reducers, retaining the length limit and existing Park default. Local module updated without deleting data. Checks: `validation/optional-intent.md`.

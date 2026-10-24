@@ -19,7 +19,7 @@ As of the diary and Figma login implementations on `yw/diary` (2026-10-24). Fact
 | `src/WorldCanvas.tsx` | Canvas renderer with the existing Cup Nooble four-direction walking sprites, smoothed movement, names and speech bubbles |
 | `src/CharacterAvatar.tsx` | Shared idle character preview for Mirror Room and creation form |
 | `public/assets/characters/` | Original Cup Nooble PNG from teammate branch, source mapping and license |
-| `src/CreateMirror.tsx` | Make-a-mirror form (name, color, TIPI, on-mind, intent) |
+| `src/CreateMirror.tsx` | Make-a-mirror form (name, color, TIPI, optional on-mind and intent; blank intent defaults to Park) |
 | `src/MirrorRoom.tsx` | Mirror Room page: portrait, facet cards, room chips, personal cards, import, add card |
 | `src/Diary.tsx` | Diary grouped by venue day; visible interest and mutually unlocked contacts |
 | `src/importers.ts` | WhatsApp export parser, own-lines extraction |

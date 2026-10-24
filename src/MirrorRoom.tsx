@@ -48,7 +48,7 @@ export default function MirrorRoom(props: { mirrorId: bigint; onBack: () => void
         <p className="portrait-lead">Your mirror sees you as someone who…</p>
         <p>{mirror.selfCard}</p>
         <p className="muted small">
-          Today: {mirror.intent} · Showing {sharedHere} of {cards.length} cards at Cal Hacks
+          Today: {mirror.intent || 'No intent set'} · Showing {sharedHere} of {cards.length} cards at Cal Hacks
         </p>
       </div>
 

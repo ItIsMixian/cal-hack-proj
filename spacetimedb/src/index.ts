@@ -395,6 +395,12 @@ function cleanText(text: string, max: number, label: string) {
   return value;
 }
 
+function cleanIntent(text: string) {
+  const value = text.trim();
+  if (value.length > MAX_TEXT) throw new SenderError(`Intent must be at most ${MAX_TEXT} characters`);
+  return value;
+}
+
 function findRelation(db: Db, a: bigint, b: bigint) {
   const [lo, hi] = a < b ? [a, b] : [b, a];
   return [...db.relation.by_pair.filter([lo, hi])][0];
@@ -764,7 +770,7 @@ export const createMirror = spacetimedb.reducer(
   { name: t.string(), look: t.u8(), tipi: t.array(t.u8()), onMind: t.string(), intent: t.string() },
   (ctx, args) => {
     const name = cleanText(args.name, MAX_NAME, 'Name');
-    const intent = cleanText(args.intent, MAX_TEXT, 'Intent');
+    const intent = cleanIntent(args.intent);
     if (args.onMind.length > MAX_TEXT) throw new SenderError(`Keep it under ${MAX_TEXT} characters`);
     if (args.look > 7) throw new SenderError('Unknown look');
     if (!isValidTipi(args.tipi)) throw new SenderError('Answer all ten items from 1 to 7');
@@ -785,7 +791,7 @@ export const createMirror = spacetimedb.reducer(
 
 export const updateIntent = spacetimedb.reducer({ mirrorId: t.u64(), intent: t.string() }, (ctx, args) => {
   const m = requireOwnMirror(ctx, args.mirrorId);
-  const intent = cleanText(args.intent, MAX_TEXT, 'Intent');
+  const intent = cleanIntent(args.intent);
   const landmark = landmarkForIntent(intent);
   const target = randomPointIn(ctx, landmark);
   ctx.db.mirror.id.update({ ...m, intent, landmark, place: landmark, targetX: target.x, targetY: target.y });

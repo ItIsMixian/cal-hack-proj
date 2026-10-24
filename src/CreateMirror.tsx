@@ -19,7 +19,7 @@ export default function CreateMirror(props: { onClose: () => void; onCreated: (n
   const answered = tipi.every((a) => a !== null);
   const card = useMemo(() => (answered ? buildSelfCard(tipi as number[], onMind) : null), [answered, tipi, onMind]);
   const place = intent.trim() ? findLandmark(landmarkForIntent(intent)).label : null;
-  const canSubmit = answered && name.trim() !== '' && intent.trim() !== '' && !submitting;
+  const canSubmit = answered && name.trim() !== '' && !submitting;
 
   const submit = async () => {
     if (!canSubmit) return;
@@ -97,7 +97,7 @@ export default function CreateMirror(props: { onClose: () => void; onCreated: (n
       </label>
 
       <label className="field">
-        <span>Today's intent</span>
+        <span>Today's intent (optional)</span>
         <input
           maxLength={300}
           value={intent}
