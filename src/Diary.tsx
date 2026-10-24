@@ -12,19 +12,26 @@ export default function Diary({ mirrorId }: { mirrorId?: bigint } = {}) {
   const [entries] = useTable(tables.myDiary);
   const sorted = [...entries].filter(entry => mirrorId === undefined || entry.mirrorId === mirrorId).sort((a, b) => a.createdAt.microsSinceUnixEpoch > b.createdAt.microsSinceUnixEpoch ? -1
     : a.createdAt.microsSinceUnixEpoch < b.createdAt.microsSinceUnixEpoch ? 1 : 0);
-  const days = new Map<string, DiaryItem[]>();
-  for (const entry of sorted) {
-    const day = dateFormat.format(dateOf(entry));
-    days.set(day, [...(days.get(day) ?? []), entry]);
-  }
-  if (!sorted.length) return <div className="diary-empty">
+  const [pageId, setPageId] = useState<bigint | null>(null);
+  const index = Math.max(0, sorted.findIndex(entry => entry.id === pageId));
+  const entry = sorted[index];
+  if (!entry) return <div className="diary-book diary-empty">
+    <p className="book-eyebrow">LETTERS FROM MY DAY</p><h3>A story waiting to happen</h3>
     <p>Your mirror's day is just beginning.</p>
     <p className="muted small">After each conversation, it writes home about where it was and who it met. Read whenever you like.</p>
   </div>;
-  return <div className="diary">{[...days].map(([day, group]) => <section key={day}>
-    <h2 className="diary-day">{day}</h2>
-    {group.map(entry => <DiaryEntry key={String(entry.id)} entry={entry} />)}
-  </section>)}</div>;
+  return <div className="diary-reader">
+    <div className="diary-book">
+      <p className="book-eyebrow">LETTERS FROM MY DAY</p>
+      <h2 className="book-date">{dateFormat.format(dateOf(entry))}</h2>
+      <DiaryEntry key={String(entry.id)} entry={entry} />
+    </div>
+    <nav className="book-pages" aria-label="Diary pages">
+      <button disabled={index === 0} onClick={() => setPageId(sorted[index - 1].id)}>← Newer</button>
+      <span aria-live="polite">Page {index + 1} / {sorted.length}</span>
+      <button disabled={index === sorted.length - 1} onClick={() => setPageId(sorted[index + 1].id)}>Older →</button>
+    </nav>
+  </div>;
 }
 
 function DiaryEntry({ entry: e }: { entry: DiaryItem }) {

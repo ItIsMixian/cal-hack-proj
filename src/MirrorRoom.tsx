@@ -14,7 +14,7 @@ import { ownWords, parseWhatsApp, type ParsedChat } from './importers';
 
 const MAX_UPLOAD = 30_000;
 
-export default function MirrorRoom(props: { mirrorId: bigint; onBack: () => void }) {
+export default function MirrorRoom(props: { mirrorId: bigint; onBack: () => void; onDiaryOpen?: () => void }) {
   const [activeObject, setActiveObject] = useState<RoomObject | null>(null);
   const [myMirrors] = useTable(tables.myMirrors);
   const [allCards] = useTable(tables.myCards);
@@ -44,7 +44,10 @@ export default function MirrorRoom(props: { mirrorId: bigint; onBack: () => void
         <div><p className="room-kicker">MIRRORVILLE / HOME</p><h1>{mirror.name}'s room</h1></div>
         <span className="room-private">Just for you</span>
       </div>
-      <PixelRoom name={mirror.name} look={mirror.look} onOpen={setActiveObject} />
+      <PixelRoom name={mirror.name} look={mirror.look} onOpen={object => {
+        setActiveObject(object);
+        if (object === 'diary') props.onDiaryOpen?.();
+      }} />
       <p className="room-art-credit">Character: Cup Nooble · Sprout Lands</p>
       {activeObject && <RoomDialog title={titles[activeObject]} onClose={() => setActiveObject(null)}>
         {activeObject === 'mirror' && <>

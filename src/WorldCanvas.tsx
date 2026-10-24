@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { WORLD_W, WORLD_H, LANDMARKS, LOOK_COLORS } from '../spacetimedb/src/world';
+import { WORLD_W, WORLD_H, LOOK_COLORS } from '../spacetimedb/src/world';
+import { drawTown } from './TownArt';
 import type { Mirror } from './module_bindings/types';
 
 const TILE = 24;
@@ -39,6 +40,12 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, onSelect
     sprite.onload = () => { canvas.dataset.characterRenderer = 'sprites'; };
     sprite.onerror = () => { canvas.dataset.characterRenderer = 'fallback'; };
     sprite.src = '/assets/characters/cup-nooble-character.png';
+    const town = document.createElement('canvas');
+    town.width = WIDTH; town.height = HEIGHT;
+    const paintTown = () => drawTown(town.getContext('2d')!);
+    paintTown();
+    let disposed = false;
+    void document.fonts.ready.then(() => { if (!disposed) paintTown(); });
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
     const draw = (now: number) => {
@@ -52,7 +59,8 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, onSelect
         canvas.height = Math.round(HEIGHT * scale * dpr);
       }
       g.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0);
-      drawTown(g);
+      g.imageSmoothingEnabled = false;
+      g.drawImage(town, 0, 0);
 
       const { mirrors, bubbles, mine, selected } = live.current;
       const present = new Set(mirrors.map(m => m.id));
@@ -91,7 +99,7 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, onSelect
       frame = requestAnimationFrame(draw);
     };
     frame = requestAnimationFrame(draw);
-    return () => { cancelAnimationFrame(frame); sprite.onload = null; sprite.onerror = null; };
+    return () => { disposed = true; cancelAnimationFrame(frame); sprite.onload = null; sprite.onerror = null; };
   }, []);
 
   const handleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -113,29 +121,6 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, onSelect
   };
 
   return <canvas ref={canvasRef} className="world" onClick={handleClick} aria-label="Map of Mirrorville" data-character-renderer="loading" />;
-}
-
-function drawTown(g: CanvasRenderingContext2D) {
-  g.fillStyle = '#d9ecc4';
-  g.fillRect(0, 0, WIDTH, HEIGHT);
-  g.fillStyle = '#efe3c8';
-  g.fillRect(0, 9.6 * TILE, WIDTH, 1.2 * TILE);
-  g.fillRect(0, 17 * TILE, WIDTH, 1.2 * TILE);
-  g.fillRect(12.6 * TILE, 0, 1.2 * TILE, HEIGHT);
-  g.fillRect(25.4 * TILE, 0, 1.2 * TILE, HEIGHT);
-
-  for (const l of LANDMARKS) {
-    g.fillStyle = l.color + '55';
-    g.strokeStyle = l.color;
-    g.lineWidth = 3;
-    roundRect(g, l.x * TILE, l.y * TILE, l.w * TILE, l.h * TILE, 14);
-    g.fill();
-    g.stroke();
-    g.fillStyle = '#3b3b3b';
-    g.font = '600 15px system-ui, sans-serif';
-    g.textAlign = 'left';
-    g.fillText(l.label, l.x * TILE + 10, l.y * TILE + 22);
-  }
 }
 
 function drawMirror(g: CanvasRenderingContext2D, m: Mirror, p: ShownMirror, isMine: boolean, isSelected: boolean,

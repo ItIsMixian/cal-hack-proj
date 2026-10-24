@@ -6,6 +6,10 @@ import WorldCanvas from './WorldCanvas';
 import CreateMirror from './CreateMirror';
 import Diary from './Diary';
 import MirrorRoom from './MirrorRoom';
+import RoomDialog from './RoomDialog';
+import CharacterAvatar from './CharacterAvatar';
+import './pixel-room.css';
+import './town-game.css';
 
 const SEEN_KEY = 'mirrorville-diary-seen';
 
@@ -40,7 +44,7 @@ export default function App({ sessionLabel, onExit, accountMode = false }: {
   const [selected, setSelected] = useState<bigint | null>(null);
   const [notice, setNotice] = useState('');
   const [roomFor, setRoomFor] = useState<bigint | null>(null);
-  const [tab, setTab] = useState<'town' | 'diary'>('town');
+  const [gamePanel, setGamePanel] = useState<'diary' | 'residents' | 'guide' | null>(null);
   const [seen, setSeen] = useState(() => readSeen(seenKey));
   useEffect(() => setSeen(readSeen(seenKey)), [seenKey]);
   const hour = useVenueClock();
@@ -53,14 +57,14 @@ export default function App({ sessionLabel, onExit, accountMode = false }: {
 
   // A quiet dot, not a notification: mark diary as seen once the tab is open.
   useEffect(() => {
-    if (tab !== 'diary' || newestEntry <= seen) return;
+    if (gamePanel !== 'diary' || newestEntry <= seen) return;
     setSeen(newestEntry);
     try {
       localStorage.setItem(seenKey, String(newestEntry));
     } catch {
       // Private mode: the dot comes back next visit, which is fine.
     }
-  }, [tab, newestEntry, seen, seenKey]);
+  }, [gamePanel, newestEntry, seen, seenKey]);
 
   // Latest line of each active conversation, shown above whoever said it.
   const bubbles = useMemo(() => {
@@ -90,106 +94,62 @@ export default function App({ sessionLabel, onExit, accountMode = false }: {
   if (roomFor !== null) {
     return (
       <div className="app">
-        <MirrorRoom mirrorId={roomFor} onBack={() => setRoomFor(null)} />
+        <MirrorRoom mirrorId={roomFor} onBack={() => setRoomFor(null)} onDiaryOpen={() => {
+          setSeen(newestEntry);
+          try { localStorage.setItem(seenKey, String(newestEntry)); } catch { /* Private mode. */ }
+        }} />
       </div>
     );
   }
 
   return (
-    <div className="app">
-      <header>
-        <div>
-          <h1>Mirrorville</h1>
-          <p className="tagline">Your mirrors meet first. Then you do.</p>
-        </div>
-        <div className="header-actions">
+    <div className="app town-game">
+      <header className="town-hud">
+        <div className="town-title"><p>MIRRORS MEET HERE</p><h1>Mirrorville</h1></div>
+        <div className="town-clock"><strong>{clockLabel(hour)}</strong><span>{event ? event.label : 'A little time in town'}</span></div>
+        <div className="town-account"><span className={isActive ? 'status on' : 'status'}>{isActive ? 'Live' : 'Connecting…'}</span>
           <span className="session-label" title={sessionLabel}>{sessionLabel}</span>
-          <button className="ghost small" onClick={onExit}>{accountMode ? 'Sign out' : 'Leave town'}</button>
-          <span className={isActive ? 'status on' : 'status'}>{isActive ? 'Live' : 'Connecting…'}</span>
-          {myMirrors.length > 0 && (
-            <button onClick={() => setRoomFor(myMirrors[0].id)} disabled={!isActive}>
-              Mirror Room
-            </button>
-          )}
-          <button className="primary" onClick={() => setCreating(true)} disabled={!isActive}>
-            {myMirrors.length ? 'Add another mirror' : 'Make your mirror'}
-          </button>
-        </div>
+          <button onClick={onExit}>{accountMode ? 'Sign out' : 'Leave town'}</button></div>
       </header>
-
-      {notice && (
-        <div className="notice" onClick={() => setNotice('')}>
-          {notice}
+      {notice && <button className="town-notice" onClick={() => setNotice('')}>{notice} <span>✕</span></button>}
+      <main className="town-stage">
+        <div className="town-map-shell">
+          <div className="town-map-frame"><WorldCanvas mirrors={mirrors} bubbles={bubbles} mine={mine} selected={selected} onSelect={setSelected} /></div>
+          <div className="town-map-caption"><span>{mirrors.length} mirrors going about their day</span><span>Tap a mirror to listen in</span></div>
         </div>
-      )}
-
-      <main>
-        <div className="map">
-          <WorldCanvas mirrors={mirrors} bubbles={bubbles} mine={mine} selected={selected} onSelect={setSelected} />
-          <p className="muted hint">
-            {clockLabel(hour)} in town{event ? ` · ${event.label} at the ${findLandmark(event.landmark).label}` : ''} ·{' '}
-            {mirrors.length} mirrors · tap one to listen in
-          </p>
-          <p className="muted art-credit">Character art: Cup Nooble · Sprout Lands</p>
-        </div>
-
-        <aside className="panel">
-          <div className="tabs">
-            <button className={tab === 'town' ? 'tab on' : 'tab'} onClick={() => setTab('town')}>
-              Town
-            </button>
-            <button className={tab === 'diary' ? 'tab on' : 'tab'} onClick={() => setTab('diary')}>
-              Diary{hasNew && <span className="dot" aria-label="new" />}
-            </button>
-          </div>
-
-          {tab === 'diary' ? (
-            <Diary />
-          ) : focus ? (
-            <>
-              <h2>{focus.name}</h2>
-              {focus.demo && <span className="tag">demo mirror</span>}
-              {mine.has(focus.id) && <span className="tag gold">your mirror</span>}
-              <p>
-                <b>Today:</b> {focus.intent}
-              </p>
-              <p className="muted">
-                {focus.conversationId !== 0n ? 'Talking' : focus.activity} at the {findLandmark(focus.place).label}
-              </p>
-              {myCard && <button onClick={() => setRoomFor(myCard.id)}>Open Mirror Room</button>}
-              <h3>{focusConversation?.active ? 'Talking now' : 'Last conversation'}</h3>
-              {focusLines.length === 0 && <p className="muted">No conversations yet.</p>}
-              <div className="transcript">
-                {focusLines.map((l) => (
-                  <p key={String(l.id)}>
-                    <b>{byId.get(l.speaker)?.name ?? '?'}:</b> {l.text}
-                  </p>
-                ))}
-              </div>
-            </>
-          ) : (
-            <>
-              <h2>How it works</h2>
-              <ol>
-                <li>Make a mirror: a short personality check and what you want to do today.</li>
-                <li>It goes about its day in town: the gym in the morning, the food court at lunch, the workshop at night.</li>
-                <li>It gets to know the people it keeps running into.</li>
-                <li>Read its diary. Show interest in someone whenever you like; when you both say yes, your contact details appear.</li>
-              </ol>
-            </>
-          )}
-        </aside>
       </main>
-
-      {creating && (
-        <CreateMirror
-          onClose={() => setCreating(false)}
-          onCreated={(name) => {
-            setCreating(false);
-            setNotice(`${name} is walking into Mirrorville. Come back later for its diary.`);
-          }}
-        />
-      )}
+      <nav className="town-dock" aria-label="Town actions">
+        <button onClick={() => setGamePanel('diary')}><span className="dock-icon" aria-hidden="true">▤</span>Diary{hasNew && <span className="dot" aria-label="new" />}</button>
+        <button onClick={() => setGamePanel('residents')}><span className="dock-icon" aria-hidden="true">♧</span>Mirrors</button>
+        {myMirrors.length > 0 && <button onClick={() => { setSelected(null); setRoomFor(myMirrors[0].id); }} disabled={!isActive}><span className="dock-icon" aria-hidden="true">⌂</span>Mirror Room</button>}
+        <button onClick={() => setCreating(true)} disabled={!isActive}><span className="dock-icon" aria-hidden="true">＋</span>{myMirrors.length ? 'New mirror' : 'Make your mirror'}</button>
+        <button onClick={() => setGamePanel('guide')} aria-label="Town guide"><span className="dock-icon" aria-hidden="true">?</span><span>Guide</span></button>
+      </nav>
+      <p className="town-credit">Your mirrors meet first. Then you do. <span>Character: Cup Nooble · Sprout Lands</span></p>
+      {gamePanel && <RoomDialog title={gamePanel === 'diary' ? 'Your diary' : gamePanel === 'residents' ? 'Around town' : 'Welcome to Mirrorville'} onClose={() => setGamePanel(null)}>
+        {gamePanel === 'diary' ? <Diary /> : gamePanel === 'residents' ? <div className="town-roster">
+          {mirrors.map(mirror => <button key={String(mirror.id)} onClick={() => { setGamePanel(null); setSelected(mirror.id); }}>
+            <CharacterAvatar look={mirror.look} name={mirror.name} /><span><strong>{mirror.name}</strong><small>{mine.has(mirror.id) ? 'Your mirror · ' : ''}{findLandmark(mirror.place).label}</small></span><span aria-hidden="true">→</span>
+          </button>)}
+        </div> : <div className="town-guide"><p>Your mirrors meet first. Then you do.</p><ol>
+          <li>Make a mirror with a name and a short personality check. Today's intent is optional.</li>
+          <li>Watch it wander, stop for a coffee, and get to know people in town.</li>
+          <li>Open your diary whenever you like. Show interest in someone; when you both say yes, contact details appear.</li>
+          <li>Visit your Mirror Room to add your own words and choose what your mirror shares.</li>
+        </ol></div>}
+      </RoomDialog>}
+      {focus && <RoomDialog title={focus.name} onClose={() => setSelected(null)}>
+        <div className="room-portrait"><CharacterAvatar look={focus.look} name={focus.name} /><div><h3>{focus.name}</h3><p>{mine.has(focus.id) ? 'Your mirror' : focus.demo ? 'Demo mirror' : 'A mirror in town'}</p></div></div>
+        {focus.intent && <p><b>Today:</b> {focus.intent}</p>}
+        <p className="muted">{focus.conversationId !== 0n ? 'Talking' : focus.activity} at the {findLandmark(focus.place).label}</p>
+        {myCard && <button onClick={() => { setSelected(null); setRoomFor(myCard.id); }}>Open Mirror Room</button>}
+        <h3>{focusConversation?.active ? 'Talking now' : 'Last conversation'}</h3>
+        {focusLines.length === 0 && <p className="muted">No conversations yet. A new day is just beginning.</p>}
+        <div className="town-transcript">{focusLines.map(line => <p key={String(line.id)}><b>{byId.get(line.speaker)?.name ?? '?'}:</b> {line.text}</p>)}</div>
+      </RoomDialog>}
+      {creating && <CreateMirror onClose={() => setCreating(false)} onCreated={name => {
+        setCreating(false); setNotice(`${name} is walking into Mirrorville. Open your diary later to see how the day went.`);
+      }} />}
     </div>
   );
 }

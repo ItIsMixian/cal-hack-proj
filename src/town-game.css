@@ -1,0 +1,69 @@
+.town-game { max-width: 1200px; color: #4d4839; padding: 14px 24px; }
+.town-hud { flex-wrap: nowrap; margin-bottom: 12px; }
+.town-title p { margin: 0; letter-spacing: 2px; font-size: 10px; color: #7f8167; }
+.town-title h1 { font: 500 40px/1.1 'Pixelify Sans', monospace; letter-spacing: 0; }
+.town-clock { display: flex; flex-direction: column; text-align: center; border: 2px solid #b4a887; background: #f6efd9; padding: 5px 20px; box-shadow: 0 3px 0 #d4c9ae; }
+.town-clock strong { font: 24px 'Pixelify Sans', monospace; }
+.town-clock span { font-size: 11px; color: #7b745e; }
+.town-account { display: flex; align-items: center; gap: 10px; font-size: 12px; }
+.town-account .session-label { max-width: 120px; font-size: 12px; }
+.town-game button { border: 2px solid #a49676; background: #f7efd9; color: #4d4839; border-radius: 2px; box-shadow: 0 3px 0 #c9bb9a; }
+.town-game button:focus-visible { outline: 3px solid #4d6840; outline-offset: 4px; }
+.town-stage { display: block; }
+.town-map-shell { width: min(100%, calc((100svh - 218px) * 1.42857)); margin: 0 auto; }
+.town-map-frame { background: #dce0c9; padding: 8px; border: 3px solid #8d9274; box-shadow: inset 0 0 0 3px #f3ecd6, 0 5px 0 #c4c5a6; }
+.town-map-frame canvas.world { border: 2px solid #777f60; border-radius: 0; image-rendering: pixelated; }
+.town-map-caption { display: flex; justify-content: space-between; gap: 12px; font: 14px 'Pixelify Sans', monospace; margin: 9px 2px 0; color: #6e765d; }
+.town-dock { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 12px auto 0; }
+.town-dock button { display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 6px 15px; font: 18px 'Pixelify Sans', monospace; }
+.town-dock button:hover { background: #e8ebd1; }
+.dock-icon { font-size: 25px; color: #74845e; line-height: 1; }
+.town-credit { display: flex; gap: 16px; justify-content: space-between; margin: 14px 0 0; font-size: 11px; color: #79775f; }
+.town-notice { display: flex; justify-content: space-between; width: 100%; text-align: left; margin-bottom: 12px; }
+.town-roster { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.town-roster button { display: flex; align-items: center; gap: 10px; text-align: left; padding: 10px; min-width: 0; }
+.town-roster button > span:last-child { margin-left: auto; }
+.town-roster strong { display: block; overflow-wrap: anywhere; }
+.town-roster small { display: block; font-size: 12px; margin-top: 4px; }
+.town-roster .character-avatar { width: 42px; height: 54px; border-radius: 0; border-width: 1px; }
+.town-roster .character-avatar-sprite { transform: scale(1.5); }
+.town-guide ol { padding-left: 22px; }
+.town-guide li { margin: 16px 0; line-height: 1.7; }
+.town-transcript p { padding: 12px 16px; border-left: 3px solid #b9c3a1; background: #fff9e9; }
+.town-game .modal { border: 4px solid #887759; border-radius: 2px; background: #f7efd9; }
+.town-game .modal h2 { font-family: 'Pixelify Sans', monospace; font-size: 28px; }
+.town-game .modal input, .town-game .modal textarea { border-radius: 2px; border: 2px solid #c4b38e; }
+.town-game .modal button.primary, .town-game .scale button.selected { background: #667d55; color: #fff9e7; border-color: #4e6540; }
+.diary-book { position: relative; background: #fff9e9; border: 1px solid #d7c8a4; border-left: 8px solid #b0a17e; padding: 22px 26px 20px; box-shadow: 3px 3px 0 #e7dcc0, 6px 6px 0 #cebd96; margin: 0 6px 12px 0; }
+.diary-book::before { content: ''; position: absolute; left: 12px; top: 0; bottom: 0; width: 1px; background: #d6a48a66; }
+.book-eyebrow { margin: 0 0 8px; color: #9a8969; font: 12px 'Pixelify Sans', monospace; letter-spacing: 2px; }
+.room-dialog .book-date { font: 24px/1.2 'Pixelify Sans', monospace; margin: 0 0 20px; color: #5d6e4e; }
+.diary-book .diary-entry { border: 0; padding: 0; }
+.room-dialog .diary-book .diary-entry h3 { font: 600 17px/1.5 system-ui, sans-serif; margin: 6px 0 14px; }
+.diary-book .diary-text { font: 18px/1.85 Georgia, serif; }
+.book-pages { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 20px; font: 16px 'Pixelify Sans', monospace; }
+.book-pages button { font-family: 'Pixelify Sans', monospace; }
+@media (max-width: 650px) {
+  .town-game { padding: 12px; }
+  .town-hud { flex-wrap: wrap; gap: 12px; }
+  .town-title h1 { font-size: 34px; }
+  .town-clock { padding: 3px 10px; }
+  .town-clock strong { font-size: 22px; }
+  .town-account { width: 100%; justify-content: flex-end; gap: 8px; }
+  .town-account .status { margin-right: auto; }
+  .town-account button { padding: 6px 12px; min-height: 40px; }
+  .town-map-shell { width: 100%; }
+  .town-map-frame { padding: 4px; }
+  .town-map-caption { font-size: 12px; }
+  .town-map-caption span:last-child { text-align: right; }
+  .town-dock { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .town-dock button { justify-content: center; flex-direction: column; gap: 2px; font-size: 16px; padding: 6px; min-height: 65px; }
+  .town-dock button:first-child { position: relative; }
+  .town-dock .dot { position: absolute; top: 9px; right: 10px; }
+  .town-credit { flex-direction: column; gap: 4px; text-align: center; }
+  .town-roster { grid-template-columns: minmax(0, 1fr); }
+  .diary-book { padding: 16px 16px 16px 22px; }
+  .diary-book .diary-text { font-size: 17px; line-height: 1.8; }
+  .book-pages { font-size: 14px; gap: 8px; }
+  .book-pages button { padding: 8px; }
+}
