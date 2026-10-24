@@ -12,7 +12,8 @@ interest in someone (see `core/principles.md`). Deadline: Devpost first submissi
 
 1. Build the diary, visible interest and contact unlock (0008); contact details field in the Mirror Room.
 2. Mirror fidelity (`implementation/plans/mirror-fidelity.md`): import merging per facet, dated
-   recent cards, AI-only chats kept out of Humor/Warmth; then graded fit (needs a decision amending 0004).
+   recent cards, AI-only chats kept out of Humor/Warmth; then graded fit (needs a decision amending 0004). After part A: import-first onboarding ("ask your AI"
+   summary as the main way in, personality check optional).
 3. Public deployment (0007): first check that a Maincloud procedure can call DeepSeek.
 4. Agree on the remaining drafts on branch `yw/proposals`: postcard privacy, CREAO team brief
    (`npm run check-decisions` lists drafts on every branch).
