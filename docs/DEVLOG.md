@@ -1,5 +1,11 @@
 # 变更记录
 
+## 2026-10-24：上传 mirrorvile Godot 工程快照到 yq
+
+- 按用户要求纳入 mirrorvile/：Godot 工程配置、Player1 / Player2 场景及现有美术、音频素材，共 260 个非缓存文件，约 18.37 MiB。
+- 沿用工程自带 .gitignore 排除 .godot/ 缓存；静态核对场景及工程配置中的资源引用均存在。
+- 本次为工程快照上传，未运行 Godot，未验证角色动画或场景运行，也不代表现有 React / SpacetimeDB 主程序已迁移到 Godot；共识 ADR 与 Proposed 不变。
+
 ## 2026-10-24：个人分支 yq 文档交付
 
 - 按用户要求区分 ADR（已形成共识的确定决定）与 Proposed（最近在考虑的想法）。

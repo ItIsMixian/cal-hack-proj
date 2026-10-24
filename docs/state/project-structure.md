@@ -1,5 +1,9 @@
 # 项目结构与当前状态
 
+## Godot 工程快照（2026-10-24）
+
+按用户要求将 [mirrorvile 工程](../../mirrorvile/project.godot) 纳入 yq。工程配置声明 Godot 4.5 / Forward Plus，包含 Player1.tscn、Player2.tscn 与 ArtAsset 素材目录；.godot 缓存不提交。本次只核对文件与资源引用，未运行 Godot，不表示主程序技术栈或任何共识 ADR 已变更。
+
 检查日期：2026-10-24。来源：本地文件、cal-hack-proj HEAD `8c6b381e08ee0b0b050b90d63a99113aac67053e`、实际源码静态阅读及导入的历史记录。本次未运行应用。
 
 ## yq 分支交付补充

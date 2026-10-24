@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://yalmjsbye0fo"
+path="res://.godot/imported/boo_1.wav-f35c13667ff76abde2c9bf6728546cc0.sample"
+
+[deps]
+
+source_file="res://ArtAsset/Sprout Sorry pack/Sprout Sorry pack/Audio/boo_1.wav"
+dest_files=["res://.godot/imported/boo_1.wav-f35c13667ff76abde2c9bf6728546cc0.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2
