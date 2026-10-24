@@ -12,6 +12,7 @@
     "set-keys": "node scripts/set-keys.mjs",
     "test:diary": "node --test scripts/test-diary.mjs",
     "test:roaming": "node --test scripts/test-roaming.mjs",
+    "test:importers": "node --test scripts/test-importers.mjs",
     "test:auth": "node --test scripts/test-auth-session.mjs",
     "check-decisions": "node scripts/check-decisions.mjs"
   },

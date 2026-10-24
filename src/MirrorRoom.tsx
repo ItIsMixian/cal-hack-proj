@@ -10,7 +10,7 @@ import {
   FACETS, FACET_LABELS, RELATIONS, ROOMS, ROOM_LABELS, isVisibleIn, redact, type Facet, type Room,
 } from '../spacetimedb/src/redact';
 import CharacterAvatar from './CharacterAvatar';
-import { ownWords, parseWhatsApp, type ParsedChat } from './importers';
+import { decodeImportFile, looksLikeWeChatCsv, ownWords, parseWeChatCsv, parseWhatsApp, type ParsedChat, type WeChatImport } from './importers';
 
 const MAX_UPLOAD = 30_000;
 
@@ -193,6 +193,8 @@ function CardView({ card }: { card: MirrorCard }) {
 
 function Importer({ mirrorId, busy }: { mirrorId: bigint; busy: boolean }) {
   const importText = useReducer(reducers.importText);
+  const [wechat, setWechat] = useState<WeChatImport | null>(null);
+  const [reading, setReading] = useState(false);
   const [chat, setChat] = useState<ParsedChat | null>(null);
   const [pasted, setPasted] = useState('');
   const [fileName, setFileName] = useState('');
@@ -200,30 +202,41 @@ function Importer({ mirrorId, busy }: { mirrorId: bigint; busy: boolean }) {
   const [relation, setRelation] = useState<(typeof RELATIONS)[number]>('friends');
   const [error, setError] = useState('');
 
-  const onFile = async (file: File) => {
-    setError('');
-    const text = await file.text();
-    const parsed = parseWhatsApp(text);
-    setFileName(file.name);
-    if (parsed) {
-      setChat(parsed);
-      setPasted('');
-      // Default to whoever wrote the most; the owner confirms.
-      setMe([...parsed.speakers.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? '');
-    } else {
-      setChat(null);
-      setPasted(text);
-    }
+  const onFiles = async (files: File[]) => {
+    setError(''); setChat(null); setWechat(null); setPasted(''); setMe(''); setFileName('');
+    setReading(true);
+    try {
+      if (files.length > 20 || files.reduce((sum, file) => sum + file.size, 0) > 10 * 1024 * 1024) throw new Error('Please choose up to 20 files, under 10 MB in total.');
+      const values = await Promise.all(files.map(async file => decodeImportFile(await file.arrayBuffer())));
+      const value = values[0];
+      if (files.length > 1 || /\.csv$/i.test(files[0].name) || looksLikeWeChatCsv(value)) {
+        const parsed = values.map(parseWeChatCsv);
+        setWechat({ text: parsed.map(item => item.text).filter(Boolean).join('\n'),
+          total: parsed.reduce((sum, item) => sum + item.total, 0), kept: parsed.reduce((sum, item) => sum + item.kept, 0),
+          dropped: parsed.reduce((sum, item) => sum + item.dropped, 0) });
+      } else {
+        const parsed = parseWhatsApp(value);
+        if (parsed) setChat(parsed);
+        else setPasted(value);
+      }
+      setFileName(`${files.length} ${files.length === 1 ? 'file' : 'files'}`);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not read this file.');
+    } finally { setReading(false); }
   };
 
-  const text = chat ? (me ? ownWords(chat, me) : '') : redact(pasted);
-  const source = chat ? `WhatsApp · ${relation}` : fileName ? `${fileName} · ${relation}` : `Your words · ${relation}`;
+  const pastedCsv = !chat && !wechat && looksLikeWeChatCsv(pasted);
+  const text = wechat ? wechat.text : chat ? (me ? ownWords(chat, me) : '') : pastedCsv ? '' : redact(pasted);
+  // Do not send filenames, contact IDs, timestamps or the other speakers' names.
+  const source = `${wechat ? 'WeChat / PyWxDump' : chat ? 'WhatsApp' : 'Your words'} · ${relation}`;
 
   const submit = async () => {
+    if (reading || busy || text.trim().length < 40) return;
     setError('');
     try {
       await importText({ mirrorId, relation, source, text: text.slice(0, MAX_UPLOAD) });
       setChat(null);
+      setWechat(null);
       setPasted('');
       setFileName('');
     } catch (e) {
@@ -234,12 +247,15 @@ function Importer({ mirrorId, busy }: { mirrorId: bigint; busy: boolean }) {
   return (
     <div className="importer">
       <p className="muted small">
-        Hand over something that already exists: a WhatsApp export (Chat → More → Export chat, without media), or your own
-        writing. It's read here in your browser, only your own lines are kept, and emails, numbers and links are removed
-        before anything is sent. Nothing you upload is stored.
+        Bring a WeChat CSV exported by PyWxDump, a WhatsApp text export, or your own writing. WeChat imports keep only your sent plain-text messages; received messages, quotes, forwards and media are skipped. It's read here in your browser, only your own lines are kept, and emails, numbers and links are removed
+        before anything is sent. The original file stays in your browser; only the filtered, redacted text is sent for processing.
       </p>
       <div className="import-row">
-        <input type="file" aria-label="Import your writing or chat export" accept=".txt,text/plain" onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])} />
+        <input type="file" aria-label="Import your writing or chat export" disabled={reading} multiple accept=".csv,.txt,text/csv,text/plain" onChange={event => {
+          const files = Array.from(event.currentTarget.files ?? []);
+          event.currentTarget.value = '';
+          if (files.length) void onFiles(files);
+        }} />
         <label>
           Chats with my{' '}
           <select value={relation} onChange={(e) => setRelation(e.target.value as (typeof RELATIONS)[number])}>
@@ -251,7 +267,13 @@ function Importer({ mirrorId, busy }: { mirrorId: bigint; busy: boolean }) {
           </select>
         </label>
       </div>
-      {chat ? (
+      <p className="muted small">You can select several WeChat CSV files together.</p>
+      {reading && <p role="status">Reading the file locally…</p>}
+      {wechat ? <div className="wechat-summary" role="status">
+        <strong>WeChat / PyWxDump recognized</strong>
+        <p>Keeping {wechat.kept} of {wechat.total} messages: only your sent plain text. Skipped {wechat.dropped} received or non-text messages.</p>
+        {wechat.kept === 0 && <p>No sent plain-text messages were found. Nothing will be uploaded.</p>}
+      </div> : chat ? (
         <div className="field">
           <span>Which one is you?</span>
           <div className="speakers">
@@ -274,9 +296,16 @@ function Importer({ mirrorId, busy }: { mirrorId: bigint; busy: boolean }) {
           placeholder="…or paste your own messages, a bio, an old post"
         />
       )}
-      {error && <p className="error small">{error}</p>}
+      {pastedCsv && <p className="error small">This looks like a WeChat export. Choose the CSV file above so we can keep only your own messages.</p>}
+      {text && <details className="import-preview"><summary>Preview what your mirror will read ({Math.min(text.length, MAX_UPLOAD)} characters)</summary>
+        <textarea aria-label="Filtered and redacted import preview" readOnly rows={6} value={text.slice(0, MAX_UPLOAD)} />
+      </details>}
+      {text && text.trim().length < 40 && <p className="muted small">Not enough text yet (at least 40 characters). Select more WeChat CSV files together, or add a note below.</p>}
+      {text.length > MAX_UPLOAD && <p className="muted small">Only the first {MAX_UPLOAD.toLocaleString()} characters shown in the preview will be sent.</p>}
+      {fileName && <p className="muted small">{fileName} ready in this browser. Filenames are not sent.</p>}
+      {error && <p role="alert" className="error small">{error}</p>}
       <div className="actions">
-        <button className="primary" disabled={busy || text.trim().length < 40} onClick={submit}>
+        <button className="primary" disabled={reading || busy || text.trim().length < 40} onClick={submit}>
           {busy ? 'Reading…' : 'Let my mirror read this'}
         </button>
       </div>
