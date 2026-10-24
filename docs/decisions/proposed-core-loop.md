@@ -11,6 +11,10 @@ said which feature everything else serves. Discussion settled on one core loop.
 
 State the premise first: people must feel their mirror is them, continuing their real life.
 Without it the core loop does not work, so it is written as an assumption to test, with how to test it.
+The first source of it is the owner's own words: a questionnaire alone cannot make a mirror recognizable,
+so importing must be the main way in, fast on a phone (added after the owner tested cards built from
+their own AI chats and WeChat messages and found them accurate, while nothing from the personality check
+was).
 
 
 Add a "core feature" section: the mirror does the first encounter, writes it in its diary, and the

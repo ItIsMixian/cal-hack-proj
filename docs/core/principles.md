@@ -18,6 +18,11 @@ is treated as an assumption to test, not a given.
 
 Where it comes from:
 
+- **Built from your own words**: the mirror is made from things you have actually written (chats, notes,
+  what your AI assistant knows about you), because a questionnaire gives scores many people share and
+  nobody recognizes themselves in. Data is the means, not the goal: only your own words, only what the
+  mirror needs, conclusions kept and the raw text discarded (0005). Getting your words in must take
+  under a minute on a phone; a mirror with nothing imported says honestly how little it knows.
 - **Shaping it yourself**: small choices while making and correcting the mirror (the IKEA effect,
   Norton, Mochon & Ariely 2012), not a profile generated for you.
 - **Recognizing yourself**: it says things you would say, about things you actually care about.
