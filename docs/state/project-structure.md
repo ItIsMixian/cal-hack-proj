@@ -40,5 +40,5 @@ Per-visitor views: `my_mirrors`, `my_postcards`, `my_human_messages`, `my_cards`
 
 - Only the venue room is live; teammates and old-friends rooms are visibility settings only.
 - No triadic referral, journal postcards, group conversations, or Messenger/36-questions import.
-- Not deployed publicly; runs on the dev machine (see HANDOFF and proposed-public-deployment).
+- Not deployed publicly; runs on the dev machine (see HANDOFF; a deployment draft is on branch `yw/proposals`).
 - Changing table columns requires `--delete-data`, which wipes everything including keys.

@@ -14,6 +14,8 @@ is implemented. Later decisions amend or supersede earlier ones instead of rewri
   (`0007-<topic>.md`), set `Status: Accepted (date)`, and add it to the table below in the same PR.
 - Ideas that nobody has evaluated yet go to `../backlog.md`, not here. A Proposed decision is a concrete
   choice with alternatives that only needs agreement.
+- Accepting a draft: merge its branch's PR, then in a small follow-up on `main` give it the next number.
+  If both of you drafted the same question, settle it into one file before either is numbered.
 
 ## Accepted
 
@@ -28,8 +30,7 @@ is implemented. Later decisions amend or supersede earlier ones instead of rewri
 
 ## Proposed
 
-| Draft | Question |
-| --- | --- |
-| [postcard-privacy](proposed-postcard-privacy.md) | What may a postcard say about the other person? |
-| [public-deployment](proposed-public-deployment.md) | How do people at the venue reach Mirrorville? |
-| [creao-team-brief](proposed-creao-team-brief.md) | Should a CREAO agent write a team brief after both wave? |
+Proposed drafts stay on their author's branch until accepted, so `main` only holds what both agree
+on. To see everyone's drafts and spot clashes early, run `npm run check-decisions`: it fetches all
+branches and lists, per branch, the decision and principle files changed since `main`, plus files more
+than one branch is touching.

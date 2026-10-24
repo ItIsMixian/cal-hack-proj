@@ -23,5 +23,5 @@ removes rejection, and hiding one-sided waves removes the awkwardness of being i
 
 ## Consequences
 
-- Open question: postcards may quote the other person's self-card ("quiet but funny"). See
-  [proposed-postcard-privacy](proposed-postcard-privacy.md).
+- Open question: postcards may quote the other person's self-card ("quiet but funny"). A draft
+  answer is `proposed-postcard-privacy.md` on branch `yw/proposals`.

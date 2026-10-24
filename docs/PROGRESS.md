@@ -10,8 +10,8 @@ Goal: a demo where a judge makes a mirror, watches it live in town, and gets a p
 
 ## Next
 
-1. Agree on the Proposed decisions in `decisions/README.md`: public deployment, postcard privacy,
-   CREAO team brief.
+1. Agree on the Proposed drafts on branch `yw/proposals`: public deployment, postcard privacy,
+   CREAO team brief (`npm run check-decisions` lists drafts on every branch).
 2. Public deployment so people at the venue can scan in.
 3. Anthropic key → validate the Claude judgment path (0002).
 4. Pitch: demo script, video backup, Devpost page; collect real usage at the venue.
