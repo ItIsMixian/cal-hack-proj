@@ -327,14 +327,18 @@ function randomPointIn(ctx: Ctx, landmarkKey: string) {
   return { x: l.x + 0.7 + ctx.random() * (l.w - 1.4), y: l.y + 1.2 + ctx.random() * (l.h - 1.9) };
 }
 
-// Where a free mirror wants to be: today's events pull people in, otherwise it
-// stays around the place its intent points to.
-function choosePlace(ctx: Ctx, m: { landmark: string; extraversion: number }) {
+// Events pull people in. Without an intent, explore where others are spending
+// time instead of treating the initial Park spawn as a permanent preference.
+function choosePlace(ctx: Ctx, m: { id: bigint; intent: string; landmark: string; extraversion: number }) {
   const event = currentEvent(venueHour(micros(ctx)));
   if (event) {
     if (event.landmark === m.landmark) return event.landmark;
     const pull = event.meal ? 0.55 : 0.2 + 0.3 * m.extraversion;
     if (ctx.random() < pull) return event.landmark;
+  }
+  if (!m.intent.trim()) {
+    const others = [...ctx.db.mirror.iter()].filter(other => other.id !== m.id && other.activity !== 'walking');
+    return others.length ? pick(ctx, others).place : pick(ctx, LANDMARKS).key;
   }
   const roll = ctx.random();
   if (roll < 0.8) return m.landmark;

@@ -20,7 +20,7 @@ As of the diary and Figma login implementations on `yw/diary` (2026-10-24). Fact
 | `src/TownArt.ts` | Cached pixel scenery for the six unchanged world regions: open venues, furniture, paths, trees and lanterns |
 | `src/CharacterAvatar.tsx` | Shared idle character preview for Mirror Room and creation form |
 | `public/assets/characters/` | Original Cup Nooble PNG from teammate branch, source mapping and license |
-| `src/CreateMirror.tsx` | Make-a-mirror form (name, color, TIPI, optional on-mind and intent; blank intent defaults to Park) |
+| `src/CreateMirror.tsx` | Make-a-mirror form (name, color, TIPI, optional on-mind and intent; blank intent starts in Park then explores occupied places) |
 | `src/MirrorRoom.tsx` | Pixel room object panels: portrait, per-mirror diary, facet cards, visibility, imports, manual notes and contact |
 | `src/PixelRoom.tsx`, `src/pixel-room.css` | Responsive interactive pixel room, local SVG furniture and game panel styles |
 | `src/RoomDialog.tsx` | Native modal game panel with focus containment, Escape and focus return |
