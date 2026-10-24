@@ -1,5 +1,7 @@
 # 项目结构与当前状态
 
+最新地图文件为 [mirrorvile/Town map.tscn](../../mirrorvile/Town%20map.tscn)，包含 Coffee、Body_builder、Restaurant、Park、Clockbuilding、Farm 等场景节点，House / Decoration 使用 TileMapLayer。该描述来自场景文本静态读取，不代表地图或角色互动已经运行验证。
+
 ## Godot 工程快照（2026-10-24）
 
 按用户要求将 [mirrorvile 工程](../../mirrorvile/project.godot) 纳入 yq。工程配置声明 Godot 4.5 / Forward Plus，包含 Player1.tscn、Player2.tscn 与 ArtAsset 素材目录；.godot 缓存不提交。本次只核对文件与资源引用，未运行 Godot，不表示主程序技术栈或任何共识 ADR 已变更。

@@ -1,5 +1,10 @@
 # 变更记录
 
+## 2026-10-24：上传当前小镇地图与素材到 yq
+
+- 按用户要求提交 mirrorvile/Town map.tscn、新增地图图像与 import 元数据，以及房屋阴影素材的位置调整；场景包含 Coffee、Restaurant、Park 等节点和 House / Decoration 两个 TileMapLayer。
+- 静态检查工程与场景的 21 处资源引用，均存在对应文件。未运行 Godot，未验证地图运行或互动；缓存继续排除，ADR 与 Proposed 状态不变。
+
 ## 2026-10-24：上传 mirrorvile Godot 工程快照到 yq
 
 - 按用户要求纳入 mirrorvile/：Godot 工程配置、Player1 / Player2 场景及现有美术、音频素材，共 260 个非缓存文件，约 18.37 MiB。

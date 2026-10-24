@@ -1,5 +1,7 @@
 # 当前工作
 
+最新地图快照：[Town map.tscn](../mirrorvile/Town%20map.tscn) 与新增地图素材随本次 yq 提交上传。已检查 21 处资源引用，未运行 Godot 或验证互动。
+
 最新交付：按用户要求将 mirrorvile/ Godot 工程与现有素材快照上传到个人分支 yq；见 [结构说明](state/project-structure.md)。只做文件及资源引用检查，未运行或集成 Godot。
 
 更新日期：2026-10-24。文档合并后，已按用户要求将之前讨论中与 main 不同的想法整理为 7 篇未编号 Proposed；没有执行产品开发或部署。
