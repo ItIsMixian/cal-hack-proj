@@ -2,6 +2,14 @@
 
 Things that are not obvious from the code.
 
+- **Authored town / camera** (`yw/map-assets`): imported `origin/yq`'s `329e7e8` scene;
+  regenerate with `node scripts/import-town-scene.mjs 329e7e8`. The town fills the viewport,
+  with General/Follow modes and owned-mirror selection. No database publication is needed.
+  Existing server coordinates are projected onto forecourts; this does not add collision/pathfinding.
+  See `validation/authored-town-and-camera.md`. For temporary HTTPS sharing, Vite proxies only
+  the SDK subscribe and websocket-token routes; client connections use the share origin.
+  Guest access is checked; account callback registration on temporary domains is Pending.
+
 - **Run locally**: `spacetime start`, then `spacetime publish mirrorville --module-path spacetimedb --server local --yes`,
   `spacetime generate --lang typescript --out-dir src/module_bindings --module-path spacetimedb`, `npm run dev`.
   After changing the module, publish and regenerate bindings.

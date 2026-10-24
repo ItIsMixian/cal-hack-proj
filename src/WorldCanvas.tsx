@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { WORLD_W, WORLD_H, LOOK_COLORS } from '../spacetimedb/src/world';
 import { drawTown } from './TownArt';
+import { loadAuthoredTown, projectTownPosition } from './AuthoredTown';
+import { cameraTarget, screenToTown, type CameraMode, type CameraFrame } from './TownCamera';
 import type { Mirror } from './module_bindings/types';
 
 const TILE = 24;
@@ -20,14 +22,17 @@ type Props = {
   bubbles: Map<bigint, string>;
   mine: Set<bigint>;
   selected: bigint | null;
+  cameraMode: CameraMode;
+  followed: bigint | null;
   onSelect: (id: bigint | null) => void;
 };
 
-export default function WorldCanvas({ mirrors, bubbles, mine, selected, onSelect }: Props) {
+export default function WorldCanvas({ mirrors, bubbles, mine, selected, cameraMode, followed, onSelect }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   // Latest props for the animation loop, which runs outside React renders.
-  const live = useRef({ mirrors, bubbles, mine, selected });
-  live.current = { mirrors, bubbles, mine, selected };
+  const live = useRef({ mirrors, bubbles, mine, selected, cameraMode, followed });
+  live.current = { mirrors, bubbles, mine, selected, cameraMode, followed };
+  const camera = useRef<CameraFrame | null>(null);
   // Smoothed on-screen positions; the server only moves mirrors once a second.
   const shown = useRef(new Map<bigint, ShownMirror>());
 
@@ -45,40 +50,58 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, onSelect
     const paintTown = () => drawTown(town.getContext('2d')!);
     paintTown();
     let disposed = false;
-    void document.fonts.ready.then(() => { if (!disposed) paintTown(); });
+    let authored = false;
+    void document.fonts.ready.then(() => { if (!disposed && !authored) paintTown(); });
+    void loadAuthoredTown(town.getContext('2d')!).then(() => {
+      if (!disposed) { authored = true; canvas.dataset.townRenderer = 'authored'; shown.current.clear(); }
+    }).catch(() => { if (!disposed) canvas.dataset.townRenderer = 'fallback'; });
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
     const draw = (now: number) => {
       const dt = Math.min(0.1, (now - last) / 1000);
       last = now;
       const dpr = window.devicePixelRatio || 1;
-      const cssWidth = canvas.clientWidth;
-      const scale = cssWidth / WIDTH;
-      if (canvas.width !== Math.round(cssWidth * dpr)) {
+      const cssWidth = canvas.clientWidth, cssHeight = canvas.clientHeight;
+      if (canvas.width !== Math.round(cssWidth * dpr) || canvas.height !== Math.round(cssHeight * dpr)) {
         canvas.width = Math.round(cssWidth * dpr);
-        canvas.height = Math.round(HEIGHT * scale * dpr);
+        canvas.height = Math.round(cssHeight * dpr);
       }
-      g.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0);
-      g.imageSmoothingEnabled = false;
-      g.drawImage(town, 0, 0);
 
-      const { mirrors, bubbles, mine, selected } = live.current;
+      const { mirrors, bubbles, mine, selected, cameraMode, followed } = live.current;
       const present = new Set(mirrors.map(m => m.id));
       for (const id of shown.current.keys()) if (!present.has(id)) shown.current.delete(id);
       for (const m of mirrors) {
-        const p = shown.current.get(m.id) ?? { x: m.x, y: m.y, facing: 'down' as Facing, walkTime: 0, moving: false };
-        const dx = m.x - p.x;
-        const dy = m.y - p.y;
+        const target = authored ? projectTownPosition(m.x, m.y) : m;
+        const p = shown.current.get(m.id) ?? { x: target.x, y: target.y, facing: 'down' as Facing, walkTime: 0, moving: false };
+        const dx = target.x - p.x;
+        const dy = target.y - p.y;
         p.moving = Math.hypot(dx, dy) > 0.04;
         if (p.moving) {
           p.facing = Math.abs(dx) > Math.abs(dy) ? dx > 0 ? 'right' : 'left' : dy > 0 ? 'down' : 'up';
           p.walkTime += dt;
         } else p.walkTime = 0;
         const k = Math.min(1, dt * 2.5);
-        p.x += (m.x - p.x) * k;
-        p.y += (m.y - p.y) * k;
+        p.x += (target.x - p.x) * k;
+        p.y += (target.y - p.y) * k;
         shown.current.set(m.id, p);
       }
+      const player = followed === null ? undefined : shown.current.get(followed);
+      const targetCamera = cameraTarget(cssWidth, cssHeight, cameraMode, player ? { x: player.x * TILE, y: player.y * TILE - 14 } : undefined);
+      const previousCamera = camera.current ?? targetCamera;
+      const cameraEase = reducedMotion.matches ? 1 : 1 - Math.exp(-dt * 8);
+      const view = { ...targetCamera,
+        x: previousCamera.x + (targetCamera.x - previousCamera.x) * cameraEase,
+        y: previousCamera.y + (targetCamera.y - previousCamera.y) * cameraEase,
+        zoom: previousCamera.zoom + (targetCamera.zoom - previousCamera.zoom) * cameraEase };
+      camera.current = view;
+      canvas.dataset.cameraMode = cameraMode === 'follow' && player ? 'follow' : 'general';
+      canvas.dataset.followedMirror = player ? String(followed) : '';
+      g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      g.fillStyle = '#c6d9dc'; g.fillRect(0, 0, cssWidth, cssHeight);
+      g.translate(cssWidth / 2 - view.x * view.zoom, cssHeight / 2 - view.y * view.zoom);
+      g.scale(view.zoom, view.zoom);
+      g.imageSmoothingEnabled = false;
+      g.drawImage(town, 0, 0);
       // Feet determine depth so taller characters overlap naturally.
       const ordered = [...mirrors].sort((a, b) => shown.current.get(a.id)!.y - shown.current.get(b.id)!.y);
       for (const m of ordered) {
@@ -88,13 +111,25 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, onSelect
       // Keep labels readable above neighbouring sprites.
       for (const m of ordered) {
         const p = shown.current.get(m.id)!;
-        drawMirrorLabel(g, m, p.x * TILE, p.y * TILE);
+        if (cameraMode === 'follow' && player && m.id !== followed
+          && Math.abs(p.x - player.x) < 3.5 && Math.abs(p.y - player.y) < 2.3) continue;
+        drawMirrorLabel(g, m, p.x * TILE, p.y * TILE, cameraMode !== 'follow' || m.id === followed);
+      }
+      // A crowded conversation should never cover the followed mirror's name.
+      if (cameraMode === 'follow' && player) {
+        const m = mirrors.find(m => m.id === followed);
+        if (m) drawMirrorLabel(g, m, player.x * TILE, player.y * TILE, true);
       }
       // Bubbles on top so neighbours don't cover them.
+      g.setTransform(dpr, 0, 0, dpr, 0, 0);
       for (const m of mirrors) {
         const text = bubbles.get(m.id);
         const p = shown.current.get(m.id);
-        if (text && p) drawBubble(g, text, p.x * TILE, p.y * TILE);
+        if (text && p) {
+          const x = (p.x * TILE - view.x) * view.zoom + cssWidth / 2;
+          const y = (p.y * TILE + FOOT_Y - CHARACTER_H - view.y) * view.zoom + cssHeight / 2;
+          if (x >= -30 && x <= cssWidth + 30 && y >= 0 && y <= cssHeight) drawBubble(g, text, x, y, cssWidth);
+        }
       }
       frame = requestAnimationFrame(draw);
     };
@@ -104,9 +139,8 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, onSelect
 
   const handleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    const scale = rect.width / WIDTH;
-    const x = (e.clientX - rect.left) / scale;
-    const y = (e.clientY - rect.top) / scale;
+    if (!camera.current) return;
+    const { x, y } = screenToTown(e.clientX - rect.left, e.clientY - rect.top, camera.current);
     let best: bigint | null = null;
     // Test the full visible body, including its head, frontmost character first.
     const frontFirst = [...shown.current].sort((a, b) => b[1].y - a[1].y);
@@ -120,7 +154,7 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, onSelect
     onSelect(best);
   };
 
-  return <canvas ref={canvasRef} className="world" onClick={handleClick} aria-label="Map of Mirrorville" data-character-renderer="loading" />;
+  return <canvas ref={canvasRef} className="world" onClick={handleClick} aria-label="Map of Mirrorville" data-character-renderer="loading" data-town-renderer="loading" />;
 }
 
 function drawMirror(g: CanvasRenderingContext2D, m: Mirror, p: ShownMirror, isMine: boolean, isSelected: boolean,
@@ -170,7 +204,7 @@ function drawMirror(g: CanvasRenderingContext2D, m: Mirror, p: ShownMirror, isMi
   g.fill();
 }
 
-function drawMirrorLabel(g: CanvasRenderingContext2D, m: Mirror, x: number, y: number) {
+function drawMirrorLabel(g: CanvasRenderingContext2D, m: Mirror, x: number, y: number, showActivity: boolean) {
   g.font = '600 12px system-ui, sans-serif';
   g.textAlign = 'center';
   g.lineWidth = 3;
@@ -180,7 +214,7 @@ function drawMirrorLabel(g: CanvasRenderingContext2D, m: Mirror, x: number, y: n
   g.fillText(m.name, x, y + 24);
 
   const doing = m.conversationId !== 0n ? 'talking' : m.activity;
-  if (doing) {
+  if (doing && showActivity) {
     g.font = '10px system-ui, sans-serif';
     g.strokeText(doing, x, y + 36);
     g.fillStyle = '#555';
@@ -188,13 +222,21 @@ function drawMirrorLabel(g: CanvasRenderingContext2D, m: Mirror, x: number, y: n
   }
 }
 
-function drawBubble(g: CanvasRenderingContext2D, text: string, x: number, y: number) {
-  const short = text.length > 46 ? text.slice(0, 44) + '…' : text;
-  g.font = '12px system-ui, sans-serif';
-  const w = Math.min(260, g.measureText(short).width + 16);
-  const h = 24;
-  const bx = Math.max(4, Math.min(WIDTH - w - 4, x - w / 2));
-  const by = Math.max(4, y + FOOT_Y - CHARACTER_H - 30);
+function drawBubble(g: CanvasRenderingContext2D, text: string, x: number, y: number, viewportWidth: number) {
+  g.font = '14px system-ui, sans-serif';
+  const limit = Math.min(300, viewportWidth - 24);
+  const lines: string[] = [''];
+  for (const char of text) {
+    const index = lines.length - 1;
+    if (g.measureText(lines[index] + char).width > limit - 20) {
+      if (lines.length === 2) { lines[index] = lines[index].slice(0, -1) + '…'; break; }
+      lines.push(char);
+    } else lines[index] += char;
+  }
+  const w = Math.min(limit, Math.max(...lines.map(line => g.measureText(line).width)) + 20);
+  const h = lines.length * 18 + 12;
+  const bx = Math.max(12, Math.min(viewportWidth - w - 12, x - w / 2));
+  const by = Math.max(4, y - h - 10);
   g.fillStyle = '#ffffffee';
   g.strokeStyle = '#33333355';
   g.lineWidth = 1;
@@ -203,7 +245,7 @@ function drawBubble(g: CanvasRenderingContext2D, text: string, x: number, y: num
   g.stroke();
   g.fillStyle = '#222';
   g.textAlign = 'left';
-  g.fillText(short, bx + 8, by + 16, w - 16);
+  lines.forEach((line, index) => g.fillText(line, bx + 10, by + 20 + index * 18));
 }
 
 function roundRect(g: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {

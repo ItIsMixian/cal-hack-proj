@@ -8,6 +8,7 @@ import Diary from './Diary';
 import MirrorRoom from './MirrorRoom';
 import RoomDialog from './RoomDialog';
 import CharacterAvatar from './CharacterAvatar';
+import type { CameraMode } from './TownCamera';
 import './pixel-room.css';
 import './town-game.css';
 
@@ -45,12 +46,16 @@ export default function App({ sessionLabel, onExit, accountMode = false }: {
   const [notice, setNotice] = useState('');
   const [roomFor, setRoomFor] = useState<bigint | null>(null);
   const [gamePanel, setGamePanel] = useState<'diary' | 'residents' | 'guide' | null>(null);
+  const [cameraMode, setCameraMode] = useState<CameraMode>('follow');
+  const [followedId, setFollowedId] = useState<bigint | null>(null);
   const [seen, setSeen] = useState(() => readSeen(seenKey));
   useEffect(() => setSeen(readSeen(seenKey)), [seenKey]);
   const hour = useVenueClock();
   const event = currentEvent(hour);
 
   const mine = useMemo(() => new Set(myMirrors.map((m) => m.id)), [myMirrors]);
+  const followed = myMirrors.find(m => m.id === followedId) ?? [...myMirrors].sort((a, b) => a.id < b.id ? -1 : 1)[0];
+  const followedMirror = followed ? mirrors.find(m => m.id === followed.id) : undefined;
   const byId = useMemo(() => new Map(mirrors.map((m) => [m.id, m])), [mirrors]);
   const newestEntry = diary.reduce((max, p) => p.createdAt.microsSinceUnixEpoch > max ? p.createdAt.microsSinceUnixEpoch : max, 0n);
   const hasNew = newestEntry > seen;
@@ -114,10 +119,21 @@ export default function App({ sessionLabel, onExit, accountMode = false }: {
       {notice && <button className="town-notice" onClick={() => setNotice('')}>{notice} <span>✕</span></button>}
       <main className="town-stage">
         <div className="town-map-shell">
-          <div className="town-map-frame"><WorldCanvas mirrors={mirrors} bubbles={bubbles} mine={mine} selected={selected} onSelect={setSelected} /></div>
-          <div className="town-map-caption"><span>{mirrors.length} mirrors going about their day</span><span>Tap a mirror to listen in</span></div>
+          <div className="town-map-frame"><WorldCanvas mirrors={mirrors} bubbles={bubbles} mine={mine} selected={selected} onSelect={setSelected} cameraMode={cameraMode} followed={followed?.id ?? null} /></div>
         </div>
       </main>
+      <aside className="town-camera-hud" aria-label="Town camera">
+        <div className="town-camera-switch" role="group" aria-label="Camera view">
+          <button aria-pressed={cameraMode === 'general' || !followed} onClick={() => setCameraMode('general')}>General</button>
+          <button aria-pressed={cameraMode === 'follow' && !!followed} disabled={!followed} onClick={() => setCameraMode('follow')}>Follow</button>
+        </div>
+        {cameraMode === 'follow' && followedMirror ? <>
+          {myMirrors.length > 1 ? <select aria-label="Follow your mirror" value={String(followedMirror.id)} onChange={e => setFollowedId(BigInt(e.target.value))}>
+            {myMirrors.map(m => <option key={String(m.id)} value={String(m.id)}>{m.name}</option>)}
+          </select> : <strong>Following {followedMirror.name}</strong>}
+          <span>{followedMirror.conversationId !== 0n ? 'Talking' : followedMirror.activity} · {findLandmark(followedMirror.place).label}</span>
+        </> : <><strong>{mirrors.length} mirrors in town</strong><span>{followed ? 'Tap a mirror to listen in' : 'Make a mirror to follow its day'}</span></>}
+      </aside>
       <nav className="town-dock" aria-label="Town actions">
         <button onClick={() => setGamePanel('diary')}><span className="dock-icon" aria-hidden="true">▤</span>Diary{hasNew && <span className="dot" aria-label="new" />}</button>
         <button onClick={() => setGamePanel('residents')}><span className="dock-icon" aria-hidden="true">♧</span>Mirrors</button>

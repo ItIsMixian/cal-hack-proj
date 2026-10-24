@@ -6,7 +6,17 @@ import { DbConnection } from './module_bindings';
 import App from './App';
 import LoginScreen from './LoginScreen';
 
-const HOST = import.meta.env.VITE_SPACETIMEDB_HOST ?? 'ws://localhost:3000';
+const configuredHost = new URL(import.meta.env.VITE_SPACETIMEDB_HOST ?? 'ws://localhost:3000');
+// A teammate opening the LAN URL must connect to this machine, not their own localhost.
+if (['localhost', '127.0.0.1', '[::1]'].includes(configuredHost.hostname)
+  && !['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname)) {
+  if (window.location.protocol === 'https:') {
+    configuredHost.protocol = 'wss:';
+    configuredHost.host = window.location.host;
+    configuredHost.port = window.location.port;
+  } else configuredHost.hostname = window.location.hostname;
+}
+const HOST = configuredHost.origin;
 const DB_NAME = import.meta.env.VITE_SPACETIMEDB_DB_NAME ?? 'mirrorville';
 // Preserve existing anonymous identities and their mirrors.
 const GUEST_TOKEN_KEY = `${HOST}/${DB_NAME}/auth_token`;

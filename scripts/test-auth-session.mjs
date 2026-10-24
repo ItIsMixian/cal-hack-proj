@@ -15,9 +15,10 @@ function storage(values = {}) {
   const valuesMap = new Map(Object.entries(values));
   return { getItem: key => valuesMap.get(key) ?? null, setItem: (key, value) => valuesMap.set(key, value), removeItem: key => valuesMap.delete(key) };
 }
-function render({ mode = null, user = null, authenticated = !!user, callback = false, configured = true } = {}) {
-  const local = storage({ [guestKey]: 'existing-guest-token' });
-  const session = storage(mode ? { [modeKey]: mode } : {});
+function render({ mode = null, user = null, authenticated = !!user, callback = false, configured = true, hostname = 'localhost', protocol = 'http:' } = {}) {
+  const base = `${protocol === 'https:' ? 'wss' : 'ws'}://${hostname}${protocol === 'https:' ? '' : ':3000'}/mirrorville`;
+  const local = storage({ [`${base}/auth_token`]: 'existing-guest-token' });
+  const session = storage(mode ? { [`${base}/session_mode`]: mode } : {});
   const connections = [];
   const auth = { user, isAuthenticated: authenticated, isLoading: false, signinSilent: async () => user };
   const mockRequire = name => {
@@ -29,7 +30,7 @@ function render({ mode = null, user = null, authenticated = !!user, callback = f
     if (name === './module_bindings') return { DbConnection: { builder() {
       const state = { onConnect: [] }; connections.push(state);
       const builder = {
-        withUri() { return builder; }, withDatabaseName() { return builder; },
+        withUri(uri) { state.uri = uri; return builder; }, withDatabaseName() { return builder; },
         withToken(token) { state.token = token; return builder; },
         withAutomaticReconnect() { return builder; }, onConnectError() { return builder; },
         onConnect(fn) { state.onConnect.push(fn); return builder; },
@@ -43,14 +44,25 @@ function render({ mode = null, user = null, authenticated = !!user, callback = f
     compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
   }).outputText;
   const exports = {};
-  runInNewContext(code, { exports, require: mockRequire, URLSearchParams,
+  runInNewContext(code, { exports, require: mockRequire, URL, URLSearchParams,
     testEnv: { VITE_SPACETIMEAUTH_CLIENT_ID: configured ? 'public-test-client' : '' },
     localStorage: local, sessionStorage: session,
-    window: { location: { origin: 'http://localhost:5173', pathname: callback ? '/callback' : '/', search: callback ? '?code=test&state=test' : '' } },
+    window: { location: { hostname, protocol, host: `${hostname}${protocol === 'https:' ? '' : ':5173'}`, port: protocol === 'https:' ? '' : '5173', origin: `${protocol}//${hostname}${protocol === 'https:' ? '' : ':5173'}`, pathname: callback ? '/callback' : '/', search: callback ? '?code=test&state=test' : '' } },
   });
   const html = renderToStaticMarkup(React.createElement(exports.default));
   return { html, connections, local };
 }
+
+test('LAN visitors connect to the host machine rather than their own localhost', () => {
+  const result = render({ mode: 'guest', hostname: '10.0.19.207' });
+  assert.equal(result.connections[0].uri, 'ws://10.0.19.207:3000');
+  assert.equal(result.connections[0].token, 'existing-guest-token');
+});
+test('HTTPS share links use the same secure origin without leaking localhost port 3000', () => {
+  const result = render({ mode: 'guest', hostname: 'share.example.test', protocol: 'https:' });
+  assert.equal(result.connections[0].uri, 'wss://share.example.test');
+  assert.equal(result.connections[0].token, 'existing-guest-token');
+});
 
 test('account mode uses the verified account token, never the saved anonymous token', () => {
   const result = render({ mode: 'account', user: account });

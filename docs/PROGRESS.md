@@ -17,6 +17,9 @@ configured on Maincloud, while the town simulation remains local.
 
 ## Next
 
+Teammate-authored town art and full-screen General/Follow cameras are integrated on
+`yw/map-assets`; see `validation/authored-town-and-camera.md`. Room artwork integration is next.
+
 Mirror fidelity Parts A/B are implemented and locally tested on `yw/fidelity`; see
 `validation/mirror-fidelity-a-b.md`. Owner judgment of the summary/cards and the rebase after diary
 merges into main remain Pending. Part C is not included.

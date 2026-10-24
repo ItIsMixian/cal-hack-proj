@@ -13,7 +13,9 @@ Three tile atlases are Cup Nooble's Sprout Lands assets. Licensing terms are pre
 `LICENSE-Sprout-Lands.txt`; credit Cup Nooble. The eight illustrated PNGs were supplied by
 the teammate; no additional license or authorship is asserted here.
 
-The browser camera frames this layout at `(440, 310)` in a 960×672 canvas. Forecourt
+The browser caches this layout at `(440, 310)` in 960×672 world coordinates. The viewport
+fills the screen; General fits the town, while Follow smoothly centers a chosen owned mirror.
+Forecourt
 projection adapts the existing simulation to this artwork: café, gym, restaurant, park,
 clock hall (workshop) and farm (lounge). These last two are temporary venue mappings.
 No server positions, pathfinding or collision rules are changed. The illustrated sprites

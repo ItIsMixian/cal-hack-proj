@@ -17,8 +17,10 @@ As of the diary and Figma login implementations on `yw/diary` (2026-10-24). Fact
 | `public/assets/login/` | Six exported original Figma image layers and source manifest |
 | `public/fonts/` | Locally hosted Pixelify Sans and OFL license |
 | `src/App.tsx`, `src/town-game.css` | Game town shell: clock, live map, action dock, resident/guide panels, diary overlay and Mirror Room entry |
-| `src/WorldCanvas.tsx` | Canvas renderer with the existing Cup Nooble four-direction walking sprites, smoothed movement, names and speech bubbles |
-| `src/TownArt.ts` | Cached pixel scenery for the six unchanged world regions: open venues, furniture, paths, trees and lanterns |
+| `src/WorldCanvas.tsx`, `src/TownCamera.ts` | Full-viewport Canvas with General/Follow cameras, owned-mirror selection, walking sprites, inverse-camera picking and screen-sized speech bubbles |
+| `src/AuthoredTown.ts`, `public/assets/town/` | Teammate's complete Godot town layout (11 sprite instances, 220 House/Decoration cells), original textures/provenance, client-only forecourt projection |
+| `src/TownArt.ts` | Cached fallback scenery if the authored town cannot load |
+| `scripts/import-town-scene.mjs`, `scripts/test-town-scene.mjs` | Reproducible scene conversion and layout/hash/projection/camera checks |
 | `src/CharacterAvatar.tsx` | Shared idle character preview for Mirror Room and creation form |
 | `public/assets/characters/` | Original Cup Nooble PNG from teammate branch, source mapping and license |
 | `src/CreateMirror.tsx` | Make-a-mirror form (name, color, TIPI, optional on-mind and intent; blank intent starts in Park then explores occupied places) |
