@@ -54,7 +54,7 @@ npm run dev
 Model keys live in a private table and can only be set by the identity that published the module:
 
 ```bash
-spacetime call mirrorville set_llm_config '"<deepseek key>"' '"<anthropic key or empty>"' --server local
+npm run set-keys       # reads DEEPSEEK_API_KEY / ANTHROPIC_API_KEY from .env.local
 ```
 
 Without an Anthropic key, judgments fall back to DeepSeek.
