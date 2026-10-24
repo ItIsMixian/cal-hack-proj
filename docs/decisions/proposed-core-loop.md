@@ -12,7 +12,8 @@ said which feature everything else serves. Discussion settled on one core loop.
 State the premise first: people must feel their mirror is them, continuing their real life.
 Without it the core loop does not work, so it is written as an assumption to test, with how to test it.
 The first source of it is the owner's own words: a questionnaire alone cannot make a mirror recognizable,
-so importing must be the main way in, fast on a phone (added after the owner tested cards built from
+so importing must be the main way in, fast on a phone. The bar is ordered: true facts, then never
+misrepresenting the owner, then sounding like them (a goal, not a threshold) (added after the owner tested cards built from
 their own AI chats and WeChat messages and found them accurate; every card they recognized came from
 an import, none from the personality check).
 

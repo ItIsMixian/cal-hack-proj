@@ -32,6 +32,17 @@ Where it comes from:
   up), like packing for the frog in Travel Frog.
 - **Real stakes**: the people in the diary are real people.
 
+The bar, in order (agreed 2026-10-24, after the owner's own mirror got the facts right but spoke in
+a voice they would never use):
+
+1. **True to what you actually do**: projects, interests, what you've been up to, today's intent. Every
+   match and every topic rests on these; a wrong fact sends people toward someone who doesn't exist.
+2. **Never misrepresents you**: no words you'd never say, no temper or traits you don't have. Like a
+   friend who knows you well saying hello for you: they don't imitate you, but they never make you
+   someone else.
+3. **Sounds like you**: the goal, pursued (style card, lines you approve), but not the threshold for the
+   product to work. Pitch it as "it represents you, and you shape it", not "it is you".
+
 How we test it: owners pick their mirror's line out of three (their own, their mirror's, someone
 else's mirror's); and whether they open the diary again and show interest in someone.
 
