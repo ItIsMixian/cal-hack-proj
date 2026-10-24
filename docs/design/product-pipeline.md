@@ -111,12 +111,6 @@ Draw the line with AI Town early: AI Town is watching AI live; Mirrorville ends 
 - **Figma** (design process), **CREAO** (only if a CREAO agent can be called from the backend: an
   async "team brief" after both people say yes).
 
-## What exists now vs. next
+## Status
 
-Done: a town with a daily rhythm and visible activities, personality-driven initiative,
-relationships that grow over repeated meetings, grounded conversations, evidence-checked postcards
-with mutual waves, private human chat, and the Mirror Room (WhatsApp/paste import, facets, personal
-cards, per-room defaults and overrides, rewrite/undo).
-
-Next: triadic referral ("you should meet Marco") · teammate and old-friends rooms · daily journal
-postcards even without a match · group conversations · Messenger and 36-questions import.
+What is built: `../state/project-structure.md`. What is next: `../PROGRESS.md` and `../backlog.md`.

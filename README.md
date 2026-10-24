@@ -13,7 +13,8 @@ you. Nothing pops up and nothing asks for an answer. If you feel like it, you wa
 wave unless **both** people wave, and only then does a private human-to-human chat open. The AI
 starts the conversation. The humans have it.
 
-Built during Cal Hacks 13.0.
+Built during Cal Hacks 13.0. Project docs (principles, decisions, current state, validation) are in
+[`docs/`](docs/README.md); agents start from [`AGENTS.md`](AGENTS.md).
 
 ## How it works
 
