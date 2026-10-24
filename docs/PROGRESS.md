@@ -17,6 +17,10 @@ configured on Maincloud, while the town simulation remains local.
 
 ## Next
 
+Mirror fidelity Parts A/B are implemented and locally tested on `yw/fidelity`; see
+`validation/mirror-fidelity-a-b.md`. Owner judgment of the summary/cards and the rebase after diary
+merges into main remain Pending. Part C is not included.
+
 1. Diary, visible interest, contact unlock and Mirror Room contact field implemented (0008); see
    `validation/0008-diary-and-mutual-interest.md` for acceptance results and remaining checks.
 2. Public deployment (0007): first check that a Maincloud procedure can call DeepSeek.

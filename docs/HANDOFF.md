@@ -26,3 +26,9 @@ Things that are not obvious from the code.
   `VITE_SPACETIMEAUTH_CLIENT_ID`. For setup, exact callbacks, cloud ownership and limitations see
   `design/login-and-auth.md`; acceptance is in `validation/login-figma-and-auth.md`. No client secret
   goes in the browser. Existing guest mirrors are not migrated into account ownership.
+
+- **Fidelity A/B** (`yw/fidelity`): imports now require `latestAt` (empty string for unknown), merge a
+  complete card set and update the private summary. Regenerate client bindings after publication.
+  Local migration is additive and used `--delete-data=never`. Test mirrors are 10/11; do not use
+  mixian id 9 for QA. Counts, Pending subjective acceptance and the delayed main rebase are in
+  `validation/mirror-fidelity-a-b.md`. No Part C or 0004 changes.
