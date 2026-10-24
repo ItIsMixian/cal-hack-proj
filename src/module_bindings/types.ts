@@ -32,6 +32,38 @@ export const Conversation = __t.object("Conversation", {
 });
 export type Conversation = __Infer<typeof Conversation>;
 
+export const DiaryEntry = __t.object("DiaryEntry", {
+  id: __t.u64(),
+  conversationId: __t.u64(),
+  mirrorId: __t.u64(),
+  owner: __t.identity(),
+  otherMirrorId: __t.u64(),
+  place: __t.string(),
+  text: __t.string(),
+  goodFit: __t.bool(),
+  fitReason: __t.string(),
+  createdAt: __t.timestamp(),
+});
+export type DiaryEntry = __Infer<typeof DiaryEntry>;
+
+export const DiaryItem = __t.object("DiaryItem", {
+  id: __t.u64(),
+  mirrorId: __t.u64(),
+  myMirror: __t.string(),
+  otherName: __t.string(),
+  otherDemo: __t.bool(),
+  place: __t.string(),
+  text: __t.string(),
+  goodFit: __t.bool(),
+  fitReason: __t.string(),
+  createdAt: __t.timestamp(),
+  iAmInterested: __t.bool(),
+  theyAreInterested: __t.bool(),
+  mutual: __t.bool(),
+  theirContact: __t.string(),
+});
+export type DiaryItem = __Infer<typeof DiaryItem>;
+
 export const Encounter = __t.object("Encounter", {
   id: __t.u64(),
   a: __t.u64(),
@@ -84,6 +116,16 @@ export const ImportStatus = __t.object("ImportStatus", {
   createdAt: __t.timestamp(),
 });
 export type ImportStatus = __Infer<typeof ImportStatus>;
+
+export const Interest = __t.object("Interest", {
+  id: __t.u64(),
+  fromMirrorId: __t.u64(),
+  toMirrorId: __t.u64(),
+  fromOwner: __t.identity(),
+  toOwner: __t.identity(),
+  createdAt: __t.timestamp(),
+});
+export type Interest = __Infer<typeof Interest>;
 
 export const Line = __t.object("Line", {
   id: __t.u64(),
@@ -140,23 +182,15 @@ export const MirrorProfile = __t.object("MirrorProfile", {
   mirrorId: __t.u64(),
   owner: __t.identity(),
   selfCard: __t.string(),
+  contact: __t.string(),
 });
 export type MirrorProfile = __Infer<typeof MirrorProfile>;
 
 export const MyCards = __t.object("MyCards", {});
 export type MyCards = __Infer<typeof MyCards>;
 
-export const MyHumanMessage = __t.object("MyHumanMessage", {
-  id: __t.u64(),
-  encounterId: __t.u64(),
-  mine: __t.bool(),
-  text: __t.string(),
-  at: __t.timestamp(),
-});
-export type MyHumanMessage = __Infer<typeof MyHumanMessage>;
-
-export const MyHumanMessages = __t.object("MyHumanMessages", {});
-export type MyHumanMessages = __Infer<typeof MyHumanMessages>;
+export const MyDiary = __t.object("MyDiary", {});
+export type MyDiary = __Infer<typeof MyDiary>;
 
 export const MyImports = __t.object("MyImports", {});
 export type MyImports = __Infer<typeof MyImports>;
@@ -167,31 +201,12 @@ export const MyMirror = __t.object("MyMirror", {
   look: __t.u8(),
   intent: __t.string(),
   selfCard: __t.string(),
+  contact: __t.string(),
 });
 export type MyMirror = __Infer<typeof MyMirror>;
 
 export const MyMirrors = __t.object("MyMirrors", {});
 export type MyMirrors = __Infer<typeof MyMirrors>;
-
-export const MyPostcard = __t.object("MyPostcard", {
-  id: __t.u64(),
-  myMirror: __t.string(),
-  otherMirror: __t.string(),
-  otherDemo: __t.bool(),
-  otherIntent: __t.string(),
-  kind: __t.string(),
-  why: __t.string(),
-  myEvidence: __t.string(),
-  story: __t.string(),
-  place: __t.string(),
-  iWaved: __t.bool(),
-  connected: __t.bool(),
-  createdAt: __t.timestamp(),
-});
-export type MyPostcard = __Infer<typeof MyPostcard>;
-
-export const MyPostcards = __t.object("MyPostcards", {});
-export type MyPostcards = __Infer<typeof MyPostcards>;
 
 export const Relation = __t.object("Relation", {
   id: __t.u64(),

@@ -4,14 +4,14 @@ import { tables } from './module_bindings';
 import { clockLabel, currentEvent, findLandmark, venueHour } from '../spacetimedb/src/world';
 import WorldCanvas from './WorldCanvas';
 import CreateMirror from './CreateMirror';
-import Postcards from './Postcards';
+import Diary from './Diary';
 import MirrorRoom from './MirrorRoom';
 
-const SEEN_KEY = 'mirrorville-postcards-seen';
+const SEEN_KEY = 'mirrorville-diary-seen';
 
-function readSeen(): bigint {
+function readSeen(key: string): bigint {
   try {
-    return BigInt(localStorage.getItem(SEEN_KEY) ?? '0');
+    return BigInt(localStorage.getItem(key) ?? '0');
   } catch {
     return 0n;
   }
@@ -27,36 +27,38 @@ function useVenueClock() {
 }
 
 export default function App() {
-  const { isActive } = useSpacetimeDB();
+  const { isActive, identity } = useSpacetimeDB();
+  const seenKey = `${SEEN_KEY}/${identity?.toHexString() ?? 'connecting'}`;
   const [mirrors] = useTable(tables.mirror);
   const [conversations] = useTable(tables.conversation);
   const [lines] = useTable(tables.line);
   const [myMirrors] = useTable(tables.myMirrors);
-  const [postcards] = useTable(tables.myPostcards);
+  const [diary] = useTable(tables.myDiary);
   const [creating, setCreating] = useState(false);
   const [selected, setSelected] = useState<bigint | null>(null);
   const [notice, setNotice] = useState('');
   const [roomFor, setRoomFor] = useState<bigint | null>(null);
-  const [tab, setTab] = useState<'town' | 'postcards'>('town');
-  const [seen, setSeen] = useState(readSeen);
+  const [tab, setTab] = useState<'town' | 'diary'>('town');
+  const [seen, setSeen] = useState(() => readSeen(seenKey));
+  useEffect(() => setSeen(readSeen(seenKey)), [seenKey]);
   const hour = useVenueClock();
   const event = currentEvent(hour);
 
   const mine = useMemo(() => new Set(myMirrors.map((m) => m.id)), [myMirrors]);
   const byId = useMemo(() => new Map(mirrors.map((m) => [m.id, m])), [mirrors]);
-  const newestPostcard = postcards.reduce((max, p) => (p.id > max ? p.id : max), 0n);
-  const hasNew = newestPostcard > seen;
+  const newestEntry = diary.reduce((max, p) => p.createdAt.microsSinceUnixEpoch > max ? p.createdAt.microsSinceUnixEpoch : max, 0n);
+  const hasNew = newestEntry > seen;
 
-  // A quiet dot, not a notification: mark postcards as seen once the tab is open.
+  // A quiet dot, not a notification: mark diary as seen once the tab is open.
   useEffect(() => {
-    if (tab !== 'postcards' || newestPostcard <= seen) return;
-    setSeen(newestPostcard);
+    if (tab !== 'diary' || newestEntry <= seen) return;
+    setSeen(newestEntry);
     try {
-      localStorage.setItem(SEEN_KEY, String(newestPostcard));
+      localStorage.setItem(seenKey, String(newestEntry));
     } catch {
       // Private mode: the dot comes back next visit, which is fine.
     }
-  }, [tab, newestPostcard, seen]);
+  }, [tab, newestEntry, seen, seenKey]);
 
   // Latest line of each active conversation, shown above whoever said it.
   const bubbles = useMemo(() => {
@@ -131,13 +133,13 @@ export default function App() {
             <button className={tab === 'town' ? 'tab on' : 'tab'} onClick={() => setTab('town')}>
               Town
             </button>
-            <button className={tab === 'postcards' ? 'tab on' : 'tab'} onClick={() => setTab('postcards')}>
-              Postcards{hasNew && <span className="dot" aria-label="new" />}
+            <button className={tab === 'diary' ? 'tab on' : 'tab'} onClick={() => setTab('diary')}>
+              Diary{hasNew && <span className="dot" aria-label="new" />}
             </button>
           </div>
 
-          {tab === 'postcards' ? (
-            <Postcards />
+          {tab === 'diary' ? (
+            <Diary />
           ) : focus ? (
             <>
               <h2>{focus.name}</h2>
@@ -167,7 +169,7 @@ export default function App() {
                 <li>Make a mirror: a short personality check and what you want to do today.</li>
                 <li>It goes about its day in town: the gym in the morning, the food court at lunch, the workshop at night.</li>
                 <li>It gets to know the people it keeps running into.</li>
-                <li>Now and then it sends you a postcard about someone worth meeting. Wave if you like; if they wave too, you can talk.</li>
+                <li>Read its diary. Show interest in someone whenever you like; when you both say yes, your contact details appear.</li>
               </ol>
             </>
           )}
@@ -179,7 +181,7 @@ export default function App() {
           onClose={() => setCreating(false)}
           onCreated={(name) => {
             setCreating(false);
-            setNotice(`${name} is walking into Mirrorville. Come back later for postcards.`);
+            setNotice(`${name} is walking into Mirrorville. Come back later for its diary.`);
           }}
         />
       )}

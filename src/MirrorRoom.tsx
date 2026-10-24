@@ -45,6 +45,8 @@ export default function MirrorRoom(props: { mirrorId: bigint; onBack: () => void
         </div>
       </div>
 
+      <ContactField key={String(mirror.id)} mirrorId={mirror.id} saved={mirror.contact} />
+
       <div className="portrait">
         <p className="portrait-lead">Your mirror sees you as someone who…</p>
         <p>{mirror.selfCard}</p>
@@ -101,6 +103,31 @@ export default function MirrorRoom(props: { mirrorId: bigint; onBack: () => void
       </details>
     </section>
   );
+}
+
+function ContactField({ mirrorId, saved }: { mirrorId: bigint; saved: string }) {
+  const saveContact = useReducer(reducers.setContact);
+  const [draft, setDraft] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const value = draft ?? saved;
+  return <form className="contact-field" onSubmit={async event => {
+    event.preventDefault();
+    setBusy(true);
+    setError('');
+    try { await saveContact({ mirrorId, contact: value }); setDraft(null); }
+    catch { setError('Could not save contact details. Please try again.'); }
+    finally { setBusy(false); }
+  }}>
+    <label htmlFor="mirror-contact">How people can reach you once you both say yes</label>
+    <p className="muted small" id="contact-help">Email, Instagram, WeChat, or another way to say hello. Shared only with someone you are both interested in.</p>
+    <div className="contact-input">
+      <input id="mirror-contact" value={value} maxLength={120} aria-describedby="contact-help"
+        placeholder="e.g. Instagram @yourname" onChange={event => setDraft(event.target.value)} />
+      <button disabled={busy || value === saved} type="submit">{busy ? 'Saving…' : 'Save contact'}</button>
+    </div>
+    {error && <p className="error small">{error}</p>}
+  </form>;
 }
 
 function CardView({ card }: { card: MirrorCard }) {

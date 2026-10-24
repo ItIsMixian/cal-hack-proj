@@ -11,6 +11,24 @@
   color-scheme: light;
 }
 
+.diary-day { font-size: 15px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.diary-entry { padding: 14px 0 20px; border-bottom: 1px solid var(--line); }
+.diary-entry h3 { margin: 4px 0 10px; }
+.diary-meta { margin: 0; font-size: 12px; color: var(--muted); }
+.diary-text { line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
+.diary-fit { margin: 12px 0; }
+.diary-contact { margin-top: 14px; padding: 12px; background: #f5f1e7; border-radius: 10px; }
+.diary-contact p { margin: 6px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.contact-field { margin: 18px 0; padding: 16px; border: 1px solid var(--line); border-radius: 12px; }
+.contact-field label { font-weight: 600; }
+.contact-input { display: flex; gap: 8px; align-items: center; }
+.contact-input input { flex: 1; min-width: 0; }
+.contact-input button { flex-shrink: 0; }
+@media (max-width: 480px) {
+  .contact-input { align-items: stretch; flex-direction: column; }
+  .header-actions { flex-wrap: wrap; }
+}
+
 * {
   box-sizing: border-box;
 }
