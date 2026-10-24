@@ -57,6 +57,29 @@ export const HumanMessage = __t.object("HumanMessage", {
 });
 export type HumanMessage = __Infer<typeof HumanMessage>;
 
+export const ImportJob = __t.object("ImportJob", {
+  scheduledId: __t.u64(),
+  scheduledAt: __t.scheduleAt(),
+  statusId: __t.u64(),
+  mirrorId: __t.u64(),
+  owner: __t.identity(),
+  relation: __t.string(),
+  source: __t.string(),
+  text: __t.string(),
+});
+export type ImportJob = __Infer<typeof ImportJob>;
+
+export const ImportStatus = __t.object("ImportStatus", {
+  id: __t.u64(),
+  mirrorId: __t.u64(),
+  owner: __t.identity(),
+  source: __t.string(),
+  status: __t.string(),
+  message: __t.string(),
+  createdAt: __t.timestamp(),
+});
+export type ImportStatus = __Infer<typeof ImportStatus>;
+
 export const Line = __t.object("Line", {
   id: __t.u64(),
   conversationId: __t.u64(),
@@ -90,12 +113,29 @@ export const Mirror = __t.object("Mirror", {
 });
 export type Mirror = __Infer<typeof Mirror>;
 
+export const MirrorCard = __t.object("MirrorCard", {
+  id: __t.u64(),
+  mirrorId: __t.u64(),
+  owner: __t.identity(),
+  facet: __t.string(),
+  text: __t.string(),
+  source: __t.string(),
+  enabled: __t.bool(),
+  previousText: __t.string(),
+  editedByOwner: __t.bool(),
+  createdAt: __t.timestamp(),
+});
+export type MirrorCard = __Infer<typeof MirrorCard>;
+
 export const MirrorProfile = __t.object("MirrorProfile", {
   mirrorId: __t.u64(),
   owner: __t.identity(),
   selfCard: __t.string(),
 });
 export type MirrorProfile = __Infer<typeof MirrorProfile>;
+
+export const MyCards = __t.object("MyCards", {});
+export type MyCards = __Infer<typeof MyCards>;
 
 export const MyEncounter = __t.object("MyEncounter", {
   id: __t.u64(),
@@ -123,6 +163,9 @@ export type MyHumanMessage = __Infer<typeof MyHumanMessage>;
 
 export const MyHumanMessages = __t.object("MyHumanMessages", {});
 export type MyHumanMessages = __Infer<typeof MyHumanMessages>;
+
+export const MyImports = __t.object("MyImports", {});
+export type MyImports = __Infer<typeof MyImports>;
 
 export const MyMirror = __t.object("MyMirror", {
   id: __t.u64(),

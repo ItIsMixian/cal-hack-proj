@@ -312,3 +312,96 @@ canvas.world {
   display: flex;
   gap: 8px;
 }
+
+.small {
+  font-size: 13px;
+}
+button.small {
+  padding: 2px 8px;
+}
+select {
+  font: inherit;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+}
+.importer {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin: 14px 0;
+}
+.importer h3 {
+  margin: 0 0 4px;
+}
+.import-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 8px 0;
+}
+.import-row input[type='file'] {
+  width: auto;
+  max-width: 100%;
+  border: none;
+  padding: 0;
+  background: none;
+}
+.speakers {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.speakers button.selected {
+  border-color: var(--accent);
+  background: #e9e9ff;
+}
+.facet h4 {
+  margin: 14px 0 6px;
+  font-size: 14px;
+  color: var(--muted);
+}
+.mcard {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  opacity: 0.75;
+}
+.mcard.on {
+  opacity: 1;
+  border-color: var(--accent);
+}
+.mcard-main {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.mcard-main input[type='checkbox'] {
+  width: auto;
+  margin-top: 4px;
+}
+.mcard-meta {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+.mcard-meta > span {
+  margin-right: auto;
+}
+.add-card {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+@media (max-width: 520px) {
+  .add-card {
+    flex-wrap: wrap;
+  }
+}

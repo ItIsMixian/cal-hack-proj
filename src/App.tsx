@@ -5,6 +5,7 @@ import { findLandmark } from '../spacetimedb/src/world';
 import WorldCanvas from './WorldCanvas';
 import CreateMirror from './CreateMirror';
 import Encounters from './Encounters';
+import MirrorRoom from './MirrorRoom';
 
 export default function App() {
   const { isActive } = useSpacetimeDB();
@@ -15,6 +16,7 @@ export default function App() {
   const [creating, setCreating] = useState(false);
   const [selected, setSelected] = useState<bigint | null>(null);
   const [notice, setNotice] = useState('');
+  const [roomFor, setRoomFor] = useState<bigint | null>(null);
 
   const mine = useMemo(() => new Set(myMirrors.map((m) => m.id)), [myMirrors]);
   const byId = useMemo(() => new Map(mirrors.map((m) => [m.id, m])), [mirrors]);
@@ -55,6 +57,11 @@ export default function App() {
         </div>
         <div className="header-actions">
           <span className={isActive ? 'status on' : 'status'}>{isActive ? 'Live' : 'Connecting…'}</span>
+          {myMirrors.length > 0 && (
+            <button onClick={() => setRoomFor(myMirrors[0].id)} disabled={!isActive}>
+              Mirror Room
+            </button>
+          )}
           <button className="primary" onClick={() => setCreating(true)} disabled={!isActive}>
             {myMirrors.length ? 'Add another mirror' : 'Make your mirror'}
           </button>
@@ -88,9 +95,12 @@ export default function App() {
               </p>
               <p className="muted">Hangs out around the {findLandmark(focus.landmark).label}.</p>
               {myCard && (
-                <p className="muted">
-                  <b>What it knows about you:</b> {myCard.selfCard}
-                </p>
+                <>
+                  <p className="muted">
+                    <b>What it knows about you:</b> {myCard.selfCard}
+                  </p>
+                  <button onClick={() => setRoomFor(myCard.id)}>Open Mirror Room</button>
+                </>
               )}
               <h3>{focusConversation?.active ? 'Talking now' : 'Last conversation'}</h3>
               {focusLines.length === 0 && <p className="muted">No conversations yet.</p>}
@@ -115,6 +125,8 @@ export default function App() {
           )}
         </aside>
       </main>
+
+      {roomFor !== null && <MirrorRoom mirrorId={roomFor} onClose={() => setRoomFor(null)} />}
 
       {creating && (
         <CreateMirror

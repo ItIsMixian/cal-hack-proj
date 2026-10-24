@@ -34,12 +34,18 @@ import {
 } from "spacetimedb";
 
 // Import all reducer arg schemas
+import AddCardReducer from "./add_card_reducer";
 import CreateMirrorReducer from "./create_mirror_reducer";
+import DeleteCardReducer from "./delete_card_reducer";
+import ImportTextReducer from "./import_text_reducer";
 import ResetWorldReducer from "./reset_world_reducer";
 import RespondToEncounterReducer from "./respond_to_encounter_reducer";
+import RewriteCardReducer from "./rewrite_card_reducer";
 import SendHumanMessageReducer from "./send_human_message_reducer";
+import SetCardEnabledReducer from "./set_card_enabled_reducer";
 import SetLlmConfigReducer from "./set_llm_config_reducer";
 import SetModelsReducer from "./set_models_reducer";
+import UndoCardEditReducer from "./undo_card_edit_reducer";
 import UpdateIntentReducer from "./update_intent_reducer";
 
 // Import all procedure arg schemas
@@ -48,8 +54,10 @@ import UpdateIntentReducer from "./update_intent_reducer";
 import ConversationRow from "./conversation_table";
 import LineRow from "./line_table";
 import MirrorRow from "./mirror_table";
+import MyCardsRow from "./my_cards_table";
 import MyEncountersRow from "./my_encounters_table";
 import MyHumanMessagesRow from "./my_human_messages_table";
+import MyImportsRow from "./my_imports_table";
 import MyMirrorsRow from "./my_mirrors_table";
 
 /** Type-only namespace exports for generated type groups. */
@@ -92,6 +100,13 @@ const tablesSchema = __schema({
       { name: 'mirror_id_key', constraint: 'unique', columns: ['id'] },
     ],
   }, MirrorRow),
+  myCards: __table({
+    name: 'my_cards',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyCardsRow),
   myEncounters: __table({
     name: 'my_encounters',
     indexes: [
@@ -106,6 +121,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyHumanMessagesRow),
+  myImports: __table({
+    name: 'my_imports',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyImportsRow),
   myMirrors: __table({
     name: 'my_mirrors',
     indexes: [
@@ -117,12 +139,18 @@ const tablesSchema = __schema({
 
 /** The schema information for all reducers in this module. This is defined the same way as the reducers would have been defined in the server, except the body of the reducer is omitted in code generation. */
 const reducersSchema = __reducers(
+  __reducerSchema("add_card", AddCardReducer),
   __reducerSchema("create_mirror", CreateMirrorReducer),
+  __reducerSchema("delete_card", DeleteCardReducer),
+  __reducerSchema("import_text", ImportTextReducer),
   __reducerSchema("reset_world", ResetWorldReducer),
   __reducerSchema("respond_to_encounter", RespondToEncounterReducer),
+  __reducerSchema("rewrite_card", RewriteCardReducer),
   __reducerSchema("send_human_message", SendHumanMessageReducer),
+  __reducerSchema("set_card_enabled", SetCardEnabledReducer),
   __reducerSchema("set_llm_config", SetLlmConfigReducer),
   __reducerSchema("set_models", SetModelsReducer),
+  __reducerSchema("undo_card_edit", UndoCardEditReducer),
   __reducerSchema("update_intent", UpdateIntentReducer),
 );
 

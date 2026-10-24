@@ -6,19 +6,31 @@
 import { type Infer as __Infer } from "spacetimedb";
 
 // Import all reducer arg schemas
+import AddCardReducer from "../add_card_reducer";
 import CreateMirrorReducer from "../create_mirror_reducer";
+import DeleteCardReducer from "../delete_card_reducer";
+import ImportTextReducer from "../import_text_reducer";
 import ResetWorldReducer from "../reset_world_reducer";
 import RespondToEncounterReducer from "../respond_to_encounter_reducer";
+import RewriteCardReducer from "../rewrite_card_reducer";
 import SendHumanMessageReducer from "../send_human_message_reducer";
+import SetCardEnabledReducer from "../set_card_enabled_reducer";
 import SetLlmConfigReducer from "../set_llm_config_reducer";
 import SetModelsReducer from "../set_models_reducer";
+import UndoCardEditReducer from "../undo_card_edit_reducer";
 import UpdateIntentReducer from "../update_intent_reducer";
 
+export type AddCardParams = __Infer<typeof AddCardReducer>;
 export type CreateMirrorParams = __Infer<typeof CreateMirrorReducer>;
+export type DeleteCardParams = __Infer<typeof DeleteCardReducer>;
+export type ImportTextParams = __Infer<typeof ImportTextReducer>;
 export type ResetWorldParams = __Infer<typeof ResetWorldReducer>;
 export type RespondToEncounterParams = __Infer<typeof RespondToEncounterReducer>;
+export type RewriteCardParams = __Infer<typeof RewriteCardReducer>;
 export type SendHumanMessageParams = __Infer<typeof SendHumanMessageReducer>;
+export type SetCardEnabledParams = __Infer<typeof SetCardEnabledReducer>;
 export type SetLlmConfigParams = __Infer<typeof SetLlmConfigReducer>;
 export type SetModelsParams = __Infer<typeof SetModelsReducer>;
+export type UndoCardEditParams = __Infer<typeof UndoCardEditReducer>;
 export type UpdateIntentParams = __Infer<typeof UpdateIntentReducer>;
 
