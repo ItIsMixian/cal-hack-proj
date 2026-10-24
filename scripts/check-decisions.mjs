@@ -23,7 +23,11 @@ if (tryGit('remote')) {
   if (fetched.status !== 0) console.warn('Could not fetch; showing local branches only.');
 }
 
-const base = tryGit('rev-parse', '--verify', '--quiet', 'origin/main') ? 'origin/main' : 'main';
+// Compare against whichever main is newer: the shared one, or a local main not pushed yet.
+const hasRemoteMain = !!tryGit('rev-parse', '--verify', '--quiet', 'origin/main');
+const localAhead =
+  hasRemoteMain && spawnSync('git', ['merge-base', '--is-ancestor', 'origin/main', 'main']).status === 0;
+const base = hasRemoteMain && !localAhead ? 'origin/main' : 'main';
 
 // Local and remote branches, one entry per name, preferring the remote copy.
 const refs = new Map();
