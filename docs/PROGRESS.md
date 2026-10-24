@@ -10,7 +10,8 @@ interest in someone (see `core/principles.md`). Deadline: Devpost first submissi
 
 ## Next
 
-1. Build the diary, visible interest and contact unlock (0008); contact details field in the Mirror Room.
+1. Diary, visible interest, contact unlock and Mirror Room contact field implemented (0008); see
+   `validation/0008-diary-and-mutual-interest.md` for acceptance results and remaining checks.
 2. Public deployment (0007): first check that a Maincloud procedure can call DeepSeek.
 3. Agree on the remaining drafts on branch `yw/proposals`: postcard privacy, CREAO team brief
    (`npm run check-decisions` lists drafts on every branch).

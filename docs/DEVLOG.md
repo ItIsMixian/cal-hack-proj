@@ -10,3 +10,8 @@ Complete deliveries and important changes only.
 - Lifelike town and postcards (0003, 0004, 0005): daily rhythm, activities, extraversion, relationships,
   grounded conversations, evidence-checked postcards with waves; Mirror Room as a page with per-room defaults.
 - Adopted the simplified Orrery documentation system (`docs/`, `.agents/skills/orrery-docs-local/`).
+
+- Implemented 0008 on `yw/diary`: conversation diaries, visible interest, mutual contact unlock and
+  Mirror Room contact editing; additive local migration preserved model keys. Legacy postcard/chat
+  tables retained for migration safety, their API removed. Acceptance and Pending items are in
+  `validation/0008-diary-and-mutual-interest.md`.

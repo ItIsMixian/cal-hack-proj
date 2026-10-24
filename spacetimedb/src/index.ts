@@ -748,7 +748,10 @@ function hasGoodFit(db: Db, a: bigint, b: bigint) {
 }
 
 function goodFitsSince(db: Db, owner: Identity, sinceMicros: bigint) {
-  return [...db.diaryEntry.owner.filter(owner)].filter(e => e.goodFit && e.createdAt.microsSinceUnixEpoch >= sinceMicros).length
+  const conversations = new Set([...db.diaryEntry.owner.filter(owner)]
+    .filter(e => e.goodFit && e.createdAt.microsSinceUnixEpoch >= sinceMicros && !db.mirror.id.find(e.mirrorId)?.demo)
+    .map(e => e.conversationId));
+  return conversations.size
     + [...db.encounter.iter()].filter(e => e.createdAt.microsSinceUnixEpoch >= sinceMicros
       && ((!e.aDemo && e.aOwner.equals(owner)) || (!e.bDemo && e.bOwner.equals(owner)))).length;
 }

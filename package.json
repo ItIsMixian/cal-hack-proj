@@ -10,6 +10,7 @@
     "generate": "spacetime generate --lang typescript --out-dir src/module_bindings --module-path spacetimedb",
     "publish:local": "spacetime publish mirrorville --module-path spacetimedb --server local --yes",
     "set-keys": "node scripts/set-keys.mjs",
+    "test:diary": "node --test scripts/test-diary.mjs",
     "check-decisions": "node scripts/check-decisions.mjs"
   },
   "dependencies": {

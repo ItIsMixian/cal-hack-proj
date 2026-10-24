@@ -1,0 +1,157 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { test } from 'node:test';
+import { runInNewContext } from 'node:vm';
+import ts from 'typescript';
+
+// Execute the actual module callbacks with an in-memory transactional context.
+// This covers domain logic; live subscriptions and model output are checked separately.
+class Timestamp { constructor(value) { this.microsSinceUnixEpoch = value; } }
+const identity = value => ({ value, equals(other) { return value === other?.value; } });
+const A = identity('a'), B = identity('b'), C = identity('c');
+const builder = new Proxy({}, { get: () => () => builder });
+const t = new Proxy({}, { get: () => () => builder });
+let definitions;
+const schema = tables => {
+  definitions = tables;
+  return Object.fromEntries(['reducer', 'procedure', 'view', 'init'].map(key => [key, (...args) => args.at(-1)]));
+};
+let verdict = null;
+function load(path) {
+  const exports = {};
+  const require = name => {
+    if (name === 'spacetimedb/server') return { schema, table: (options, columns) => ({ options, columns, rowType: builder }), t, SenderError: Error };
+    if (name === 'spacetimedb') return { Timestamp, ScheduleAt: { time: x => x, interval: x => x } };
+    if (name === './llm') return { judge: () => { if (verdict instanceof Error) throw verdict; return JSON.stringify(verdict); }, parseJsonObject: JSON.parse };
+    return load(new URL(`../spacetimedb/src/${name.slice(2)}.ts`, import.meta.url));
+  };
+  const js = ts.transpileModule(readFileSync(path, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
+  runInNewContext(js, { exports, require, console });
+  return exports;
+}
+const mod = load(new URL('../spacetimedb/src/index.ts', import.meta.url));
+function fixture(demo = false) {
+  const db = {};
+  for (const [name, def] of Object.entries(definitions)) {
+    const rows = new Map(); let seq = 1n;
+    const pk = name === 'mirrorProfile' ? 'mirrorId' : ['tickTimer', 'llmJob', 'importJob'].includes(name) ? 'scheduledId' : 'id';
+    const equal = (a, b) => typeof a?.equals === 'function' ? a.equals(b) : a === b;
+    const table = {
+      iter: () => rows.values(), count: () => BigInt(rows.size),
+      insert(row) { const value = { ...row, [pk]: row[pk] === 0n ? seq++ : row[pk] }; rows.set(value[pk], value); return value; },
+    };
+    for (const col of Object.keys(def.columns)) table[col] = {
+      find: value => [...rows.values()].find(row => equal(row[col], value)),
+      filter: value => [...rows.values()].filter(row => equal(row[col], value)).values(),
+      update: row => rows.set(row[pk], { ...row }), delete: value => rows.delete(value),
+    };
+    for (const index of def.options.indexes ?? []) table[index.accessor] = {
+      filter: values => [...rows.values()].filter(row => index.columns.every((col, i) => equal(row[col], values[i]))).values(),
+    };
+    db[name] = table;
+  }
+  const now = new Timestamp(1_000_000_000_000n);
+  const ctx = sender => ({ sender, timestamp: now, db, withTx(fn) { return fn(this); } });
+  for (const [id, owner, name] of [[10n, A, 'Alice'], [20n, B, 'Bob']]) {
+    db.mirror.insert({ id, name, demo: id === 20n && demo, intent: 'Build accessible charts together', activity: 'working', conversationId: 30n });
+    db.mirrorProfile.insert({ mirrorId: id, owner, selfCard: 'I build accessible charts', contact: `${name}@example.test` });
+  }
+  db.config.insert({ id: 0, deepseekKey: 'test', anthropicKey: '' });
+  db.conversation.insert({ id: 30n, a: 10n, b: 20n, turns: 2, active: true, maxTurns: 4, place: 'park' });
+  const wrap = () => mod.runLlmJob(ctx(A), { job: { conversationId: 30n, kind: 'wrap' } });
+  const entries = owner => mod.myDiary(ctx(owner));
+  return { db, ctx, wrap, entries };
+}
+const diaryVerdict = connection => ({ noteForA: 'We talked about charts', noteForB: 'We met', diaryForA: 'I met Bob at the park. We talked about accessible charts.', diaryForB: 'I met Alice at the park. We talked about charts.', connection });
+const connection = { kind: 'same_intent', evidenceA: 'Build accessible charts together', evidenceB: 'Build accessible charts together', why: 'Both want to build accessible charts together' };
+
+test('every conversation writes both diaries, with place/name and owner isolation; retry is idempotent', () => {
+  const f = fixture(); verdict = diaryVerdict(null); f.wrap();
+  assert.equal(f.db.diaryEntry.count(), 2n);
+  assert.match(f.entries(A)[0].text, /^I met Bob/);
+  assert.equal(f.entries(A)[0].place, 'park'); assert.equal(f.entries(A)[0].otherName, 'Bob');
+  assert.equal(f.entries(A)[0].goodFit, false); assert.equal(f.entries(C).length, 0);
+  f.wrap(); assert.equal(f.db.diaryEntry.count(), 2n);
+});
+test('visible one-sided interest hides contact; mutual interest unlocks both contacts; repeated clicks deduplicate', () => {
+  const f = fixture(); verdict = diaryVerdict(null); f.wrap();
+  const a = f.entries(A)[0], b = f.entries(B)[0];
+  assert.equal(a.theirContact, '');
+  mod.showInterest(f.ctx(A), { diaryEntryId: a.id });
+  assert.equal(f.entries(B)[0].theyAreInterested, true); assert.equal(f.entries(B)[0].theirContact, '');
+  assert.equal(f.entries(A)[0].mutual, false);
+  mod.showInterest(f.ctx(B), { diaryEntryId: b.id });
+  assert.equal(f.entries(A)[0].theirContact, 'Bob@example.test');
+  assert.equal(f.entries(B)[0].theirContact, 'Alice@example.test');
+  mod.showInterest(f.ctx(A), { diaryEntryId: a.id }); assert.equal(f.db.interest.count(), 2n);
+});
+test('demo reciprocates and can see visitor contact through its owner diary', () => {
+  const f = fixture(true); verdict = diaryVerdict(null); f.wrap();
+  mod.setContact(f.ctx(A), { mirrorId: 10n, contact: '@alice' });
+  mod.showInterest(f.ctx(A), { diaryEntryId: f.entries(A)[0].id });
+  assert.equal(f.entries(A)[0].mutual, true); assert.equal(f.entries(B)[0].theirContact, '@alice');
+});
+test('ownership, length limits, clearing contact, and unredacted sharing', () => {
+  const f = fixture(); verdict = diaryVerdict(null); f.wrap();
+  assert.throws(() => mod.showInterest(f.ctx(C), { diaryEntryId: f.entries(A)[0].id }), /Not your diary/);
+  assert.throws(() => mod.setContact(f.ctx(B), { mirrorId: 10n, contact: 'stolen' }), /Not your mirror/);
+  assert.throws(() => mod.setContact(f.ctx(A), { mirrorId: 10n, contact: 'x'.repeat(121) }), /120/);
+  const contact = 'a'.repeat(107) + '@example.test';
+  mod.setContact(f.ctx(A), { mirrorId: 10n, contact }); assert.equal(f.db.mirrorProfile.mirrorId.find(10n).contact, contact);
+  mod.setContact(f.ctx(A), { mirrorId: 10n, contact: '' }); assert.equal(f.db.mirrorProfile.mirrorId.find(10n).contact, '');
+});
+test('good-fit evidence and repeat-conversation rules still reject unsupported connections without dropping diaries', () => {
+  for (const c of [connection, { ...connection, evidenceA: 'invented evidence' }, { ...connection, kind: 'shared_interest' }]) {
+    const f = fixture(); verdict = diaryVerdict(c); f.wrap();
+    assert.equal(f.entries(A)[0].goodFit, c === connection); assert.equal(f.db.diaryEntry.count(), 2n);
+  }
+});
+test('model failure still writes factual first-person entries, never a good-fit mark', () => {
+  const f = fixture(); verdict = new Error('offline'); f.wrap();
+  assert.match(f.entries(A)[0].text, /^I was working/); assert.equal(f.entries(A)[0].goodFit, false);
+});
+test('newest first uses timestamps rather than auto-increment IDs; later contact edits propagate only to mutual pairs', () => {
+  const f = fixture(); verdict = diaryVerdict(null); f.wrap();
+  const a = f.entries(A)[0];
+  f.db.diaryEntry.insert({ ...[...f.db.diaryEntry.iter()][0], id: 100n, createdAt: new Timestamp(1n) });
+  assert.equal(f.entries(A)[0].id, a.id);
+  mod.showInterest(f.ctx(A), { diaryEntryId: a.id });
+  mod.setContact(f.ctx(B), { mirrorId: 20n, contact: '@newbob' });
+  assert.equal(f.entries(A)[0].theirContact, '');
+  mod.showInterest(f.ctx(B), { diaryEntryId: f.entries(B)[0].id });
+  assert.equal(f.entries(A)[0].theirContact, '@newbob');
+});
+test('good-fit marks preserve pair deduplication and two-per-day owner cap while diaries continue', () => {
+  for (const capped of [false, true]) {
+    const f = fixture(); verdict = diaryVerdict(connection);
+    if (capped) {
+      for (const other of [40n, 50n]) f.db.diaryEntry.insert({ id: 0n, conversationId: other, mirrorId: 10n,
+        owner: A, otherMirrorId: other, goodFit: true, createdAt: f.ctx(A).timestamp });
+    }
+    f.wrap(); assert.equal([...f.db.diaryEntry.iter()].find(e => e.conversationId === 30n && e.owner.equals(A)).goodFit, !capped);
+    f.db.conversation.id.update({ ...f.db.conversation.id.find(30n), active: true, id: 31n });
+    mod.runLlmJob(f.ctx(A), { job: { conversationId: 31n, kind: 'wrap' } });
+    assert.equal([...f.db.diaryEntry.iter()].filter(e => e.conversationId === 31n).length, 2);
+    assert.equal([...f.db.diaryEntry.iter()].find(e => e.conversationId === 31n).goodFit, false);
+  }
+});
+test('private tables and retired postcard/chat API remain inaccessible to clients', () => {
+  assert.equal(definitions.diaryEntry.options.public, undefined);
+  assert.equal(definitions.interest.options.public, undefined);
+  assert.equal(definitions.mirrorProfile.options.public, undefined);
+  for (const name of ['wave', 'sendHumanMessage', 'myPostcards', 'myHumanMessages']) assert.equal(mod[name], undefined);
+});
+test('one conversation between two mirrors of the same owner consumes only one daily mark', () => {
+  const f = fixture(); verdict = diaryVerdict(connection);
+  const bob = f.db.mirrorProfile.mirrorId.find(20n);
+  f.db.mirrorProfile.mirrorId.update({ ...bob, owner: A });
+  f.wrap();
+  for (const other of [40n, 50n]) {
+    f.db.mirror.insert({ ...f.db.mirror.id.find(20n), id: other, name: `Visitor ${other}` });
+    f.db.mirrorProfile.insert({ ...bob, mirrorId: other, owner: C });
+    f.db.conversation.insert({ ...f.db.conversation.id.find(30n), id: other, b: other, active: true });
+    mod.runLlmJob(f.ctx(A), { job: { conversationId: other, kind: 'wrap' } });
+    const entry = [...f.db.diaryEntry.iter()].find(e => e.conversationId === other && e.mirrorId === 10n);
+    assert.equal(entry.goodFit, other === 40n);
+  }
+});

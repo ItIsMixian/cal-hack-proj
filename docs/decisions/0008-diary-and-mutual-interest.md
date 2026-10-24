@@ -1,6 +1,6 @@
 # 0008 Each mirror keeps a diary; mutual interest unlocks real contact details
 
-Status: Accepted (2026-10-24). Not implemented. Supersedes part of 0003 (see below).
+Status: Accepted (2026-10-24). Implemented; see [validation](../validation/0008-diary-and-mutual-interest.md) for checked and Pending scenarios. Supersedes part of 0003 (see below).
 
 ## Context
 

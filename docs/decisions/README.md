@@ -28,7 +28,7 @@ is implemented. Later decisions amend or supersede earlier ones instead of rewri
 | [0005](0005-mirror-room-privacy.md) | Mirror Room: local redaction, facets, personal cards, per-room defaults | Yes (venue room only) |
 | [0006](0006-marglo-as-a-source.md) | Marglo is one data source among many | No |
 | [0007](0007-public-deployment.md) | Public deployment: Maincloud + static frontend, tunnels as fallback | No |
-| [0008](0008-diary-and-mutual-interest.md) | Mirror diaries; visible interest; mutual interest unlocks contact details | No |
+| [0008](0008-diary-and-mutual-interest.md) | Mirror diaries; visible interest; mutual interest unlocks contact details | Yes (validation: [0008](../validation/0008-diary-and-mutual-interest.md)) |
 
 ## Proposed
 

@@ -5,8 +5,10 @@ Things that are not obvious from the code.
 - **Run locally**: `spacetime start`, then `spacetime publish mirrorville --module-path spacetimedb --server local --yes`,
   `spacetime generate --lang typescript --out-dir src/module_bindings --module-path spacetimedb`, `npm run dev`.
   After changing the module, publish and regenerate bindings.
-- **Schema changes wipe data.** Changing columns needs `--delete-data=always`, which clears everything,
-  including model keys. Run `npm run set-keys` again afterwards.
+- **Preserve data when publishing.** 0008 appends `contact` with a migration default and adds private
+  tables; the local upgrade succeeded with `--delete-data=never`. Breaking schema changes may still
+  require `--delete-data=always`, which clears everything, including model keys. Tell the owner before
+  doing that; they need to run `npm.cmd run set-keys` afterwards.
 - **Keys**: `npm run set-keys` prompts with hidden input (paste with right-click in Windows terminals;
   Ctrl+V may not paste in raw mode). It stores keys through the database's HTTP API using
   `SPACETIMEDB_ADMIN_TOKEN` from `.env.local`, which is the publisher identity's local token. Never commit
