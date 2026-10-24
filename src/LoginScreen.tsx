@@ -40,7 +40,7 @@ export default function LoginScreen({ onAccount, onGuest, busy = false, error = 
             onClick={() => setRegistering(value => !value)}>{registering ? 'back to login' : 'sign up'}</button>
           <div className="login-feedback" aria-live="polite">
             {error ? <p role="alert">{error}</p> : <p>{registering
-              ? 'Your first email sign-in creates your account.'
+              ? 'Start with a secure email link.'
               : 'Your mirrors meet first. Then you do.'}</p>}
           </div>
         </form>

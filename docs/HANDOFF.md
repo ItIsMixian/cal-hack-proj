@@ -20,3 +20,9 @@ Things that are not obvious from the code.
   chat among themselves at a reduced rate.
 - **Docs reader**: `python .agents/skills/orrery-docs-local/scripts/orrery_docs.py build --target .`, then open
   `docs/_site/orrery-docs.html` (generated, gitignored).
+
+- **Login**: the entry page uses the team's exported Figma assets. Accounts use SpacetimeAuth email
+  magic links; guests keep their original local token. This machine's `.env.local` has the public
+  `VITE_SPACETIMEAUTH_CLIENT_ID`. For setup, exact callbacks, cloud ownership and limitations see
+  `design/login-and-auth.md`; acceptance is in `validation/login-figma-and-auth.md`. No client secret
+  goes in the browser. Existing guest mirrors are not migrated into account ownership.

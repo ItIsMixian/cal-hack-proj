@@ -15,3 +15,7 @@ Complete deliveries and important changes only.
   Mirror Room contact editing; additive local migration preserved model keys. Legacy postcard/chat
   tables retained for migration safety, their API removed. Acceptance and Pending items are in
   `validation/0008-diary-and-mutual-interest.md`.
+
+- Added the team's pixel-art Figma login entry using exported source layers and a locally hosted font;
+  integrated SpacetimeAuth account sessions alongside preserved browser guests. An empty Maincloud
+  database hosts auth configuration; the simulation remains local. See `validation/login-figma-and-auth.md`.

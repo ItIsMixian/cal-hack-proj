@@ -1,6 +1,6 @@
 # Project structure
 
-As of the 0008 implementation on `yw/diary` (2026-10-24). Facts from the code; validation is recorded separately.
+As of the diary and Figma login implementations on `yw/diary` (2026-10-24). Facts from the code; validation is recorded separately.
 
 ## Layout
 
@@ -11,6 +11,10 @@ As of the 0008 implementation on `yw/diary` (2026-10-24). Facts from the code; v
 | `spacetimedb/src/tipi.ts` | TIPI questionnaire, scoring, self-card sentence |
 | `spacetimedb/src/redact.ts` | Redaction, facets, rooms, default visibility (`isVisibleIn`) |
 | `spacetimedb/src/llm.ts` | Raw HTTP calls: DeepSeek chat, Claude Messages, JSON parsing |
+| `src/SessionRoot.tsx` | Entry gate, SpacetimeAuth OIDC sessions, separate guest credential and database connection |
+| `src/LoginScreen.tsx`, `src/login.css` | Figma pixel-art entry screen, email hint, hosted account login/signup and guest entry |
+| `public/assets/login/` | Six exported original Figma image layers and source manifest |
+| `public/fonts/` | Locally hosted Pixelify Sans and OFL license |
 | `src/App.tsx` | Page shell: header, map, side panel tabs (Town / Diary), Mirror Room page switch |
 | `src/WorldCanvas.tsx` | Canvas renderer with smoothed movement, names, activities, speech bubbles |
 | `src/CreateMirror.tsx` | Make-a-mirror form (name, color, TIPI, on-mind, intent) |
@@ -40,9 +44,11 @@ Per-visitor views: `my_mirrors`, `my_diary`, `my_cards`, `my_imports`. The postc
 - Legacy postcards still count toward pair/daily limits after a data-preserving upgrade.
 - Mirror Room per 0005; only venue-visible cards reach prompts.
 
+- Figma entry screen with guest entry/exit and real SpacetimeAuth integration. Authentication configuration and checked/Pending flows are in `validation/login-figma-and-auth.md`.
+
 ## Known gaps
 
 - Only the venue room is live; teammates and old-friends rooms are visibility settings only.
 - No triadic referral, group conversations, or Messenger/36-questions import.
-- Not deployed publicly; runs on the dev machine (see HANDOFF; plan in decision 0007).
+- Simulation not deployed publicly; an empty Maincloud database anchors SpacetimeAuth only. Town runs on the dev machine (see HANDOFF; plan in decision 0007).
 - The contact column uses an appended migration default; new diary/interest tables are additive. Destructive publication still wipes keys and must be announced first.

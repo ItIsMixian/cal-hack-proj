@@ -8,6 +8,13 @@ interest in someone (see `core/principles.md`). Deadline: Devpost first submissi
 - What exists: `state/project-structure.md`. What has been checked: `validation/`.
 - Why it is built this way: `decisions/` (0001-0008). Product thinking: `design/product-pipeline.md`.
 
+## Entry screen
+
+The team's Figma login screen is implemented with local exported assets. SpacetimeAuth accounts and
+explicit browser guests are integrated; see `validation/login-figma-and-auth.md` for user-assisted
+login, verified guest compatibility and Pending cross-browser/expiry checks. The auth project is
+configured on Maincloud, while the town simulation remains local.
+
 ## Next
 
 1. Diary, visible interest, contact unlock and Mirror Room contact field implemented (0008); see

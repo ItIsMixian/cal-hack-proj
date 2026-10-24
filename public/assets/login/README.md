@@ -9,6 +9,6 @@ Exported from the team's [Cal Hack UI deisign](https://www.figma.com/design/Meyp
 | logo.png | 2:7 | 2172 × 724 | 1132 × 377 on the reference stage |
 | button.png | 4:32 | 2172 × 724 | 525 × 175; transparent margins preserved |
 | email.png | 4:38 | 2172 × 724 | 580 × 94 crop per Figma (205.67% image height, -53.37% top) |
-| password.png | 4:46 | 2172 × 724 | Same crop; secure hosted-login explanation replaces a local password field |
+| password.png | 4:46 | 2172 × 724 | Same crop; secure email-link explanation replaces a local password field |
 
 `src/LoginScreen.tsx` composes these layers with native HTML controls. `src/login.css` preserves reference-stage geometry on desktop and adapts the composition on portrait screens. Typography: locally hosted Pixelify Sans, whose license is in `public/fonts/PixelifySans-OFL.txt`.

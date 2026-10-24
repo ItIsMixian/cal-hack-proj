@@ -62,8 +62,8 @@
 @media (max-width: 600px) {
   .login-stage { width: 100%; height: max(640px, 100svh); aspect-ratio: auto; }
   .login-landscape { object-position: 60% center; }
-  .login-signboard { left: -24%; top: 26%; width: 148%; height: auto; }
-  .login-brand { left: 0; top: 17%; width: 100%; height: auto; }
+  .login-signboard { left: -24%; top: calc(42% - 100px); width: 148%; height: auto; }
+  .login-brand { left: 0; top: calc(42% - 170px); width: 100%; height: auto; }
   .login-field-art { left: 15%; width: 70%; height: 52px; }
   .login-email { top: 42%; }
   .login-secure { top: calc(42% + 64px); }
@@ -71,8 +71,9 @@
   .login-secure p { font-size: 14px; }
   .login-submit { left: 18%; top: calc(42% + 120px); width: 64%; height: 90px; }
   .login-submit span { font-size: 28px; }
-  .login-switch { top: calc(42% + 196px); height: 38px; font-size: 22px; }
-  .login-feedback { left: 15%; top: calc(42% + 240px); width: 70%; font-size: 14px; }
+  .login-switch { top: calc(42% + 184px); height: 34px; font-size: 22px; }
+  .login-feedback { left: 12%; top: calc(42% + 268px); width: 76%; padding: 6px 8px;
+    border-radius: 5px; background: #fff7e6ed; font-size: 13px; }
   .login-guest { top: auto; bottom: 42px; left: 15%; width: 70%; font-size: 18px; }
   .login-guest-note { top: auto; bottom: 16px; }
 }
