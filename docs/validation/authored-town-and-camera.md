@@ -27,11 +27,11 @@
 | Character click opens frontmost character panel after zoom | Pass |
 | Diary and Mirror Room entries remain usable | Pass |
 | 390×844 viewport: HUD, dock and centered owned mirror visible | Pass |
-| Speech bubbles stay in screen coordinates, bounded to viewport width | Desktop checked; final portrait recheck Pending |
+| Speech bubbles stay in screen coordinates, bounded to viewport width | Pass (desktop and 390×844 portrait) |
 | Multiple owned-mirror selection | Unit/code path checked; interactive check Pending |
 | LAN URL on host machine | Pass (Live; 11 mirrors) |
 | Separate teammate device on venue Wi-Fi | Failed (timeout/ping failure reported); exact network cause unconfirmed |
-| Temporary HTTPS Cloudflare link: guest reaches Live and 11 mirrors | Pass |
+| Temporary HTTPS Cloudflare link: guest reaches Live and 11 mirrors, including after reload/token refresh | Pass |
 | Temporary HTTPS link: account login callback / teammate-device check | Pending; use guest for preview |
 | Existing auth/diary/import/fidelity/roaming regression suite plus map checks | Pass (53 tests) |
 

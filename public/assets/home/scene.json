@@ -1,0 +1,96 @@
+{
+  "commit": "1f404a9ba67b52ee594c2b0018dbe35449717c81",
+  "source": "mirrorvile/Home.tscn",
+  "nodes": [
+    {
+      "name": "Background",
+      "file": "background.png",
+      "position": [
+        19.000015,
+        5.000061
+      ],
+      "scale": [
+        0.6148325,
+        0.6148325
+      ],
+      "size": [
+        1254,
+        1254
+      ],
+      "source": "mirrorvile/ArtAsset/cf1f078e-7b87-4635-a32b-e08aa27742d3.png",
+      "sha256": "63cfe6953168ef148ad0e610b5b22413cb2121a931cd03707aa5eabf06555781"
+    },
+    {
+      "name": "Bookshelf",
+      "file": "bookshelf.png",
+      "position": [
+        273.00003,
+        -206
+      ],
+      "scale": [
+        0.245614,
+        0.245614
+      ],
+      "size": [
+        1254,
+        1254
+      ],
+      "source": "mirrorvile/ArtAsset/22646c49-d099-4303-9353-ab6a2df096d6.png",
+      "sha256": "cca4ce78a5f2ee1c27b1bf46eadf96a3080e971a1a4bdec43effca2f1d77665c"
+    },
+    {
+      "name": "Mirror",
+      "file": "mirror.png",
+      "position": [
+        -99.99999,
+        222
+      ],
+      "scale": [
+        0.18121333,
+        0.18284099
+      ],
+      "size": [
+        1024,
+        1536
+      ],
+      "source": "mirrorvile/ArtAsset/9b58c9df-dd25-44e3-9f3c-0b3ffe5cd09e.png",
+      "sha256": "6589b144b92d677129da86c756fc50e666c882fac9f68662b072da0703cb7822"
+    },
+    {
+      "name": "Diary",
+      "file": "diary.png",
+      "position": [
+        221,
+        31
+      ],
+      "scale": [
+        0.24275714,
+        0.29541016
+      ],
+      "size": [
+        1536,
+        1024
+      ],
+      "source": "mirrorvile/ArtAsset/696a9560-b6be-4bc1-b203-9bae16a7794c.png",
+      "sha256": "99b65136e1eaba3a272df9e7c997a9069def3d62ff2ca0f9e5de3018612fb15a"
+    },
+    {
+      "name": "Carddesk",
+      "file": "carddesk.png",
+      "position": [
+        -202.99998,
+        -37.999985
+      ],
+      "scale": [
+        0.2050451,
+        0.19828072
+      ],
+      "size": [
+        1774,
+        887
+      ],
+      "source": "mirrorvile/ArtAsset/cedefba6-dab5-43e0-ba4a-07e9683f6860.png",
+      "sha256": "9c6303f5ff4ce0eafeb9c410c5621bd81101fa1da1baa6b92343a7fc74ab2998"
+    }
+  ]
+}

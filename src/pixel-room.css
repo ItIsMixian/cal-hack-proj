@@ -44,6 +44,18 @@
 .room-dialogue p { margin: 3px 0 0; font-size: 14px; }
 .room-key-hint { margin-left: auto; white-space: nowrap; font: 13px 'Pixelify Sans', monospace; color: #78725e; }
 .room-art-credit { margin: 12px 0; font-size: 11px; text-align: right; color: #77715e; }
+.room-world-authored { padding: 0; border: 0; box-shadow: none; background: transparent; }
+.room-scene-authored { aspect-ratio: 830 / 800; max-width: 780px; margin: 0 auto; background: #6f5140; }
+.home-background { position: absolute; display: block; pointer-events: none; image-rendering: pixelated; }
+.pixel-room .home-object { display: block; padding: 0; }
+.home-object > img { width: 100%; height: 100%; display: block; image-rendering: pixelated; transition: filter 120ms; }
+.home-object > span { position: absolute; left: 50%; bottom: 0; transform: translate(-50%, 35%); z-index: 1; font-size: clamp(12px, 1.5vw, 18px); }
+.home-object:is(:hover, :focus-visible) > img { filter: brightness(1.1) drop-shadow(0 0 4px #fff6bf); }
+.home-object:focus-visible { outline-offset: -3px; z-index: 3; }
+.pixel-room .home-contacts { left: 30%; top: 26%; width: 14%; height: 14%; display: flex; justify-content: flex-end; }
+.home-contacts > span { font-size: clamp(11px, 1.2vw, 16px); padding: 3px 6px; }
+.pixel-room .home-resident { left: 51%; top: 58%; }
+.room-world-authored .room-dialogue { margin: 12px 0 0; }
 .room-dialog { --muted: #706b5d; --accent: #617850; width: min(680px, calc(100% - 32px)); max-height: calc(100svh - 40px); margin: auto; padding: 0; border: 4px solid #887759; border-radius: 2px; color: #4d4839; background: #f7efd9; box-shadow: 0 0 0 4px #e0cfaa, 0 12px 0 #3f392a33; overflow: auto; }
 .room-dialog::backdrop { background: #252b23a6; backdrop-filter: blur(3px); }
 .room-dialog-head { display: flex; align-items: center; gap: 16px; justify-content: space-between; padding: 14px 20px; border-bottom: 3px solid #c4b38e; background: #e7dbbb; position: sticky; top: 0; z-index: 1; }

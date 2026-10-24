@@ -41,3 +41,13 @@ Added browser-only PyWxDump CSV imports at the writing desk: retain sent plain t
 ## Mirror fidelity A/B — 2026-10-24
 
 On `yw/fidelity`, replaced append-only imports with complete per-facet merges, protected owner edits, previous-text undo, explicit AI scenes and dated Recent guards. Added owner summaries, source inference and clear sharing chips. Regenerated the owner's external AI scene files and dated the WeChat export; validated live imports on isolated mirrors 10/11 without changing mixian's cards. Additive local publication preserved data. Validation and Pending human/rebase acceptance: `validation/mirror-fidelity-a-b.md`.
+
+## Authored town and Home scenes — 2026-10-24
+
+On `yw/map-assets`, imported the teammate's complete town (`329e7e8`) and Home (`1f404a9`)
+compositions with original PNGs, transforms, tile layers and provenance. Added a full-screen
+General/Follow town camera and connected the room furniture to existing panels. A temporary
+HTTPS preview supports guest access when venue Wi-Fi blocks direct LAN access. Production
+build and 55 regression/scene tests pass; desktop/portrait interactions were checked. No database
+publish/reset or mixian edits. Evidence and Pending device checks: `validation/authored-town-and-camera.md`
+and `validation/authored-mirror-room.md`.

@@ -25,7 +25,8 @@ As of the diary and Figma login implementations on `yw/diary` (2026-10-24). Fact
 | `public/assets/characters/` | Original Cup Nooble PNG from teammate branch, source mapping and license |
 | `src/CreateMirror.tsx` | Make-a-mirror form (name, color, TIPI, optional on-mind and intent; blank intent starts in Park then explores occupied places) |
 | `src/MirrorRoom.tsx` | Pixel room with private summary, per-mirror diary, two-card facet defaults, explicit share-state chips, inferred import scenes, notes and contact |
-| `src/PixelRoom.tsx`, `src/pixel-room.css` | Responsive interactive pixel room, local SVG furniture and game panel styles |
+| `src/PixelRoom.tsx`, `src/pixel-room.css`, `src/homeScene.json` | Responsive interactive room with teammate-authored Home layout, keyboard-accessible furniture hotspots and existing game panels |
+| `public/assets/home/`, `scripts/import-home-scene.mjs` | Five original room PNGs and authored Home.tscn transforms/provenance; reproducible conversion |
 | `src/RoomDialog.tsx` | Native modal game panel with focus containment, Escape and focus return |
 | `src/Diary.tsx` | Paginated game journal with venue dates, optional mirror filter, visible interest and mutually unlocked contacts |
 | `src/importers.ts` | Browser-only CSV/WhatsApp own-lines extraction with latest kept-message dates, source headers and equal per-file import budgets |

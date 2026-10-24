@@ -2,6 +2,11 @@
 
 Things that are not obvious from the code.
 
+- **Authored Mirror Room** (`yw/map-assets`): `origin/yq` commit `1f404a9` supplies `Home.tscn`
+  and five PNGs. Regenerate with `node scripts/import-home-scene.mjs 1f404a9`. Keep generated
+  `src/homeScene.json` in sync. All existing room actions remain connected; no data migration.
+  Checks and remaining device validation are in `validation/authored-mirror-room.md`.
+
 - **Authored town / camera** (`yw/map-assets`): imported `origin/yq`'s `329e7e8` scene;
   regenerate with `node scripts/import-town-scene.mjs 329e7e8`. The town fills the viewport,
   with General/Follow modes and owned-mirror selection. No database publication is needed.
