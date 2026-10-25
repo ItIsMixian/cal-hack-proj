@@ -46,7 +46,7 @@ export default function App({ sessionLabel, onExit, accountMode = false }: {
   const [notice, setNotice] = useState('');
   const [roomFor, setRoomFor] = useState<bigint | null>(null);
   const [gamePanel, setGamePanel] = useState<'diary' | 'residents' | 'guide' | null>(null);
-  const [cameraMode, setCameraMode] = useState<CameraMode>('follow');
+  const [cameraMode, setCameraMode] = useState<CameraMode>('general');
   const [followedId, setFollowedId] = useState<bigint | null>(null);
   const [seen, setSeen] = useState(() => readSeen(seenKey));
   useEffect(() => setSeen(readSeen(seenKey)), [seenKey]);
@@ -111,11 +111,11 @@ export default function App({ sessionLabel, onExit, accountMode = false }: {
     <div className="app town-game">
       <header className="town-hud">
         <div className="town-title"><p>MIRRORS MEET HERE</p><h1>Mirrorville</h1></div>
-        <div className="town-clock"><strong>{clockLabel(hour)}</strong><span>{event ? event.label : 'A little time in town'}</span></div>
         <div className="town-account"><span className={isActive ? 'status on' : 'status'}>{isActive ? 'Live' : 'Connecting…'}</span>
           <span className="session-label" title={sessionLabel}>{sessionLabel}</span>
           <button onClick={onExit}>{accountMode ? 'Sign out' : 'Leave town'}</button></div>
       </header>
+      <div className="town-clock"><strong>{clockLabel(hour)}</strong><span>{event ? event.label : 'A little time in town'}</span></div>
       {notice && <button className="town-notice" onClick={() => setNotice('')}>{notice} <span>✕</span></button>}
       <main className="town-stage">
         <div className="town-map-shell">
@@ -141,7 +141,6 @@ export default function App({ sessionLabel, onExit, accountMode = false }: {
         <button onClick={() => setCreating(true)} disabled={!isActive}><span className="dock-icon" aria-hidden="true">＋</span>{myMirrors.length ? 'New mirror' : 'Make your mirror'}</button>
         <button onClick={() => setGamePanel('guide')} aria-label="Town guide"><span className="dock-icon" aria-hidden="true">?</span><span>Guide</span></button>
       </nav>
-      <p className="town-credit">Your mirrors meet first. Then you do. <span>Character: Cup Nooble · Sprout Lands</span></p>
       {gamePanel && <RoomDialog title={gamePanel === 'diary' ? 'Your diary' : gamePanel === 'residents' ? 'Around town' : 'Welcome to Mirrorville'} onClose={() => setGamePanel(null)}>
         {gamePanel === 'diary' ? <Diary /> : gamePanel === 'residents' ? <div className="town-roster">
           {mirrors.map(mirror => <button key={String(mirror.id)} onClick={() => { setGamePanel(null); setSelected(mirror.id); }}>
@@ -152,7 +151,7 @@ export default function App({ sessionLabel, onExit, accountMode = false }: {
           <li>Watch it wander, stop for a coffee, and get to know people in town.</li>
           <li>Open your diary whenever you like. Show interest in someone; when you both say yes, contact details appear.</li>
           <li>Visit your Mirror Room to add your own words and choose what your mirror shares.</li>
-        </ol></div>}
+        </ol><p className="muted">Character art: Cup Nooble · Sprout Lands</p></div>}
       </RoomDialog>}
       {focus && <RoomDialog title={focus.name} onClose={() => setSelected(null)}>
         <div className="room-portrait"><CharacterAvatar look={focus.look} name={focus.name} /><div><h3>{focus.name}</h3><p>{mine.has(focus.id) ? 'Your mirror' : focus.demo ? 'Demo mirror' : 'A mirror in town'}</p></div></div>

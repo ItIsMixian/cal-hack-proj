@@ -35,6 +35,8 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, cameraMo
   const live = useRef({ mirrors, bubbles, mine, selected, cameraMode, followed });
   live.current = { mirrors, bubbles, mine, selected, cameraMode, followed };
   const camera = useRef<CameraFrame | null>(null);
+  const pan = useRef({ x: 0, y: 0 });
+  const drag = useRef({ x: 0, y: 0, active: false, moved: false });
   // Smoothed on-screen positions; the server only moves mirrors once a second.
   const shown = useRef(new Map<bigint, ShownMirror>());
 
@@ -67,7 +69,7 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, cameraMo
         canvas.height = Math.round(cssHeight * dpr);
       }
 
-      const { mirrors, bubbles, mine, selected, cameraMode, followed } = live.current;
+      const { mirrors, mine, selected, cameraMode, followed } = live.current;
       const present = new Set(mirrors.map(m => m.id));
       for (const id of shown.current.keys()) if (!present.has(id)) shown.current.delete(id);
       for (const m of mirrors) {
@@ -88,6 +90,11 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, cameraMo
       }
       const player = followed === null ? undefined : shown.current.get(followed);
       const targetCamera = cameraTarget(cssWidth, cssHeight, cameraMode, player ? { x: player.x * TILE, y: player.y * TILE - 14 } : undefined);
+      if (cameraMode === 'general' || !player) {
+        const halfW = cssWidth / targetCamera.zoom / 2, halfH = cssHeight / targetCamera.zoom / 2;
+        targetCamera.x = Math.max(halfW, Math.min(WIDTH - halfW, targetCamera.x + pan.current.x));
+        targetCamera.y = Math.max(halfH, Math.min(HEIGHT - halfH, targetCamera.y + pan.current.y));
+      }
       const previousCamera = camera.current ?? targetCamera;
       const cameraEase = reducedMotion.matches ? 1 : 1 - Math.exp(-dt * 8);
       const followEase = cameraMode === 'follow' && player ? 1 : cameraEase;
@@ -125,12 +132,14 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, cameraMo
       // Bubbles on top so neighbours don't cover them.
       g.setTransform(dpr, 0, 0, dpr, 0, 0);
       for (const m of mirrors) {
-        const text = bubbles.get(m.id);
         const p = shown.current.get(m.id);
-        if (text && p) {
+        if (p) {
           const x = (p.x * TILE - view.x) * view.zoom + cssWidth / 2;
           const y = (p.y * TILE + FOOT_Y - CHARACTER_H - view.y) * view.zoom + cssHeight / 2;
-          if (x >= -30 && x <= cssWidth + 30 && y >= 0 && y <= cssHeight) drawBubble(g, text, x, y, cssWidth);
+          if (x >= 10 && x <= cssWidth - 10 && y >= 12 && y <= cssHeight) {
+            if (m.conversationId !== 0n) drawTalking(g, x, y, now, reducedMotion.matches);
+            drawStateIcon(g, x, y, m.activity, m.id, now, reducedMotion.matches);
+          }
         }
       }
       frame = requestAnimationFrame(draw);
@@ -140,6 +149,7 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, cameraMo
   }, [loadAttempt]);
 
   const handleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (drag.current.moved) return;
     const rect = e.currentTarget.getBoundingClientRect();
     if (!camera.current) return;
     const { x, y } = screenToTown(e.clientX - rect.left, e.clientY - rect.top, camera.current);
@@ -157,7 +167,19 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, cameraMo
   };
 
   return <>
-    <canvas ref={canvasRef} className="world" onClick={artStatus === 'ready' ? handleClick : undefined} aria-label="Map of Mirrorville" data-character-renderer="loading" data-town-renderer="loading" />
+    <canvas ref={canvasRef} className="world" onClick={artStatus === 'ready' ? handleClick : undefined}
+      onPointerDown={e => { drag.current = { x: e.clientX, y: e.clientY, active: true, moved: false }; e.currentTarget.setPointerCapture(e.pointerId); }}
+      onPointerMove={e => {
+        const d = drag.current;
+        if (!d.active || (cameraMode === 'follow' && followed !== null) || !camera.current) return;
+        const dx = e.clientX - d.x, dy = e.clientY - d.y;
+        if (!d.moved && Math.hypot(dx, dy) < 5) return;
+        d.moved = true; d.x = e.clientX; d.y = e.clientY;
+        pan.current.x = camera.current.x - WIDTH / 2 - dx / camera.current.zoom;
+        pan.current.y = camera.current.y - HEIGHT / 2 - dy / camera.current.zoom;
+      }}
+      onPointerUp={() => { drag.current.active = false; }} onPointerCancel={() => { drag.current.active = false; }}
+      aria-label="Map of Mirrorville. Drag in General view to explore." data-character-renderer="loading" data-town-renderer="loading" />
     {artStatus !== 'ready' && <div className="town-art-status" role="status">
       <p>{artStatus === 'error' ? 'The town artwork could not load.' : 'Opening Mirrorville…'}</p>
       <button onClick={() => setLoadAttempt(n => n + 1)}>Retry map</button>
@@ -230,38 +252,31 @@ function drawMirrorLabel(g: CanvasRenderingContext2D, m: Mirror, x: number, y: n
   }
 }
 
-function drawBubble(g: CanvasRenderingContext2D, text: string, x: number, y: number, viewportWidth: number) {
-  g.font = '14px system-ui, sans-serif';
-  const limit = Math.min(300, viewportWidth - 24);
-  const lines: string[] = [''];
-  for (const char of text) {
-    const index = lines.length - 1;
-    if (g.measureText(lines[index] + char).width > limit - 20) {
-      if (lines.length === 2) { lines[index] = lines[index].slice(0, -1) + '…'; break; }
-      lines.push(char);
-    } else lines[index] += char;
+// Small screen-space pixel marks; transcript text stays in the character panel.
+function drawTalking(g: CanvasRenderingContext2D, x: number, y: number, now: number, reduced: boolean) {
+  x = Math.round(x - 12); y = Math.round(y - 19);
+  g.fillStyle = '#526047'; g.fillRect(x + 2, y, 20, 16); g.fillRect(x, y + 2, 24, 12);
+  g.fillStyle = '#fff9e9'; g.fillRect(x + 2, y + 2, 20, 12); g.fillRect(x + 5, y + 14, 4, 4);
+  for (let i = 0; i < 3; i++) {
+    g.fillStyle = !reduced && Math.floor(now / 300) % 3 === i ? '#51643e' : '#9da58c';
+    g.fillRect(x + 5 + i * 5, y + 7, 3, 3);
   }
-  const w = Math.min(limit, Math.max(...lines.map(line => g.measureText(line).width)) + 20);
-  const h = lines.length * 18 + 12;
-  const bx = Math.max(12, Math.min(viewportWidth - w - 12, x - w / 2));
-  const by = Math.max(4, y - h - 10);
-  g.fillStyle = '#ffffffee';
-  g.strokeStyle = '#33333355';
-  g.lineWidth = 1;
-  roundRect(g, bx, by, w, h, 10);
-  g.fill();
-  g.stroke();
-  g.fillStyle = '#222';
-  g.textAlign = 'left';
-  lines.forEach((line, index) => g.fillText(line, bx + 10, by + 20 + index * 18));
 }
 
-function roundRect(g: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
-  g.beginPath();
-  g.moveTo(x + r, y);
-  g.arcTo(x + w, y, x + w, y + h, r);
-  g.arcTo(x + w, y + h, x, y + h, r);
-  g.arcTo(x, y + h, x, y, r);
-  g.arcTo(x, y, x + w, y, r);
-  g.closePath();
+function drawStateIcon(g: CanvasRenderingContext2D, x: number, y: number, activity: string, id: bigint, now: number, reduced: boolean) {
+  if (reduced) return;
+  const phase = ((now / 1000 + Number(id % 11n)) % 9);
+  if (phase > 1.2) return;
+  const rows = /coffee|tea|sip/i.test(activity) ? ['10100','00000','11111','10011','10011','11110','01100']
+    : /walk|run|treadmill/i.test(activity) ? ['11000','11000','00011','00011','11000','11000','00011']
+    : /code|debug|test|demo/i.test(activity) ? ['01010','10001','01010','00000','11111']
+    : /talk/i.test(activity) ? ['00100','00100','11011','00100','00100'] : null;
+  if (!rows) return;
+  g.globalAlpha = Math.min(1, phase * 6, (1.2 - phase) * 4);
+  g.fillStyle = '#667d55';
+  const left = Math.round(x + 17), top = Math.round(y - 14 - Math.sin(phase / 1.2 * Math.PI) * 7);
+  for (let row = 0; row < rows.length; row++) for (let col = 0; col < rows[row].length; col++) {
+    if (rows[row][col] === '1') g.fillRect(left + col * 2, top + row * 2, 2, 2);
+  }
+  g.globalAlpha = 1;
 }

@@ -18,7 +18,9 @@ Things that are not obvious from the code.
 
 - **Authored town / camera** (`yw/map-assets`): imported `origin/yq`'s `329e7e8` scene;
   regenerate with `node scripts/import-town-scene.mjs 329e7e8`. The town fills the viewport,
-  with General/Follow modes and owned-mirror selection. No database publication is needed.
+  with General/Follow modes and owned-mirror selection. General defaults to viewport cover
+  with touch/pointer drag; conversation text is kept in character panels, with tiny pixel
+  indicators on the map. No database publication is needed.
   Existing server coordinates are projected onto forecourts; this does not add collision/pathfinding.
   See `validation/authored-town-and-camera.md`. For temporary HTTPS sharing, Vite proxies only
   the SDK subscribe and websocket-token routes; client connections use the share origin.

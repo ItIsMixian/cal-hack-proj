@@ -92,10 +92,10 @@ test('follow camera centers its owner on desktop and portrait screens', () => {
     assert.equal(inverse.x, point.x); assert.equal(inverse.y, point.y);
   }
 });
-test('general fits the whole town and is the fallback when there is no owner', () => {
+test('general covers the viewport and is the fallback when there is no owner', () => {
   for (const [width, height] of [[1200, 675], [390, 844]]) {
     const frame = cameraExports.cameraTarget(width, height, 'general');
-    assert.ok(960 * frame.zoom <= width + 1e-9 && 672 * frame.zoom <= height + 1e-9);
+    assert.ok(960 * frame.zoom >= width - 1e-9 && 672 * frame.zoom >= height - 1e-9);
     assert.equal(JSON.stringify(cameraExports.cameraTarget(width, height, 'follow')), JSON.stringify(frame));
   }
 });

@@ -49,3 +49,15 @@ rounds separately from the camera. Phone canvas backing scale is capped at 2 to 
 Build: Pass. Town suite: Pass (8 tests), including 30/60/120Hz motion and delayed snapshot cap.
 Phone smoothness/owner visual acceptance: Pending, delegated to owner. This does not add
 obstacle-aware routes; visual crossing of buildings remains a known placement limitation.
+
+## Compact mobile HUD and conversation indicators (2026-10-24)
+
+Default camera is General for accounts and guests. General now covers the viewport instead
+of letterboxing the entire landscape; pointer/touch drag explores the cropped area. Updated
+coverage regression passes. Follow still targets an owned mirror. Top title/account/exit share
+a transparent row; clock moved above the smaller bottom dock; artwork credit remains in Guide.
+World speech text is replaced with a 24px pixel bubble and three dots while conversationId is
+active. Optional 10–14px pixel activity icons appear briefly, staggered per character, without
+inferring emotional traits; reduced-motion users see no jumping icons. Full transcript remains
+in the character panel. Build and 8 town tests: Pass. Mobile layout, dragging, readability and
+owner aesthetic acceptance: Pending (owner requested direct phone/teammate validation).
