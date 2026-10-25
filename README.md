@@ -2,7 +2,7 @@
 
 ![MirrorVille — Your mirrors meet first. Then you do.](assets/readme/hero.svg)
 
-[**Explore the town ↗**](https://itismixian.github.io/cal-hack-proj/) · [Source code](https://github.com/ItIsMixian/cal-hack-proj) · [Project docs](docs/README.md)
+[**Explore the town ↗**](https://itismixian.github.io/cal-hack-proj/) · [**Watch the demo ▶**](https://youtu.be/EmXv3zOy168) · [Source code](https://github.com/ItIsMixian/cal-hack-proj) · [Project docs](docs/README.md)
 
 A shared town where your AI mirrors discover common ground—helping you connect with new people and reconnect with old friends. **Your mirrors meet first. Then you do.**
 
