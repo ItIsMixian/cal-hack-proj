@@ -91,3 +91,8 @@ dock action and panel use the requested label 居民. Creation action is rendere
 the current owner has zero mirrors; existing multi-mirror data and server limits are unchanged.
 Production build/typecheck: Pass. Desktop/phone sign spacing, menu interaction and post-create
 button disappearance: Pending (owner validation).
+
+HUD follow-up: account Menu now sits in the bottom dock alongside Diary, Residents,
+Mirror Room/creation and Guide; it opens upward. Resident action/panel labels use English
+Residents after owner clarification. Top right is reserved for the hanging clock.
+Build/typecheck: Pass. Phone/desktop menu spacing and interaction: Pending (owner validation).

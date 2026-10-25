@@ -111,13 +111,7 @@ export default function App({ sessionLabel, onExit, accountMode = false }: {
     <div className="app town-game">
       <header className="town-hud">
         <div className="town-title"><p>MIRRORS MEET HERE</p><h1>Mirrorville</h1></div>
-        <details className="town-account-menu" onKeyDown={e => { if (e.key === 'Escape') e.currentTarget.open = false; }}>
-          <summary aria-label="Account menu" title="Account menu"><span aria-hidden="true">☰</span></summary>
-          <div className="town-account"><span className={isActive ? 'status on' : 'status'}>{isActive ? 'Live' : 'Connecting…'}</span>
-            <span className="session-label" title={sessionLabel}>{sessionLabel}</span>
-            <button onClick={onExit}>{accountMode ? 'Sign out' : 'Leave town'}</button>
-          </div>
-        </details>
+
       </header>
       <div className="town-clock"><strong>{clockLabel(hour)}</strong><span>{event ? event.label : 'A little time in town'}</span></div>
       {notice && <button className="town-notice" onClick={() => setNotice('')}>{notice} <span>✕</span></button>}
@@ -140,12 +134,19 @@ export default function App({ sessionLabel, onExit, accountMode = false }: {
       </aside>
       <nav className="town-dock" aria-label="Town actions">
         <button onClick={() => setGamePanel('diary')}><span className="dock-icon" aria-hidden="true">▤</span>Diary{hasNew && <span className="dot" aria-label="new" />}</button>
-        <button onClick={() => setGamePanel('residents')}><span className="dock-icon" aria-hidden="true">♧</span>居民</button>
+        <button onClick={() => setGamePanel('residents')}><span className="dock-icon" aria-hidden="true">♧</span>Residents</button>
         {myMirrors.length > 0 && <button onClick={() => { setSelected(null); setRoomFor(myMirrors[0].id); }} disabled={!isActive}><span className="dock-icon" aria-hidden="true">⌂</span>Mirror Room</button>}
         {myMirrors.length === 0 && <button onClick={() => setCreating(true)} disabled={!isActive}><span className="dock-icon" aria-hidden="true">＋</span>Make your mirror</button>}
         <button onClick={() => setGamePanel('guide')} aria-label="Town guide"><span className="dock-icon" aria-hidden="true">?</span><span>Guide</span></button>
+        <details className="town-account-menu" onKeyDown={e => { if (e.key === 'Escape') e.currentTarget.open = false; }}>
+          <summary aria-label="Menu" title="Menu"><span className="dock-icon" aria-hidden="true">☰</span><span>Menu</span></summary>
+          <div className="town-account"><span className={isActive ? 'status on' : 'status'}>{isActive ? 'Live' : 'Connecting…'}</span>
+            <span className="session-label" title={sessionLabel}>{sessionLabel}</span>
+            <button onClick={onExit}>{accountMode ? 'Sign out' : 'Leave town'}</button>
+          </div>
+        </details>
       </nav>
-      {gamePanel && <RoomDialog title={gamePanel === 'diary' ? 'Your diary' : gamePanel === 'residents' ? '居民' : 'Welcome to Mirrorville'} onClose={() => setGamePanel(null)}>
+      {gamePanel && <RoomDialog title={gamePanel === 'diary' ? 'Your diary' : gamePanel === 'residents' ? 'Residents' : 'Welcome to Mirrorville'} onClose={() => setGamePanel(null)}>
         {gamePanel === 'diary' ? <Diary /> : gamePanel === 'residents' ? <div className="town-roster">
           {mirrors.map(mirror => <button key={String(mirror.id)} onClick={() => { setGamePanel(null); setSelected(mirror.id); }}>
             <CharacterAvatar look={mirror.look} name={mirror.name} /><span><strong>{mirror.name}</strong><small>{mine.has(mirror.id) ? 'Your mirror · ' : ''}{findLandmark(mirror.place).label}</small></span><span aria-hidden="true">→</span>
