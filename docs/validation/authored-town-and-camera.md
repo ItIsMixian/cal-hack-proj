@@ -46,6 +46,6 @@ nonlinear placement adapter into bursts of speed. Rendering now caps travel at 1
 per second, ties walking animation to distance, and limits a stalled frame to 50ms of travel.
 Follow camera translation tracks the rendered character directly; sprite drawing no longer
 rounds separately from the camera. Phone canvas backing scale is capped at 2 to reduce fill cost.
-Build: Pass. Town suite: Pass (10 tests), including 30/60/120Hz motion and delayed snapshot cap.
+Build: Pass. Town suite: Pass (8 tests), including 30/60/120Hz motion and delayed snapshot cap.
 Phone smoothness/owner visual acceptance: Pending, delegated to owner. This does not add
 obstacle-aware routes; visual crossing of buildings remains a known placement limitation.
