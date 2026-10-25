@@ -22,6 +22,7 @@ As of the diary and Figma login implementations on `yw/diary` (2026-10-24). Fact
 | `src/WorldCanvas.tsx`, `src/TownCamera.ts` | Full-viewport Canvas with General/Follow cameras, owned-mirror selection, walking sprites, inverse-camera picking and screen-sized speech bubbles |
 | `src/AuthoredTown.ts`, `public/assets/town/` | Teammate's complete Godot town layout (11 sprite instances, 220 House/Decoration cells), original textures/provenance, client-only forecourt projection |
 | `scripts/import-town-scene.mjs`, `scripts/test-town-scene.mjs` | Reproducible scene conversion and layout/hash/projection/camera checks |
+| `src/TownBuildings.ts`, `src/TownMotion.ts` | Client arrival-to-building pin rules and bounded walking interpolation |
 | `src/CharacterAvatar.tsx` | Shared idle character preview for Mirror Room and creation form |
 | `public/assets/characters/` | Original Cup Nooble PNG from teammate branch, source mapping and license |
 | `src/CreateMirror.tsx` | Make-a-mirror form (name, color, TIPI, optional on-mind and intent; blank intent starts in Park then explores occupied places) |

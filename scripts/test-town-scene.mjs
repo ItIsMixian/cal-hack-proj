@@ -104,6 +104,18 @@ const motionExports = {};
 runInNewContext(ts.transpileModule(readFileSync(new URL('../src/TownMotion.ts', import.meta.url), 'utf8'), {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
 }).outputText, { exports: motionExports });
+const buildings = {};
+runInNewContext(ts.transpileModule(world + '\n' + readFileSync(new URL('../src/TownBuildings.ts', import.meta.url), 'utf8').replace(/import .*?;\r?\n/, ''), {
+  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+}).outputText, { exports: buildings });
+test('indoor pin requires server arrival and completed visual travel, and clears on departure', () => {
+  const m = { place: 'cafe', x: 18, y: 4, targetX: 18, targetY: 4 };
+  assert.equal(buildings.enteredBuilding(m, 0), 'cafe');
+  assert.equal(buildings.enteredBuilding(m, 1), null);
+  assert.equal(buildings.enteredBuilding({ ...m, targetX: 25 }, 0), null);
+  assert.equal(buildings.enteredBuilding({ ...m, x: 1, targetX: 1 }, 0), null);
+  assert.equal(buildings.enteredBuilding({ ...m, place: 'park', x: 20, y: 15, targetX: 20, targetY: 15 }, 0), null);
+});
 test('a distant or delayed snapshot cannot cause a burst of movement', () => {
   for (const dt of [1 / 60, 1 / 30, 5]) {
     const next = motionExports.advanceTownPosition({ x: 0, y: 0 }, { x: 300, y: 400 }, dt);

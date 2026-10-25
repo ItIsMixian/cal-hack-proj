@@ -117,3 +117,20 @@
   .town-clock strong { font-size: 18px; }
   .town-notice { top: 52px; max-width: calc(100% - 185px); width: auto; }
 }
+
+@media (min-width: 900px) {
+  .town-hud { inset: 18px 24px auto; }
+  .town-title h1 { font-size: clamp(34px, 2.5vw, 46px); }
+  .town-account { gap: 14px; font-size: 17px; }
+  .town-account .session-label { max-width: 260px; font-size: 16px; }
+  .town-account button { font-size: 16px; padding: 10px; min-height: 44px; }
+  .town-camera-hud { top: 80px; right: 24px; max-width: 285px; gap: 7px; }
+  .town-camera-switch { gap: 10px; }
+  .town-camera-switch button { min-height: 46px; font-size: 21px; padding: 6px 18px; }
+  .town-camera-hud strong { font-size: 18px; }
+  .town-camera-hud select { font-size: 17px; min-height: 42px; }
+  .town-clock { left: 24px; bottom: 95px; }
+  .town-clock strong { font-size: 32px; }
+  .town-dock button { font-size: 22px; min-height: 58px; padding: 10px 20px; }
+  .town-dock .dock-icon { font-size: 28px; }
+}

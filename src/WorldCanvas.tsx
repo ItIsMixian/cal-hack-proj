@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { WORLD_W, WORLD_H, LOOK_COLORS } from '../spacetimedb/src/world';
 import { loadAuthoredTown, projectTownPosition } from './AuthoredTown';
 import { advanceTownPosition } from './TownMotion';
+import { BUILDING_PINS, enteredBuilding } from './TownBuildings';
 import { cameraTarget, screenToTown, type CameraMode, type CameraFrame } from './TownCamera';
 import type { Mirror } from './module_bindings/types';
 
@@ -37,6 +38,7 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, cameraMo
   const camera = useRef<CameraFrame | null>(null);
   const pan = useRef({ x: 0, y: 0 });
   const drag = useRef({ x: 0, y: 0, active: false, moved: false });
+  const pinHits = useRef<Array<{ id: bigint; x: number; y: number }>>([]);
   // Smoothed on-screen positions; the server only moves mirrors once a second.
   const shown = useRef(new Map<bigint, ShownMirror>());
 
@@ -71,6 +73,7 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, cameraMo
 
       const { mirrors, mine, selected, cameraMode, followed } = live.current;
       const present = new Set(mirrors.map(m => m.id));
+      const indoors = new Map<bigint, string>();
       for (const id of shown.current.keys()) if (!present.has(id)) shown.current.delete(id);
       for (const m of mirrors) {
         const target = authored ? projectTownPosition(m.x, m.y) : m;
@@ -87,6 +90,8 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, cameraMo
         p.x = next.x;
         p.y = next.y;
         shown.current.set(m.id, p);
+        const building = authored ? enteredBuilding(m, Math.hypot(target.x - p.x, target.y - p.y)) : null;
+        if (building) indoors.set(m.id, building);
       }
       const player = followed === null ? undefined : shown.current.get(followed);
       const targetCamera = cameraTarget(cssWidth, cssHeight, cameraMode, player ? { x: player.x * TILE, y: player.y * TILE - 14 } : undefined);
@@ -97,10 +102,9 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, cameraMo
       }
       const previousCamera = camera.current ?? targetCamera;
       const cameraEase = reducedMotion.matches ? 1 : 1 - Math.exp(-dt * 8);
-      const followEase = cameraMode === 'follow' && player ? 1 : cameraEase;
       const view = { ...targetCamera,
-        x: previousCamera.x + (targetCamera.x - previousCamera.x) * followEase,
-        y: previousCamera.y + (targetCamera.y - previousCamera.y) * followEase,
+        x: targetCamera.x,
+        y: targetCamera.y,
         zoom: previousCamera.zoom + (targetCamera.zoom - previousCamera.zoom) * cameraEase };
       camera.current = view;
       canvas.dataset.cameraMode = cameraMode === 'follow' && player ? 'follow' : 'general';
@@ -114,11 +118,13 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, cameraMo
       // Feet determine depth so taller characters overlap naturally.
       const ordered = [...mirrors].sort((a, b) => shown.current.get(a.id)!.y - shown.current.get(b.id)!.y);
       for (const m of ordered) {
+        if (indoors.has(m.id)) continue;
         const p = shown.current.get(m.id)!;
         drawMirror(g, m, p, mine.has(m.id), selected === m.id, sprite, reducedMotion.matches);
       }
       // Keep labels readable above neighbouring sprites.
       for (const m of ordered) {
+        if (indoors.has(m.id)) continue;
         const p = shown.current.get(m.id)!;
         if (cameraMode === 'follow' && player && m.id !== followed
           && Math.abs(p.x - player.x) < 3.5 && Math.abs(p.y - player.y) < 2.3) continue;
@@ -127,11 +133,30 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, cameraMo
       // A crowded conversation should never cover the followed mirror's name.
       if (cameraMode === 'follow' && player) {
         const m = mirrors.find(m => m.id === followed);
-        if (m) drawMirrorLabel(g, m, player.x * TILE, player.y * TILE, true);
+        if (m && !indoors.has(m.id)) drawMirrorLabel(g, m, player.x * TILE, player.y * TILE, true);
       }
       // Bubbles on top so neighbours don't cover them.
       g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      pinHits.current = [];
+      for (const [place, anchor] of Object.entries(BUILDING_PINS)) {
+        const occupants = mirrors.filter(m => indoors.get(m.id) === place).sort((a, b) => a.id < b.id ? -1 : 1);
+        occupants.forEach((m, i) => {
+          const columns = Math.min(6, occupants.length);
+          const rowSize = Math.min(columns, occupants.length - Math.floor(i / columns) * columns);
+          const x = (anchor.x - view.x) * view.zoom + cssWidth / 2 + (i % columns - (rowSize - 1) / 2) * 28;
+          const y = (anchor.y - view.y) * view.zoom + cssHeight / 2 - Math.floor(i / columns) * 38;
+          pinHits.current.push({ id: m.id, x, y });
+          drawBuildingPin(g, x, y, m, mine.has(m.id), selected === m.id, sprite);
+          if (m.conversationId !== 0n) drawTalking(g, x + 12, y - 30, now, reducedMotion.matches);
+          if (m.id === followed && cameraMode === 'follow') {
+            g.fillStyle = '#fff9e9'; g.fillRect(x - 50, y + 3, 100, 16);
+            g.fillStyle = '#404d36'; g.font = '11px "Pixelify Sans", monospace'; g.textAlign = 'center';
+            g.fillText(`Inside ${anchor.label}`, x, y + 15);
+          }
+        });
+      }
       for (const m of mirrors) {
+        if (indoors.has(m.id)) continue;
         const p = shown.current.get(m.id);
         if (p) {
           const x = (p.x * TILE - view.x) * view.zoom + cssWidth / 2;
@@ -152,11 +177,15 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, cameraMo
     if (drag.current.moved) return;
     const rect = e.currentTarget.getBoundingClientRect();
     if (!camera.current) return;
+    const screenX = e.clientX - rect.left, screenY = e.clientY - rect.top;
+    const pin = [...pinHits.current].reverse().find(p => Math.abs(screenX - p.x) <= 13 && screenY >= p.y - 34 && screenY <= p.y + 2);
+    if (pin) { onSelect(pin.id); return; }
     const { x, y } = screenToTown(e.clientX - rect.left, e.clientY - rect.top, camera.current);
     let best: bigint | null = null;
     // Test the full visible body, including its head, frontmost character first.
     const frontFirst = [...shown.current].sort((a, b) => b[1].y - a[1].y);
     for (const [id, p] of frontFirst) {
+      if (pinHits.current.some(pin => pin.id === id)) continue;
       const px = p.x * TILE;
       const feet = p.y * TILE + FOOT_Y;
       if (Math.abs(px - x) <= CHARACTER_W / 2 + 5 && y >= feet - CHARACTER_H - 4 && y <= feet + 5) {
@@ -168,15 +197,21 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, cameraMo
 
   return <>
     <canvas ref={canvasRef} className="world" onClick={artStatus === 'ready' ? handleClick : undefined}
-      onPointerDown={e => { drag.current = { x: e.clientX, y: e.clientY, active: true, moved: false }; e.currentTarget.setPointerCapture(e.pointerId); }}
+      onPointerDown={e => {
+        drag.current = { x: e.clientX, y: e.clientY, active: true, moved: false };
+        if (camera.current) pan.current = { x: camera.current.x - WIDTH / 2, y: camera.current.y - HEIGHT / 2 };
+        e.currentTarget.setPointerCapture(e.pointerId);
+      }}
       onPointerMove={e => {
         const d = drag.current;
         if (!d.active || (cameraMode === 'follow' && followed !== null) || !camera.current) return;
         const dx = e.clientX - d.x, dy = e.clientY - d.y;
         if (!d.moved && Math.hypot(dx, dy) < 5) return;
         d.moved = true; d.x = e.clientX; d.y = e.clientY;
-        pan.current.x = camera.current.x - WIDTH / 2 - dx / camera.current.zoom;
-        pan.current.y = camera.current.y - HEIGHT / 2 - dy / camera.current.zoom;
+        const halfW = camera.current.width / camera.current.zoom / 2;
+        const halfH = camera.current.height / camera.current.zoom / 2;
+        pan.current.x = Math.max(halfW - WIDTH / 2, Math.min(WIDTH / 2 - halfW, pan.current.x - dx / camera.current.zoom));
+        pan.current.y = Math.max(halfH - HEIGHT / 2, Math.min(HEIGHT / 2 - halfH, pan.current.y - dy / camera.current.zoom));
       }}
       onPointerUp={() => { drag.current.active = false; }} onPointerCancel={() => { drag.current.active = false; }}
       aria-label="Map of Mirrorville. Drag in General view to explore." data-character-renderer="loading" data-town-renderer="loading" />
@@ -249,6 +284,23 @@ function drawMirrorLabel(g: CanvasRenderingContext2D, m: Mirror, x: number, y: n
     g.strokeText(doing, x, y + 36);
     g.fillStyle = '#555';
     g.fillText(doing, x, y + 36);
+  }
+}
+
+function drawBuildingPin(g: CanvasRenderingContext2D, x: number, y: number, mirror: Mirror, own: boolean, selected: boolean, sprite: HTMLImageElement) {
+  x = Math.round(x); y = Math.round(y);
+  g.fillStyle = selected ? '#fff9e9' : '#4d5e41';
+  // Stepped silhouette rather than an antialiased web map marker.
+  g.fillRect(x - 10, y - 34, 20, 3); g.fillRect(x - 13, y - 31, 26, 22);
+  g.fillRect(x - 10, y - 9, 20, 3); g.fillRect(x - 5, y - 6, 10, 3); g.fillRect(x - 2, y - 3, 4, 3);
+  g.fillStyle = own ? '#f4d383' : '#fff3d6'; g.fillRect(x - 10, y - 30, 20, 21);
+  g.fillStyle = LOOK_COLORS[mirror.look % LOOK_COLORS.length]; g.fillRect(x - 9, y - 11, 18, 2);
+  if (sprite.complete && sprite.naturalWidth === 128) {
+    g.imageSmoothingEnabled = false;
+    g.drawImage(sprite, 64, 32, 16, 16, x - 10, y - 29, 20, 20);
+  } else {
+    g.fillStyle = '#4d5e41'; g.font = '14px "Pixelify Sans", monospace'; g.textAlign = 'center';
+    g.fillText(mirror.name.slice(0, 1), x, y - 15);
   }
 }
 

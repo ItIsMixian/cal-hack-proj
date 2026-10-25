@@ -61,3 +61,19 @@ active. Optional 10–14px pixel activity icons appear briefly, staggered per ch
 inferring emotional traits; reduced-motion users see no jumping icons. Full transcript remains
 in the character panel. Build and 8 town tests: Pass. Mobile layout, dragging, readability and
 owner aesthetic acceptance: Pending (owner requested direct phone/teammate validation).
+
+## Building occupants and input sizing (2026-10-24)
+
+Arrived mirrors in cafe/gym/food/workshop/lounge hide their walking sprite and receive a
+stepped pixel portrait pin on the authored cafe/gym/restaurant/clock hall/farm. Indoor entry
+requires arrival within the server venue plus completed visual catch-up; departure restores
+the character. Outdoor park/street conversations retain sprites. Occupants receive stable
+per-building pin slots, clickable through the same character panel; indoor conversation dots
+remain visible. Follow view labels its owned indoor mirror. This is a client presentation
+state, with no interior scene or database migration.
+
+Desktop HUD has independent larger typography and 44–58px controls. General dragging now
+accumulates every pointer delta and updates camera translation directly, removing the previous
+lag from chasing an eased camera. Map bounds remain clamped. Build: Pass. Town suite: Pass
+(9 tests), including indoor entry/catch-up/departure/outdoor guards. Phone dragging, desktop
+visual sizing, pin crowding/picking and entry/exit appearance: Pending (owner validation).
