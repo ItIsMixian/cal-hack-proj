@@ -9,7 +9,7 @@ export function sampleTownSnapshot(previous: TownSnapshot | undefined, rendered:
     ? { from: { x: rendered.x, y: rendered.y }, to: { ...target }, receivedAt: now }
     : previous;
   const progress = Math.max(0, Math.min(1, (now - snapshot.receivedAt) / 1000));
-  return { snapshot, point: {
+  return { snapshot, point: progress === 1 ? { ...snapshot.to } : {
     x: snapshot.from.x + (snapshot.to.x - snapshot.from.x) * progress,
     y: snapshot.from.y + (snapshot.to.y - snapshot.from.y) * progress,
   } };
