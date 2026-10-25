@@ -82,3 +82,12 @@ Pin portrait correction: owner screenshot showed only the top of the hair becaus
 sprite frame starts with nine transparent rows. Crop now starts at atlas y=41 (actual head);
 the marker outline uses stepped rounded shoulders and a tapered point. Build: Pass. Updated
 phone appearance: Pending (owner validation).
+
+## Hanging clock and account menu (2026-10-24)
+
+Clock is now a rope-hung pixel sign at top right. Native details/summary account menu contains
+connection state, identity and sign-out/guest exit; keyboard Escape closes it. The resident
+dock action and panel use the requested label 居民. Creation action is rendered only while
+the current owner has zero mirrors; existing multi-mirror data and server limits are unchanged.
+Production build/typecheck: Pass. Desktop/phone sign spacing, menu interaction and post-create
+button disappearance: Pending (owner validation).
