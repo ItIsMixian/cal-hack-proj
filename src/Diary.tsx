@@ -3,8 +3,10 @@ import { useReducer, useSpacetimeDB, useTable } from 'spacetimedb/react';
 import { reducers, tables } from './module_bindings';
 import type { DiaryItem } from './module_bindings/types';
 import { findLandmark } from '../spacetimedb/src/world';
-import { sessionTopics } from './DiaryReview';
+import { sessionSummary } from './DiaryReview';
 import { diarySessions, type DiarySession } from './DiarySessions';
+import { diaryCutoff } from './DiaryHistory';
+import { useDiaryWindow } from './useDiaryWindow';
 import './diary.css';
 
 const dateFormat = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', dateStyle: 'medium' });
@@ -13,7 +15,10 @@ const dateOf = (entry: DiaryItem) => new Date(Number(entry.createdAt.microsSince
 
 export default function Diary({ mirrorId }: { mirrorId?: bigint } = {}) {
   const [entries] = useTable(tables.myDiary);
-  const sorted = [...entries].filter(entry => mirrorId === undefined || entry.mirrorId === mirrorId).sort((a, b) => a.createdAt.microsSinceUnixEpoch > b.createdAt.microsSinceUnixEpoch ? -1
+  const { identity } = useSpacetimeDB();
+  const history = useDiaryWindow(identity?.toHexString(), mirrorId);
+  const sorted = [...entries].filter(entry => (mirrorId === undefined || entry.mirrorId === mirrorId)
+    && entry.createdAt.microsSinceUnixEpoch > diaryCutoff(history, entry.mirrorId)).sort((a, b) => a.createdAt.microsSinceUnixEpoch > b.createdAt.microsSinceUnixEpoch ? -1
     : a.createdAt.microsSinceUnixEpoch < b.createdAt.microsSinceUnixEpoch ? 1 : 0);
   const notesByPerson = new Map<string, DiaryItem[]>();
   for (const entry of sorted) {
@@ -24,11 +29,11 @@ export default function Diary({ mirrorId }: { mirrorId?: bigint } = {}) {
   const people = [...notesByPerson].map(([name, notes]) => ({ name, sessions: diarySessions(notes) }));
   const commentCount = people.reduce((count, person) => count + person.sessions.length, 0);
   if (!sorted.length) return <div className="diary-comments diary-empty">
-    <h3>No conversations yet</h3>
-    <p>Your mirror will record what it talked about after each conversation, with who it met, when and where.</p>
+    <h3>No new conversations</h3>
+    <p>New conversation summaries will appear here after you last closed your diary.</p>
   </div>;
   return <div className="diary-comments">
-    <div className="diary-comments-heading"><h3>Conversation notes</h3><span>{people.length} {people.length === 1 ? 'person' : 'people'} · {commentCount} {commentCount === 1 ? 'comment' : 'comments'}</span></div>
+    <div className="diary-comments-heading"><h3>Since your last visit</h3><span>{people.length} {people.length === 1 ? 'person' : 'people'} · {commentCount} {commentCount === 1 ? 'comment' : 'comments'}</span></div>
     <ol className="diary-person-list" aria-label="People, latest conversation first">
       {people.map(({ name, sessions }) => <li key={name}>
         <section className="diary-person" aria-label={`Conversations with ${name}`}>
@@ -48,7 +53,7 @@ function DiaryEntry({ session, showMirror }: { session: DiarySession; showMirror
   const start = dateOf(oldest), end = dateOf(e);
   const hasRange = oldest.createdAt.microsSinceUnixEpoch !== e.createdAt.microsSinceUnixEpoch;
   const fit = session.entries.find(entry => entry.goodFit);
-  const topics = sessionTopics(session.entries.map(entry => entry.text));
+  const summary = sessionSummary(session.entries.map(entry => entry.text));
   const showInterest = useReducer(reducers.showInterest);
   const { isActive } = useSpacetimeDB();
   const [busy, setBusy] = useState(false);
@@ -62,8 +67,7 @@ function DiaryEntry({ session, showMirror }: { session: DiarySession; showMirror
   };
   return <article className="diary-entry diary-comment" aria-label={`Conversation with ${e.otherName}`}>
     {fit && <span className="tag gold">good fit</span>}
-    {topics.length ? <><p className="diary-topic-label">Talked about</p>
-      <ul className="diary-topics">{topics.map(topic => <li key={topic}>{topic}</li>)}</ul></>
+    {summary ? <p className="diary-summary">{summary}</p>
       : <p className="diary-missing-topics">Specific conversation topics weren't recorded for this exchange.</p>}
     <p className="diary-comment-meta"><time dateTime={start.toISOString()}>{dateFormat.format(start)} · {timeFormat.format(start)}</time>
       {hasRange && <> – <time dateTime={end.toISOString()}>{dateFormat.format(start) !== dateFormat.format(end) ? `${dateFormat.format(end)} · ` : ''}{timeFormat.format(end)}</time></>}

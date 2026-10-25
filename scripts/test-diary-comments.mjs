@@ -15,20 +15,23 @@ function load(path, imports = require) {
   }).outputText, { exports, require: imports });
   return exports;
 }
-const { diaryTopics, sessionTopics } = load('../src/DiaryReview.ts');
+const { diaryTopics, sessionTopics, sessionSummary } = load('../src/DiaryReview.ts');
 const { diarySessions } = load('../src/DiarySessions.ts');
+const { diaryCutoff, closeDiary, readDiaryHistory } = load('../src/DiaryHistory.ts');
 const world = load('../spacetimedb/src/world.ts');
 const base = { id: 1n, mirrorId: 1n, myMirror: 'My mirror', otherName: 'Maya', otherDemo: false,
   place: 'cafe', text: 'I met Maya at the café. We discussed composting coffee grounds and a refill station. The conversation felt relaxed.',
   goodFit: false, fitReason: '', createdAt: { microsSinceUnixEpoch: 1792870200000000n },
   iAmInterested: false, theyAreInterested: false, mutual: false, theirContact: 'PRIVATE_CONTACT' };
 
-function render(entries, mirrorId) {
+function render(entries, mirrorId, history = { all: 0n, mirrors: new Map() }) {
   const { default: Diary } = load('../src/Diary.tsx', name => {
     if (name === 'spacetimedb/react') return { useTable: () => [entries], useReducer: () => async () => {}, useSpacetimeDB: () => ({ isActive: true }) };
     if (name === './module_bindings') return { tables: {}, reducers: {} };
-    if (name === './DiaryReview') return { sessionTopics };
+    if (name === './DiaryReview') return { sessionSummary };
     if (name === './DiarySessions') return { diarySessions };
+    if (name === './DiaryHistory') return { diaryCutoff };
+    if (name === './useDiaryWindow') return { useDiaryWindow: () => history };
     if (name.includes('/world')) return world;
     if (name.endsWith('.css')) return {};
     return require(name);
@@ -70,7 +73,7 @@ test('person groups show all conversations, newest person first, with dates and 
   assert.ok(html.indexOf('Alex:') < html.indexOf('Maya:'));
   assert.match(html, /Oct 24, 2026/);
   assert.match(html, /Café/);
-  assert.match(html, /<ul class="diary-topics"><li>We discussed/);
+  assert.match(html, /<p class="diary-summary">We discussed/);
   assert.ok(!html.includes('I met Maya at the café.'));
   assert.ok(!html.includes('PRIVATE_CONTACT'));
 });
@@ -143,6 +146,72 @@ test('mirror-specific list excludes another mirror while preserving interest and
 });
 
 test('empty and filtered-empty diaries show the empty state', () => {
-  assert.match(render([]), /No conversations yet/);
-  assert.match(render([base], 2n), /No conversations yet/);
+  assert.match(render([]), /No new conversations/);
+  assert.match(render([base], 2n), /No new conversations/);
+});
+
+test('last-close filtering happens before visit merging and excludes the boundary itself', () => {
+  const entries = [at(0, { text: 'We discussed old history.' }), at(5, { text: 'We discussed the boundary.' }),
+    at(6, { text: 'We discussed new topics.' })];
+  const history = { all: entries[1].createdAt.microsSinceUnixEpoch, mirrors: new Map() };
+  const html = render(entries, undefined, history);
+  assert.match(html, /We discussed new topics/);
+  assert.ok(!html.includes('old history'));
+  assert.ok(!html.includes('the boundary'));
+  assert.equal((html.match(/<article/g) ?? []).length, 1);
+  assert.equal((html.match(/<time /g) ?? []).length, 1);
+  assert.match(render(entries.slice(0, 2), undefined, history), /No new conversations/);
+});
+
+test('closing a mirror diary leaves other mirrors unread in the town diary', () => {
+  const storage = { getItem: () => null, setItem: () => {} };
+  closeDiary('room-scope-test', 1n, base.createdAt.microsSinceUnixEpoch, storage);
+  const history = readDiaryHistory('room-scope-test', storage);
+  const html = render([base, { ...base, id: 2n, mirrorId: 2n, otherName: 'Unread friend' }], undefined, history);
+  assert.ok(!html.includes('Maya:'));
+  assert.match(html, /Unread friend:/);
+});
+
+test('simulation actions and AI decisions are omitted even when they contain topic keywords', () => {
+  const text = 'I smiled and nodded. Maya waved goodbye. I walked back to my project. I decided to ask another question. The café was bustling. I thought about my next project. We discussed balcony tomatoes. Then I returned to coding.';
+  assert.equal(diaryTopics(text).join('|'), 'We discussed balcony tomatoes.');
+  assert.equal(diaryTopics('我们走向咖啡厅。她微笑着点头。我们讨论了阳台番茄的种植。随后我回到座位。').join('|'),
+    '我们讨论了阳台番茄的种植。');
+});
+
+test('mixed clauses keep speech while dropping scene actions and stage directions', () => {
+  assert.equal(diaryTopics('I smiled, and we discussed balcony tomatoes. We compared planters while sipping coffee.').join('|'),
+    'we discussed balcony tomatoes.|We compared planters.');
+  assert.equal(diaryTopics('I waved and we discussed composting.').join('|'), 'we discussed composting.');
+  assert.equal(diaryTopics('[I nod] We discussed gardening.').join('|'), 'We discussed gardening.');
+  assert.equal(diaryTopics('我们聊了阳台番茄，随后我挥手道别。').join('|'), '我们聊了阳台番茄。');
+  assert.equal(diaryTopics('We discussed tomatoes and then I walked away.').join('|'), 'We discussed tomatoes.');
+});
+
+test('actions that are the subject of speech remain available as chat content', () => {
+  assert.equal(diaryTopics('We discussed walking routes. Maya said she was coding an accessible map.').join('|'),
+    'We discussed walking routes.|Maya said she was coding an accessible map.');
+});
+
+test('summaries deduplicate and stay within two sentences, 50 words and 280 characters across merged exchanges', () => {
+  assert.equal(sessionSummary(['We discussed composting. We compared planters.', 'We discussed composting! We shared seed varieties.']),
+    'We discussed composting. We compared planters.');
+  const long = sessionSummary([`We discussed ${'tomato varieties '.repeat(60)}.`]);
+  assert.ok(long.length <= 280);
+  assert.ok(long.split(/\s+/u).length <= 50);
+  assert.ok(long.endsWith('…'));
+  const chinese = sessionSummary([`我们讨论了${'阳台种植的番茄品种'.repeat(60)}。`]);
+  assert.ok(chinese.length <= 280);
+  assert.equal(sessionSummary(['I smiled and nodded.', 'Conversation summary unavailable.']), '');
+  assert.equal(sessionSummary(['We exchanged greetings.']), 'We exchanged greetings.');
+});
+
+test('Diary displays a compact chat summary instead of scene narration or an unbounded topic list', () => {
+  const html = render([at(0, { text: 'We discussed tomatoes. We compared planters. We shared seed varieties.' }),
+    at(10, { text: 'I smiled and waved. We discussed composting. We discussed tomatoes.' })]);
+  assert.match(html, /diary-summary/);
+  assert.match(html, /We discussed composting\. We discussed tomatoes\./);
+  assert.ok(!html.includes('I smiled'));
+  assert.ok(!html.includes('We compared planters'));
+  assert.ok(!html.includes('diary-topics'));
 });

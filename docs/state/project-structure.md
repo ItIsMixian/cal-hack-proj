@@ -11,9 +11,17 @@ Updated 2026-10-24. Latest source: `yw/map-assets` at `7509d4ba95dd383d6b0befee2
 
 ## Teammate's implementation inventory
 
+Local Diary read-window addition: `src/DiaryHistory.ts` stores close cutoffs per identity,
+with a town-wide timestamp and per-mirror timestamps. `src/useDiaryWindow.ts` snapshots
+the cutoff while open and saves on real unmount/pagehide, ignoring StrictMode replay.
+`Diary.tsx` excludes records at or before the applicable cutoff before grouping/summary;
+`App.tsx` uses the same boundaries for its quiet new-content dot. `MirrorRoom.tsx` no longer
+marks all diaries seen when one mirror's Diary opens. First use includes existing notes;
+no server schema or stored diary rows change. See [validation and limits](../validation/2026-10-24-diary-comments.md#since-the-previous-close-2026-10-24).
+
 Local Status card addition on `yq`: `src/ResidentStatusCard.tsx`, `src/ResidentConversations.ts` and `src/resident-status-card.css` replace the selected-resident raw conversation view through `App.tsx`. Cards show activity/location and recent owner-pair source-content highlights, matching exact participant IDs. No schema or model generation changes are needed; see [current validation](../validation/2026-10-24-resident-status-card.md).
 
-Local Diary addition on `yq`: `src/Diary.tsx`, `src/DiaryReview.ts` and `src/diary.css` render content-focused comments with discussed topics/details, time/place metadata and preserved interest/contact controls. `DiaryReview.ts` now exports `diaryTopics`/`sessionTopics`, collecting distinct content from all source notes rather than selecting a last appraisal. `spacetimedb/src/index.ts` contains the updated transcript-focused generation prompt, still unpublished. See [current local validation](../validation/2026-10-24-diary-comments.md#conversation-content-instead-of-appraisal-2026-10-24).
+Local Diary addition on `yq`: `src/Diary.tsx`, `src/DiaryReview.ts` and `src/diary.css` render a concise chat summary with time/place metadata and preserved interest/contact controls. `diaryTopics`/`sessionTopics` filter and deduplicate legacy content; `sessionSummary` selects at most two sentences, bounded by 50 words and 280 characters. Common scene actions, stage directions and AI decisions are filtered by English/Chinese heuristics. `spacetimedb/src/index.ts` requests only spoken content in 1–2 sentences (40 words / 100 Chinese characters), with a summary-unavailable fallback on failure; these backend changes remain unpublished. See [current local validation and limits](../validation/2026-10-24-diary-comments.md#concise-chat-only-summary-2026-10-24).
 
 The Diary UI now groups those comments by `otherName` from the current view, retaining
 all conversations under a single displayed-name heading. Groups and their notes are ordered

@@ -53,3 +53,29 @@ exchanges active in the past 7 real days, each with time/place, extractive sourc
 highlights and expandable original dialogue. Empty history has no unrelated-public-chat
 fallback. This replaces the original selected-mirror single transcript panel; see
 [implementation checks and limits](../validation/2026-10-24-resident-status-card.md).
+
+## Concise chat-only Diary — 2026-10-24
+
+The user explicitly asks to remove unrelated simulation behavior and keep a concise summary
+of the chat. This refines the previous content focus: a visit now has one paragraph of at
+most two selected sentences, 50 words and 280 characters, rather than an expanding topic
+list. Common scene actions, gestures, AI decisions and stage directions are removed from
+legacy prose; mixed clauses can retain their spoken topic. Actual discussions about actions
+(for example walking routes) remain valid content. Filtering is heuristic and cannot recover
+missing transcript topics. Metadata and interest/contact controls remain separate.
+
+Future generation is instructed to summarize only spoken content in 1–2 sentences, at most
+40 words or 100 Chinese characters, selecting the main topic and one useful detail.
+Summarization failure records an unavailable marker instead of narrating simulation activity.
+The backend changes are local source only; see [validation](../validation/2026-10-24-diary-comments.md#concise-chat-only-summary-2026-10-24).
+
+## Only content since closing — 2026-10-24
+
+The user requests that Diary show only content since the previous close. Both entrances
+filter source rows by `createdAt > lastClosed` before visit merging and summarization.
+The boundary stays fixed while open, so new live summaries can appear without clearing
+the current view. Closing town Diary advances every mirror; closing a mirror's room Diary
+advances only that mirror. First use has no boundary and shows existing records; no new
+content produces a quiet empty state. Close cutoffs persist per identity in this browser,
+including pagehide/refresh while Diary is open. No historical rows are deleted. See
+[validation and limits](../validation/2026-10-24-diary-comments.md#since-the-previous-close-2026-10-24).

@@ -106,9 +106,9 @@ test('good-fit evidence and repeat-conversation rules still reject unsupported c
     assert.equal(f.entries(A)[0].goodFit, c === connection); assert.equal(f.db.diaryEntry.count(), 2n);
   }
 });
-test('model failure still writes factual first-person entries, never a good-fit mark', () => {
+test('model failure records an unavailable summary without substituting simulation actions or a good-fit mark', () => {
   const f = fixture(); verdict = new Error('offline'); f.wrap();
-  assert.match(f.entries(A)[0].text, /^I was working/); assert.equal(f.entries(A)[0].goodFit, false);
+  assert.equal(f.entries(A)[0].text, 'Conversation summary unavailable.'); assert.equal(f.entries(A)[0].goodFit, false);
 });
 test('newest first uses timestamps rather than auto-increment IDs; later contact edits propagate only to mutual pairs', () => {
   const f = fixture(); verdict = diaryVerdict(null); f.wrap();

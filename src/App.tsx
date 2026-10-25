@@ -9,20 +9,13 @@ import MirrorRoom from './MirrorRoom';
 import RoomDialog from './RoomDialog';
 import CharacterAvatar from './CharacterAvatar';
 import { loadRoomArt } from './roomArt';
+import { diaryCutoff, readDiaryHistory } from './DiaryHistory';
+import { DIARY_CLOSED_EVENT } from './useDiaryWindow';
 import type { CameraMode } from './TownCamera';
 import './pixel-room.css';
 import './town-game.css';
 
-const SEEN_KEY = 'mirrorville-diary-seen';
 const ResidentStatusCard = lazy(() => import('./ResidentStatusCard'));
-
-function readSeen(key: string): bigint {
-  try {
-    return BigInt(localStorage.getItem(key) ?? '0');
-  } catch {
-    return 0n;
-  }
-}
 
 function useTownClock() {
   const [hour, setHour] = useState(() => townHour(BigInt(Date.now()) * 1000n));
@@ -37,7 +30,6 @@ export default function App({ sessionLabel, onExit, accountMode = false }: {
   sessionLabel: string; onExit: () => void; accountMode?: boolean;
 }) {
   const { isActive, identity } = useSpacetimeDB();
-  const seenKey = `${SEEN_KEY}/${identity?.toHexString() ?? 'connecting'}`;
   const [allMirrors] = useTable(tables.mirror);
   const mirrors = useMemo(() => allMirrors.filter(m => m.active !== false), [allMirrors]);
   const [conversations] = useTable(tables.conversation);
@@ -56,8 +48,16 @@ export default function App({ sessionLabel, onExit, accountMode = false }: {
   const [gamePanel, setGamePanel] = useState<'diary' | 'residents' | 'guide' | null>(null);
   const [cameraMode, setCameraMode] = useState<CameraMode>('general');
   const [followedId, setFollowedId] = useState<bigint | null>(null);
-  const [seen, setSeen] = useState(() => readSeen(seenKey));
-  useEffect(() => setSeen(readSeen(seenKey)), [seenKey]);
+  const [, refreshDiaryHistory] = useState(0);
+  useEffect(() => {
+    const refresh = () => refreshDiaryHistory(value => value + 1);
+    window.addEventListener(DIARY_CLOSED_EVENT, refresh);
+    window.addEventListener('storage', refresh);
+    return () => {
+      window.removeEventListener(DIARY_CLOSED_EVENT, refresh);
+      window.removeEventListener('storage', refresh);
+    };
+  }, []);
   const hour = useTownClock();
   const event = currentEvent(hour);
 
@@ -65,19 +65,8 @@ export default function App({ sessionLabel, onExit, accountMode = false }: {
   const followed = myMirrors.find(m => m.id === followedId) ?? [...myMirrors].sort((a, b) => a.id < b.id ? -1 : 1)[0];
   const followedMirror = followed ? mirrors.find(m => m.id === followed.id) : undefined;
   const byId = useMemo(() => new Map(mirrors.map((m) => [m.id, m])), [mirrors]);
-  const newestEntry = diary.reduce((max, p) => p.createdAt.microsSinceUnixEpoch > max ? p.createdAt.microsSinceUnixEpoch : max, 0n);
-  const hasNew = newestEntry > seen;
-
-  // A quiet dot, not a notification: mark diary as seen once the tab is open.
-  useEffect(() => {
-    if (gamePanel !== 'diary' || newestEntry <= seen) return;
-    setSeen(newestEntry);
-    try {
-      localStorage.setItem(seenKey, String(newestEntry));
-    } catch {
-      // Private mode: the dot comes back next visit, which is fine.
-    }
-  }, [gamePanel, newestEntry, seen, seenKey]);
+  const diaryHistory = readDiaryHistory(identity?.toHexString() ?? '');
+  const hasNew = gamePanel !== 'diary' && diary.some(entry => entry.createdAt.microsSinceUnixEpoch > diaryCutoff(diaryHistory, entry.mirrorId));
 
   // Latest line of each active conversation, shown above whoever said it.
   const bubbles = useMemo(() => {
@@ -99,10 +88,7 @@ export default function App({ sessionLabel, onExit, accountMode = false }: {
   if (roomFor !== null) {
     return (
       <div className="app mirror-room-app">
-        <MirrorRoom mirrorId={roomFor} onBack={() => setRoomFor(null)} onDiaryOpen={() => {
-          setSeen(newestEntry);
-          try { localStorage.setItem(seenKey, String(newestEntry)); } catch { /* Private mode. */ }
-        }} />
+        <MirrorRoom mirrorId={roomFor} onBack={() => setRoomFor(null)} />
       </div>
     );
   }

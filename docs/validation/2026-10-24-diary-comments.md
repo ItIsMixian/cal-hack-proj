@@ -153,3 +153,69 @@ Physical phones and other browsers were not checked.
 ![Diary emphasizing discussed topics](diary-comment-assets/topics-desktop.png)
 
 ![Topic notes in portrait](diary-comment-assets/topics-portrait.png)
+
+## Concise chat-only summary — 2026-10-24
+
+User requirement: keep only chat content, summarize briefly, and omit unrelated AI actions
+in the scene. This supersedes the unbounded topic-list display described above.
+
+- `DiaryReview.ts` filters common English/Chinese simulation actions, gestures, stage
+  directions, scene clauses and AI decisions, including action sentences containing words
+  such as "project" or "question". Mixed clauses retain available speech content. Reported
+  discussion about an action remains, e.g. walking routes or what someone said about coding.
+- `sessionSummary` deduplicates source content and selects at most two sentences, with
+  additional limits of 50 words and 280 characters per merged visit. An oversized first
+  sentence is shortened with an ellipsis. This is an extractive summary of existing diary
+  text, not a fresh model paraphrase or reconstruction of missing transcript content.
+- Diary displays that summary as one paragraph. Existing person grouping, visit boundaries,
+  timestamps, venue, original interest reducer IDs, fit evidence and mutual-contact privacy
+  remain covered by the regression suite.
+- The backend prompt now requests only spoken chat content in 1–2 sentences (40 words or
+  100 Chinese characters), excluding scene narration, actions, AI thought processes and
+  appraisals. Failure now stores `Conversation summary unavailable.` rather than an activity
+  sentence; the client renders the existing missing-content message for that marker.
+- **PASS:** `npm.cmd run test:diary`, 30/30, including bilingual narrative filtering, mixed
+  clauses, legitimate action discussion, long/duplicate merged notes, compact actual Diary
+  server rendering, failure fallback and existing ownership/contact regressions.
+- **PASS:** `npm.cmd run build`, `npx.cmd tsc --noEmit -p spacetimedb/tsconfig.json`, and
+  `git diff --check`.
+
+Limits: old prose uses heuristic filtering and may still contain unrecognized narrative or
+omit an ambiguous fact. Only the first two distinct eligible sentences are selected, in the
+existing newest-note order. No live model, browser interaction or new screenshot was checked
+for this revision; images above document earlier displays. The generation prompt and failure
+fallback have **not been published** to the shared backend. No historical rows, schema or
+shared database data were modified.
+
+## Since the previous close — 2026-10-24
+
+User requirement: Diary should display only content generated since the previous close.
+
+- `DiaryHistory.ts` persists microsecond cutoffs under `mirrorville-diary-closed-v1/<identity>`.
+  Town Diary updates the global cutoff; room Diary updates only that mirror's cutoff. The
+  effective cutoff is the later of the global and mirror values. First use starts at zero.
+  Updates never move the boundary backward; corrupt/blocked storage falls back gracefully,
+  with an in-memory session copy after a close when persistence is unavailable.
+- `useDiaryWindow.ts` freezes the read boundary per open window and saves browser wall-clock
+  close time on real unmount or pagehide. Deferred cleanup distinguishes React StrictMode
+  effect replay from closing. Identity/scope changes save the prior window under its owner.
+- Diary filters `createdAt > cutoff` before person/visit grouping and summary extraction.
+  Thus old notes cannot contribute to a new visit's text or timestamp range. With no new
+  notes it shows “No new conversations”; the heading is “Since your last visit”.
+- App's quiet new-content dot uses the same per-mirror cutoffs and refreshes on close/storage
+  events. Removed the previous open-time seen tracking and room-open global seen update.
+- **PASS:** `npm.cmd run test:diary`, **37/37**. Added fresh-module persistence, first visit,
+  strict timestamp boundary, pre-merge filtering, independent mirrors/identities, corrupt and
+  blocked storage, real close vs StrictMode replay, pagehide, frozen snapshots and account
+  transition checks. Existing summary, ownership and mutual-contact regressions also pass.
+- **PASS:** `node --test scripts/test-home-scene.mjs`, **3/3**; `npm.cmd run build`;
+  `git diff --check`. Documentation reader rebuilt.
+
+Limits: this revision was checked with component server rendering and a simulated hook/event
+lifecycle, without live browser clicks or cross-device testing. Cutoffs use this browser's
+clock and storage; they do not synchronize across devices/browser profiles. Clearing storage
+restores history; blocked storage cannot persist across a full reload. Late-arriving records
+whose creation timestamp is at or before close remain excluded. Pagehide delivery is subject
+to browser lifecycle behavior. No database rows are deleted or modified; hidden historic
+interest/contact controls are no longer reachable through this filtered Diary view. Backend
+prompt changes from the earlier revision remain unpublished.

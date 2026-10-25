@@ -10,9 +10,7 @@
 .diary-comment-list { list-style: none; margin: 0; padding: 0; }
 .diary-comment-list > li + li { border-top: 1px dashed #d8c8a4; }
 .diary-entry.diary-comment { padding: 12px 0 16px; border: 0; }
-.diary-comment .diary-topic-label { margin: 6px 0; color: #78815f; font: 15px 'Pixelify Sans', monospace; }
-.diary-topics { margin: 6px 0 10px; padding-left: 20px; font-size: 16px; line-height: 1.65; list-style-type: disc; }
-.diary-topics li + li { margin-top: 6px; }
+.diary-summary { margin: 6px 0 10px; font-size: 16px; line-height: 1.65; }
 .diary-missing-topics { font-size: 14px; color: #7b725f; }
 .diary-comment .diary-comment-meta { margin: 12px 0; font-size: 12px; line-height: 1.6; color: #7b725f; }
 .diary-comment .diary-fit { margin: 12px 0; font-size: 13px; }
@@ -25,5 +23,5 @@
 @media (max-width: 600px) {
   .diary-comments-heading { align-items: flex-start; flex-direction: column; gap: 4px; }
   .diary-person { padding: 14px 12px 0; }
-  .diary-topics { font-size: 15px; }
+  .diary-summary { font-size: 15px; }
 }

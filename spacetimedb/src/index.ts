@@ -738,7 +738,7 @@ ${transcript}
    - shared_interest: a specific shared interest or project, not a generic one. "Both like AI/tech/coffee" does not count.
    Friendliness, curiosity, or politeness alone never count. Most conversations should have no connection.
    For evidence, copy a short exact phrase from each person's information above (not from the transcript).
-3. For EVERY conversation, write diaryForA and diaryForB as short factual conversation notes from each mirror to its owner. Prioritize WHAT WAS DISCUSSED: 2-4 concrete topics, questions, examples, named things, preferences or ideas actually mentioned in THIS transcript, using 1-3 short sentences and preferably under 60 words. Preserve meaningful specifics and attribute who said what when useful. Do not rate the person or fill space with generic impressions such as "friendly", "thoughtful" or "I enjoyed the conversation". Use only what was said in the transcript; never bring in facts from a profile/card that were not mentioned aloud. If it was only a greeting, say that briefly instead of inventing topics. Name, time and venue are displayed separately, so do not repeat the setting. Never invent facts, promise, make plans on anyone's behalf, or ask the human to act. Do this even when connection is null.
+3. For EVERY conversation, write diaryForA and diaryForB as a concise summary of ONLY THE SPOKEN CHAT CONTENT, in 1-2 short sentences, at most 40 words (or 100 Chinese characters). Select the main topic and one useful detail, question, answer or preference actually said in THIS transcript; combine repeats instead of listing every turn. Attribute who said what when useful. EXCLUDE all scene narration, simulated actions, gestures, movement, current activities, stage directions, the AI's decisions/thought process and personality/compatibility appraisals, even when they appear in the transcript. For example, "I smiled and nodded while we discussed balcony tomatoes, then walked back to coding" becomes "We discussed growing tomatoes on a balcony." An action is relevant only when it is the subject of an actual spoken discussion; summarize the discussion, never narrate the scene. Do not include generic impressions such as "friendly" or "I enjoyed the conversation". Never bring in profile/card facts that were not spoken. If it was only a greeting, say "We exchanged greetings." If there is no spoken content to summarize, use "Conversation summary unavailable." Name, time and venue are displayed separately. Never invent facts, promise, make plans on anyone's behalf, or ask the human to act. Do this even when connection is null.
 
 Reply with only JSON:
 {"noteForA": "...", "noteForB": "...", "diaryForA": "...", "diaryForB": "...", "connection": null}
@@ -787,8 +787,8 @@ or
       && ![s.a, s.b].some(side => !side.demo && goodFitsSince(tx.db, side.owner, dayStart) >= POSTCARDS_PER_DAY);
     for (const [me, other, raw] of [[s.a, s.b, verdict?.diaryForA], [s.b, s.a, verdict?.diaryForB]] as const) {
       if ([...tx.db.diaryEntry.by_conversation_mirror.filter([s.conv.id, me.id])].length) continue;
-      // If the model fails, report only facts from the simulation, without inventing a verdict.
-      const fallback = `I was ${me.activity} at the ${findLandmark(s.conv.place).label}, where I talked with ${other.name}.`;
+      // Failed summarization must not substitute simulation activities for chat content.
+      const fallback = 'Conversation summary unavailable.';
       tx.db.diaryEntry.insert({
         id: 0n, conversationId: s.conv.id, mirrorId: me.id, owner: me.owner,
         otherMirrorId: other.id, place: s.conv.place,

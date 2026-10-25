@@ -2,7 +2,7 @@
 
 - [2026-10-24: building resident Status cards](2026-10-24-resident-status-card.md): owner/selected-resident scope, source-content highlights, 7 tests, production build and desktop/portrait actual tag-click fixture checks.
 
-- [2026-10-24: comment-style Diary](2026-10-24-diary-comments.md): name/single-sentence/time/place list, 18 diary tests, build/backend typecheck and desktop/portrait fixture screenshots; new generation prompt not published.
+- [2026-10-24: Diary](2026-10-24-diary-comments.md#since-the-previous-close-2026-10-24): only content since closing, per-mirror/identity persistence, 37 diary tests, 3 Home tests and build. Concise summary/action filtering retained; generation prompt/failure fallback unpublished. Earlier layout screenshots remain historical.
 
 - [2026-10-24: larger building resident portraits](2026-10-24-building-resident-pins.md): 1.5× frames, spacing and click bounds; production build and live multi-row/edge-click verification.
 

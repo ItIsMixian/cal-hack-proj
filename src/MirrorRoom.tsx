@@ -15,7 +15,7 @@ import { decodeImportFile, looksLikeWeChatCsv, ownWords, parseWeChatCsv, parseWh
 
 const MAX_UPLOAD = 30_000;
 
-export default function MirrorRoom(props: { mirrorId: bigint; onBack: () => void; onDiaryOpen?: () => void }) {
+export default function MirrorRoom(props: { mirrorId: bigint; onBack: () => void }) {
   const [activeObject, setActiveObject] = useState<RoomObject | null>(null);
   const [myMirrors] = useTable(tables.myMirrors);
   const [allCards] = useTable(tables.myCards);
@@ -44,10 +44,7 @@ export default function MirrorRoom(props: { mirrorId: bigint; onBack: () => void
         <button className="room-exit" autoFocus onClick={props.onBack}>← Back to town</button>
         <div><p className="room-kicker">MIRRORVILLE / HOME</p><h1>{mirror.name}'s room</h1></div>
       </div>
-      <PixelRoom onOpen={object => {
-        setActiveObject(object);
-        if (object === 'diary') props.onDiaryOpen?.();
-      }} />
+      <PixelRoom onOpen={setActiveObject} />
       <p className="room-art-credit">Character: Cup Nooble · Sprout Lands</p>
       {activeObject && <RoomDialog title={titles[activeObject]} onClose={() => setActiveObject(null)}>
         {activeObject === 'mirror' && <>

@@ -1,14 +1,16 @@
 # Current work
 
-Latest runtime check: after the user provided the current shared address, local guest entry renders the authored map and receives 7 mirrors; Residents opens normally. The ignored local environment now uses that shared origin and the existing documented public SpacetimeAuth client. Login reaches the official email form; no email was sent or real account sign-in completed. See [runtime validation](validation/2026-10-24-local-frontend-runtime.md) for the initial failure and recovery. Earlier Live/12-mirror evidence below remains historical.
+Latest runtime check: the user reported connection refused at `127.0.0.1:5173`; no frontend listener was running. Restarted the existing Vite server as a hidden background process and confirmed HTTP 200 with the React entry. Current browser/backend behavior was not rechecked because local browser use is disabled in Work settings. The prior shared-origin guest/7-mirror/Residents and hosted login checks remain historical; see [runtime validation](validation/2026-10-24-local-frontend-runtime.md).
 
 Updated 2026-10-24. The latest teammate code from `origin/yw/map-assets` (`7509d4ba95dd383d6b0befee23c84d6246383b69`) is being merged into local `yq`, starting at `7c7f5e61c9f02283c8eb1f1ff3ad5e2539ee41b9`. The original Godot project and local login/map repairs are retained. Local checks are recorded in [update validation](validation/2026-10-24-update-yw-map-assets.md).
 
 ## Current implementation
 
+- Diary now shows only summaries created after the previous close, with persistent per-identity/per-mirror cutoffs and a matching new-content dot. Both Diary entrances share this behavior; first use shows existing notes. 37 diary tests, 3 Home tests and build passed. See [last-close behavior and browser-local limits](validation/2026-10-24-diary-comments.md#since-the-previous-close-2026-10-24).
+
 - Building resident tags now open Status cards with name, current activity/location and recent exchanges limited to the user's own mirrors and that resident. The default is the latest 5 exchanges active within 7 days, using source-content highlights with optional transcript expansion. Build, 7 tests and desktop/portrait actual tag-click fixture checks passed; see [Status card validation](validation/2026-10-24-resident-status-card.md).
 
-- Diary now prioritizes concrete conversation content: mentioned topics, questions, examples and details. Merged visits gather and deduplicate content from all source notes, retaining name grouping, the 30-minute rule, time/place and interest/contact controls. Build, backend typecheck, 25 diary tests and desktop/portrait previews passed. The updated topic-focused generation prompt remains unpublished; see [current content validation](validation/2026-10-24-diary-comments.md#conversation-content-instead-of-appraisal-2026-10-24).
+- Diary now displays one concise chat summary per merged visit, capped at two sentences / 50 words / 280 characters, filtering common actions, scene narration and AI decisions from old notes. Name/time/place grouping and interest/contact controls remain. Build, backend typecheck and 30 diary tests passed. The stricter generation prompt and model-failure fallback remain unpublished; see [current validation and heuristic limits](validation/2026-10-24-diary-comments.md#concise-chat-only-summary-2026-10-24).
 
 - Mirror Room's four furniture names use the user's transparent scroll material. Names and frames are now enlarged together by 30% and shifted 32 CSS pixels upward. Desktop/portrait label clicks and long-name layout were checked; see [nameplate validation](validation/authored-mirror-room.md#larger-raised-nameplates-2026-10-24).
 

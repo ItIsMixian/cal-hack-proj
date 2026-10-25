@@ -36,3 +36,20 @@ The user subsequently supplied https://frequent-converter-stockings-place.tryclo
 - Evidence: [restored local town](frontend-runtime-assets/town-restored.png), [hosted login entry](frontend-runtime-assets/account-login-ready.png).
 
 No application source, backend database, residents, OAuth allowlists or remote branch was changed. Original browser guest-token keys were not deleted; the application scopes guest identity by backend hostname, so a new tunnel origin can select a different saved guest identity. Existing identity ownership and full account completion were not validated in this check.
+
+## Local port refused connection; frontend restarted — 2026-10-24
+
+- User screenshot shows `ERR_CONNECTION_REFUSED` at `127.0.0.1:5173`. Read-only port
+  inspection found no listener at 5173. This failure occurs before application loading.
+- Started the existing Vite entry with Node, `--host 127.0.0.1 --port 5173 --strictPort`,
+  as a hidden background process (PID 30080 at startup). Logs are ignored local files in
+  `node_modules/.vite/calhack-server.stdout.log` and `calhack-server.stderr.log`.
+- PASS: Vite reports ready; a fresh HTTP request to `http://127.0.0.1:5173/` returns 200
+  and includes the React `/src/main.tsx` entry. No application/environment source changed.
+- The first sandbox attempt could not access local sockets; the ordinary local process
+  was then started outside the sandbox and HTTP checked there. This was an execution
+  boundary, not an application error.
+- Browser rendering could not be rechecked: the browser tool reports local browser use
+  disabled in Work settings. This pass confirms frontend HTTP recovery only; no current
+  backend, guest-map or sign-in success is claimed. Prior browser evidence above remains
+  historical. No database publish/reset, resident writes or credentials were changed.
