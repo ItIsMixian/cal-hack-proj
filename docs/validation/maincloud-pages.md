@@ -19,8 +19,11 @@
   the callback URL, preserving its query parameters for OIDC validation.
 - Local build and importer/fidelity/diary/roaming/navigation/scene/auth/share tests:
   73 passed. Added a verified-account callback test under `/cal-hack-proj/`.
-- Hosted workflow completion and public asset health: Pending.
-- Saving the new exact auth callback/logout URLs: Pending owner confirmation.
+- Hosted workflow run `40158293692` at commit `a7f3e04`: succeeded. Public HTML,
+  hashed JavaScript/CSS, login button, town scene and all five room WebP assets: HTTP 200.
+  Callback path returns the app shell through Pages' expected HTTP 404 fallback.
+- Exact Pages auth callback/logout URLs saved with owner confirmation; dashboard
+  Last Updated: 2026-10-24 20:36:10 PT. Existing localhost/tunnel entries retained.
 - Phone account magic-link flow and two-device play: Pending (owner/teammate validation).
 
 The Maincloud free allowance is metered; 5 Hz simulation and model APIs still consume
