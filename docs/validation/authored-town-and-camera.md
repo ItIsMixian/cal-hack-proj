@@ -96,3 +96,9 @@ HUD follow-up: account Menu now sits in the bottom dock alongside Diary, Residen
 Mirror Room/creation and Guide; it opens upward. Resident action/panel labels use English
 Residents after owner clarification. Top right is reserved for the hanging clock.
 Build/typecheck: Pass. Phone/desktop menu spacing and interaction: Pending (owner validation).
+
+Generated clock sign replaces the CSS plank/ropes. Built-in image generation used the existing
+cafe and login signboard as style references. Transparent 1774x887 PNG retained; WebP delivery
+is 111,596 bytes. Runtime time stays live over the blank face. Generation output inspected: Pass.
+Production build: Pass. In-page desktop/phone placement and aesthetic acceptance: Pending
+(owner validation). Full prompt/provenance: `public/assets/ui/README.md`.

@@ -174,3 +174,14 @@
   .town-dock > .town-account-menu > summary { min-height: 48px; padding: 4px 2px; flex-direction: column; gap: 2px; font-size: 10px; }
   .town-clock { right: 10px; }
 }
+
+/* Generated art matches the town's cafe and original login signboard. */
+.town-clock { top: 0; right: 24px; width: 236px; height: auto; aspect-ratio: 2 / 1; padding: 0; border: 0; box-shadow: none; background: url('/assets/ui/clock-sign.webp') center / 100% 100% no-repeat; }
+.town-clock::before, .town-clock::after { display: none; }
+.town-clock strong { position: absolute; inset: 48% 12% 16%; display: grid; place-items: center; font-size: 28px; color: #62452e; line-height: 1; }
+.town-camera-hud { top: max(130px, calc(env(safe-area-inset-top) + 120px)); }
+@media (max-width: 650px) {
+  .town-clock { top: 0; right: 10px; width: 156px; }
+  .town-clock strong { font-size: 20px; }
+  .town-camera-hud { top: max(90px, calc(env(safe-area-inset-top) + 82px)); }
+}
