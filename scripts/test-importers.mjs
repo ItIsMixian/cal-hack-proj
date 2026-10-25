@@ -100,6 +100,13 @@ test('file UI combines CSVs, submits only sanitized own text, and blocks a bad r
     find(render(), node => node.type === 'input' && node.props.type === 'file').props.onChange({ currentTarget: { files, value: '' } });
     await new Promise(resolve => setImmediate(resolve));
   };
+  const summaryText = 'I build small garden games and enjoy drawing maps. Email me@example.test';
+  find(render(), node => node.type === 'textarea' && !node.props.readOnly).props.onChange({ target: { value: summaryText } });
+  await find(render(), node => node.type === 'button' && node.props.className === 'primary').props.onClick();
+  assert.equal(submitted[0].inputKind, 'ai_summary');
+  assert.equal(submitted[0].relation, 'other');
+  assert.ok(!submitted[0].text.includes('me@example.test'));
+  submitted.length = 0;
   await choose([
     file('contact-private.csv', csv([[1, 1, '文本', 'My own thoughts about making useful tools at a hackathon.', 'me'], [2, 0, '文本', 'OTHER_SECRET', 'other']])),
     file('another-private.csv', csv([[3, 1, '文本', 'Contact me@example.test', 'me']])),
@@ -112,6 +119,7 @@ test('file UI combines CSVs, submits only sanitized own text, and blocks a bad r
   assert.equal(submitted.length, 1);
   assert.equal(submitted[0].text, preview.props.value);
   assert.equal(submitted[0].source, 'WeChat / PyWxDump · friends');
+  assert.equal(submitted[0].inputKind, 'writing');
   assert.ok(!JSON.stringify({ ...submitted[0], mirrorId: '1' }).includes('private'));
   await choose([
     file('ai-one.txt', '# Mirrorville scene: ai\n' + 'A'.repeat(30_000)),
@@ -119,6 +127,7 @@ test('file UI combines CSVs, submits only sanitized own text, and blocks a bad r
   ]);
   await submit().props.onClick();
   assert.equal(submitted[1].relation, 'ai');
+  assert.equal(submitted[1].inputKind, 'ai_chat');
   assert.equal(submitted[1].source, 'AI assistant · ai');
   assert.ok(submitted[1].text.length <= 30_000);
   assert.equal(submitted[1].text.match(/A/g).length, submitted[1].text.match(/B/g).length);

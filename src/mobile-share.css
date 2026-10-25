@@ -1,0 +1,8 @@
+.mobile-share-arrival { position: fixed; z-index: 90; top: 10px; right: 10px; width: min(330px, calc(100vw - 44px)); padding: 10px 12px; background: #fff5dff5; color: #57432d; border: 1px solid #b49a6f; box-shadow: 2px 3px 0 #5d49332b; font: 13px/1.4 'Pixelify Sans', monospace; }
+.mobile-share-arrival p { margin: 0 0 6px; }
+.mobile-share-arrival small { display: block; font-size: 10px; }
+.mobile-share-arrival button { margin-top: 6px; font: inherit; border: 0; padding: 4px 0; background: transparent; color: #765940; text-decoration: underline; }
+.mobile-share-review select { display: block; width: 100%; margin: 8px 0 14px; min-height: 42px; }
+.mobile-share-letter textarea { width: 100%; box-sizing: border-box; min-height: 120px; font: 16px/1.5 Georgia, serif; }
+.mobile-share-letter .exchange-primary { margin: 10px 8px 10px 0; }
+@media (max-width: 600px) { .mobile-share-arrival { top: 8px; right: 8px; max-width: 240px; font-size: 11px; } }

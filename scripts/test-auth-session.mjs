@@ -156,3 +156,9 @@ test('an unconfigured development build still preserves explicitly selected gues
   assert.match(result.html, /guest:Guest/);
 });
 
+test('a pending transfer blocks account creation UI but never blocks guest access', () => {
+  const result = render({ mode: 'account', user: account, pending: true });
+  assert.match(result.html, /Bringing your guest mirror with you/);
+  assert.doesNotMatch(result.html, /account:account@example.test/);
+  assert.match(render({ mode: 'guest', pending: true }).html, /guest:Guest/);
+});

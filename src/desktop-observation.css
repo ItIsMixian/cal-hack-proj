@@ -1,0 +1,13 @@
+.desktop-observation-offering .observation-heading { margin: 0 0 4px; font-size: 21px; }
+.desktop-observation-offering .observation-privacy { margin: 0 0 10px; font-size: 13px; color: #786e56; }
+.observation-live { padding: 10px 12px; margin: 10px 0; background: #edf0da; border-left: 3px solid #7e8e64; }
+.observation-live strong, .observation-live small { display: block; }
+.observation-live strong { font-size: 19px; }
+.observation-live small { margin-top: 4px; font-size: 12px; line-height: 1.4; }
+.observation-live p { margin: 8px 0 0; font-size: 14px; line-height: 1.4; }
+.observation-controls { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+.journey-activity .observation-controls button { padding: 7px 10px; min-height: 40px; font-size: 14px; }
+.observation-settings { margin-top: 16px; padding-top: 10px; border-top: 1px solid #cbbd96; font-size: 14px; }
+.observation-settings summary { cursor: pointer; }
+.observation-settings button { display: block; margin-top: 8px; }
+.desktop-observation-offering .source-pieces:empty { display: none; }

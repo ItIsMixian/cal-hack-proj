@@ -1,6 +1,6 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 
-export default function RoomDialog({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
+export default function RoomDialog({ title, onClose, children, className = '', footer = true }: { title: string; onClose: () => void; children: ReactNode; className?: string; footer?: boolean }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const close = useRef(onClose);
   close.current = onClose;
@@ -12,8 +12,8 @@ export default function RoomDialog({ title, onClose, children }: { title: string
     document.body.style.overflow = 'hidden';
     return () => { element.close(); document.body.style.overflow = scroll; previous?.focus(); };
   }, []);
-  useEffect(() => { dialog.current?.querySelector<HTMLButtonElement>('button')?.focus(); }, [title]);
-  return <dialog ref={dialog} className="room-dialog" aria-label={title}
+  useEffect(() => { (dialog.current?.querySelector<HTMLElement>('[data-autofocus]') ?? dialog.current?.querySelector<HTMLButtonElement>('button'))?.focus(); }, [title]);
+  return <dialog ref={dialog} className={`room-dialog ${className}`} aria-label={title}
     onCancel={event => { event.preventDefault(); close.current(); }}
     onClick={event => { if (event.target === event.currentTarget) {
       const bounds = event.currentTarget.getBoundingClientRect();
@@ -21,6 +21,6 @@ export default function RoomDialog({ title, onClose, children }: { title: string
     } }}>
     <div className="room-dialog-head"><h2>{title}</h2><button autoFocus onClick={onClose} aria-label="Close room panel">✕</button></div>
     <div className="room-dialog-content" key={title}>{children}</div>
-    <div className="room-dialog-foot">Your room, your pace. <span>Esc to return</span></div>
+    {footer && <div className="room-dialog-foot">Your room, your pace. <span>Esc to return</span></div>}
   </dialog>;
 }

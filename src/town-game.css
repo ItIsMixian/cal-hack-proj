@@ -43,15 +43,6 @@
 .town-game .modal h2 { font-family: 'Pixelify Sans', monospace; font-size: 28px; }
 .town-game .modal input, .town-game .modal textarea { border-radius: 2px; border: 2px solid #c4b38e; }
 .town-game .modal button.primary, .town-game .scale button.selected { background: #667d55; color: #fff9e7; border-color: #4e6540; }
-.diary-book { position: relative; background: #fff9e9; border: 1px solid #d7c8a4; border-left: 8px solid #b0a17e; padding: 22px 26px 20px; box-shadow: 3px 3px 0 #e7dcc0, 6px 6px 0 #cebd96; margin: 0 6px 12px 0; }
-.diary-book::before { content: ''; position: absolute; left: 12px; top: 0; bottom: 0; width: 1px; background: #d6a48a66; }
-.book-eyebrow { margin: 0 0 8px; color: #9a8969; font: 12px 'Pixelify Sans', monospace; letter-spacing: 2px; }
-.room-dialog .book-date { font: 24px/1.2 'Pixelify Sans', monospace; margin: 0 0 20px; color: #5d6e4e; }
-.diary-book .diary-entry { border: 0; padding: 0; }
-.room-dialog .diary-book .diary-entry h3 { font: 600 17px/1.5 system-ui, sans-serif; margin: 6px 0 14px; }
-.diary-book .diary-text { font: 18px/1.85 Georgia, serif; }
-.book-pages { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 20px; font: 16px 'Pixelify Sans', monospace; }
-.book-pages button { font-family: 'Pixelify Sans', monospace; }
 @media (max-width: 650px) {
   .town-hud { inset: max(10px, env(safe-area-inset-top)) 10px auto; flex-wrap: wrap; gap: 8px; }
   .town-title { padding: 4px 8px; }
@@ -73,10 +64,6 @@
   .town-dock .dot { position: absolute; top: 9px; right: 10px; }
   .town-credit { flex-direction: column; gap: 4px; text-align: center; }
   .town-roster { grid-template-columns: minmax(0, 1fr); }
-  .diary-book { padding: 16px 16px 16px 22px; }
-  .diary-book .diary-text { font-size: 17px; line-height: 1.8; }
-  .book-pages { font-size: 14px; gap: 8px; }
-  .book-pages button { padding: 8px; }
 }
 .town-art-status { position: fixed; z-index: 4; left: 50%; top: 45%; transform: translate(-50%, -50%); width: min(320px, 80vw); padding: 20px; text-align: center; background: #faf3df; color: #404b33; border: 3px solid #8c8d6d; box-shadow: 4px 4px #343c3040; }
 
@@ -185,3 +172,7 @@
   .town-clock strong { font-size: 20px; }
   .town-camera-hud { top: max(90px, calc(env(safe-area-inset-top) + 82px)); }
 }
+
+.resident-row { display: flex; align-items: center; gap: 8px; }
+.resident-row > button:first-child { flex: 1; min-width: 0; }
+.resident-row > button:last-child:not(:first-child) { flex: 0 0 auto; }

@@ -1,0 +1,51 @@
+name: MirrorvilleCompanion
+options:
+  deploymentTarget:
+    iOS: "16.0"
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: ""
+    MIRRORVILLE_BUNDLE_PREFIX: com.example.mirrorville
+    MIRRORVILLE_APP_GROUP: group.$(MIRRORVILLE_BUNDLE_PREFIX).shared
+    CURRENT_PROJECT_VERSION: "1"
+    MARKETING_VERSION: "0.1.0"
+    TARGETED_DEVICE_FAMILY: "1,2"
+targets:
+  MirrorvilleCompanion:
+    type: application
+    platform: iOS
+    sources:
+      - Shared
+      - App
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(MIRRORVILLE_BUNDLE_PREFIX).companion
+        INFOPLIST_FILE: Config/App-Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        CODE_SIGN_ENTITLEMENTS: Config/Shared.entitlements
+    dependencies:
+      - target: MirrorvilleShare
+        embed: true
+  MirrorvilleShare:
+    type: app-extension
+    platform: iOS
+    sources:
+      - Shared
+      - ShareExtension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(MIRRORVILLE_BUNDLE_PREFIX).companion.share
+        INFOPLIST_FILE: Config/Share-Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        CODE_SIGN_ENTITLEMENTS: Config/Shared.entitlements
+        APPLICATION_EXTENSION_API_ONLY: YES
+        SKIP_INSTALL: YES
+schemes:
+  MirrorvilleCompanion:
+    build:
+      targets:
+        MirrorvilleCompanion: all
+    run:
+      config: Debug

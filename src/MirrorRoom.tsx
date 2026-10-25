@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react';
-import PixelRoom, { type RoomObject } from './PixelRoom';
-import RoomDialog from './RoomDialog';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { RoomObject } from './PixelRoom';
+import type { RoomStation } from './roomJourneyMath';
 import ChangeAppearanceDialog from './ChangeAppearanceDialog';
 import Diary from './Diary';
 import './pixel-room.css';
@@ -11,18 +11,59 @@ import {
   FACETS, FACET_LABELS, RELATIONS, RELATION_LABELS, ROOMS, ROOM_LABELS, isVisibleIn, redact, type Facet, type Room,
 } from '../spacetimedb/src/redact';
 import { ownerWords } from '../spacetimedb/src/fidelity';
-import CharacterAvatar from './CharacterAvatar';
+import { ASK_YOUR_AI } from './onboarding';
+import { venueDay } from '../spacetimedb/src/learning';
+import { FactConversation, PersonalityConversation, MirrorSpeaker } from './MirrorExchanges';
+import WritingDesk from './WritingDesk';
+import RoomJourney, { useRoomJourney } from './RoomJourney';
+import './room-journey.css';
+import VoiceRehearsal from './VoiceRehearsal';
+import './first-meeting.css';
 import { decodeImportFile, looksLikeWeChatCsv, ownWords, parseWeChatCsv, parseWhatsApp, newestDate, sourceScene, sourceDate, sampleFiles, type ParsedChat, type WeChatImport } from './importers';
 
 const MAX_UPLOAD = 30_000;
 
 export default function MirrorRoom(props: { mirrorId: bigint; onBack: () => void; onDiaryOpen?: () => void }) {
   const [activeObject, setActiveObject] = useState<RoomObject | null>(null);
+  const room = useRef<HTMLElement>(null);
+  const [station, setStation] = useState<RoomStation>('entrance');
+  const [doorWriting, setDoorWriting] = useState(false);
+  const [cardAction, setCardAction] = useState<'review' | 'manage' | null>(null);
+  const [deskAction, setDeskAction] = useState<'writing' | 'daily' | 'note' | null>(null);
+  const [overview, setOverview] = useState(true);
+  const [showWelcome, setShowWelcome] = useState(true);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setShowWelcome(false), 3500);
+    return () => window.clearTimeout(timer);
+  }, []);
+  const closePanel = () => {
+    const object = activeObject;
+    ++navigation.current; cancelWalk(); setOverview(true);
+    setActiveObject(null);
+    requestAnimationFrame(() => room.current?.querySelector<HTMLButtonElement>(`[data-room-object="${object}"]`)?.focus({ preventScroll: true }));
+  };
   const [changingAppearance, setChangingAppearance] = useState(false);
+  const { pose, walkTo, cancelWalk } = useRoomJourney();
+  const navigation = useRef(0);
+  const openObject = async (object: RoomObject, beat: 'hello' | 'voice' = 'hello') => {
+    setShowWelcome(false);
+    const request = ++navigation.current;
+    cancelWalk();
+    setActiveObject(null);
+    setMirrorBeat(beat); setDeskAction(null); setCardAction(null);
+    setOverview(false); setStation(object);
+    if (!await walkTo(object) || request !== navigation.current) return;
+    setActiveObject(object);
+    if (object === 'diary') props.onDiaryOpen?.();
+  };
+  const [mirrorBeat, setMirrorBeat] = useState<'hello' | 'voice' | 'check' | 'contact'>('hello');
   const [myMirrors] = useTable(tables.myMirrors);
   const [allCards] = useTable(tables.myCards);
   const [summaries] = useTable(tables.mySummaries);
   const [imports] = useTable(tables.myImports);
+  const [learningRows] = useTable(tables.myLearning);
+  const learning = learningRows.find(row => row.mirrorId === props.mirrorId);
+  const confirmFacts = useReducer(reducers.confirmMirrorFacts);
   const mirror = myMirrors.find((m) => m.id === props.mirrorId);
   const cards = useMemo(
     () => [...allCards].filter((c) => c.mirrorId === props.mirrorId).sort((a, b) => Number(a.id - b.id)),
@@ -30,47 +71,41 @@ export default function MirrorRoom(props: { mirrorId: bigint; onBack: () => void
   );
   const latestImport = [...imports]
     .filter((i) => i.mirrorId === props.mirrorId)
-    .sort((a, b) => Number(b.id - a.id))[0];
+    .sort((a, b) => a.createdAt.microsSinceUnixEpoch > b.createdAt.microsSinceUnixEpoch ? -1 : a.createdAt.microsSinceUnixEpoch < b.createdAt.microsSinceUnixEpoch ? 1 : 0)[0];
 
-  if (!mirror) return null;
+  if (!mirror) return <section className="pixel-room"><p>This mirror is away from town or still loading.</p><button onClick={props.onBack}>← Back to town</button></section>;
   const everyday = cards.filter((c) => !c.personal);
   const personal = cards.filter((c) => c.personal);
-  const sharedHere = cards.filter((c) => isVisibleIn(c, 'venue')).length;
 
-  const titles: Record<RoomObject, string> = {
-    mirror: 'Looking in the mirror', diary: 'Your diary', cards: 'Your card collection',
-    desk: 'At the writing desk', contacts: 'Your address book',
+  const goToDoor = () => {
+    const request = ++navigation.current;
+    cancelWalk(); setDoorWriting(false); setShowWelcome(false); setOverview(false); setActiveObject(null); setStation('door');
+    void walkTo('door').then(arrived => { if (arrived && request === navigation.current) room.current?.querySelector<HTMLButtonElement>('.journey-activity button')?.focus(); });
   };
-  return (
-    <section className="pixel-room" aria-label={`${mirror.name}'s Mirror Room`}>
-      <div className="room-hud">
-        <button className="room-exit" autoFocus onClick={props.onBack}>← Back to town</button>
-        <div><p className="room-kicker">MIRRORVILLE / HOME</p><h1>{mirror.name}'s room</h1></div>
-        <span className="room-private">Just for you</span>
-      </div>
-      <p className="room-summary">{ownerWords(summaries.find(summary => summary.mirrorId === mirror.id)?.text || mirror.selfCard)}</p>
-      <div className="room-appearance-entry"><button onClick={() => setChangingAppearance(true)}>Change appearance</button></div>
-      {changingAppearance && <ChangeAppearanceDialog key={String(mirror.id)} mirrorId={mirror.id} name={mirror.name} savedLook={mirror.look} onClose={() => setChangingAppearance(false)} />}
-      <PixelRoom name={mirror.name} look={mirror.look} onOpen={object => {
-        setActiveObject(object);
-        if (object === 'diary') props.onDiaryOpen?.();
-      }} />
-      <p className="room-art-credit">Character: Cup Nooble · Sprout Lands</p>
-      {activeObject && <RoomDialog title={titles[activeObject]} onClose={() => setActiveObject(null)}>
+  const titles: Record<RoomObject, string> = {
+    mirror: mirrorBeat === 'voice' ? 'Try a reply' : mirrorBeat === 'check' ? 'Personality' : 'Contact details', diary: 'Your diary', cards: 'Your card collection',
+    desk: 'At the writing desk',
+  };
+  const panel = activeObject && !(activeObject === 'desk' && !deskAction) && !(activeObject === 'mirror' && mirrorBeat === 'hello') && !(activeObject === 'cards' && !cardAction) ? <>
+    <div className="room-activity-heading"><h2>{titles[activeObject]}</h2><button onClick={() => activeObject === 'desk' ? setDeskAction(null) : activeObject === 'mirror' ? setMirrorBeat('hello') : activeObject === 'cards' ? setCardAction(null) : closePanel()} aria-label="Close room activity">×</button></div>
         {activeObject === 'mirror' && <>
-          <div className="room-portrait"><CharacterAvatar look={mirror.look} name={mirror.name} />
-            <div><h3>{mirror.name}</h3><p>Your mirror sees you as someone who…</p></div></div>
-          <p className="room-self-card">{ownerWords(mirror.selfCard)}</p>
-          <p className="muted">Today: {mirror.intent || 'No intent set. A little room to wander.'}</p>
-          <p className="muted small">Showing {sharedHere} of {cards.length} cards at Cal Hacks. You decide which sides of you your mirror brings along.</p>
-          <button onClick={() => setActiveObject('cards')}>Open the card collection →</button>
+          <MirrorSpeaker name={mirror.name} look={mirror.look} />
+          {mirrorBeat === 'voice' && <VoiceRehearsal mirrorId={mirror.id} doneLabel="Back to the mirror" onDone={() => setMirrorBeat('hello')} />}
+          {mirrorBeat === 'check' && <PersonalityConversation mirrorId={mirror.id} onDone={() => setMirrorBeat('hello')} />}
+          {mirrorBeat === 'contact' && <section className="room-contact-details" aria-labelledby="room-contact-heading">
+            <h3 id="room-contact-heading">Contact details</h3>
+            <ContactField key={String(mirror.id)} mirrorId={mirror.id} saved={mirror.contact} />
+          </section>}
         </>}
         {activeObject === 'diary' && <Diary mirrorId={mirror.id} />}
-        {activeObject === 'contacts' && <ContactField key={String(mirror.id)} mirrorId={mirror.id} saved={mirror.contact} />}
         {activeObject === 'cards' && <>
+          <MirrorSpeaker name={mirror.name} look={mirror.look} />
+          {cardAction === 'review' && <FactConversation mirrorId={mirror.id} cards={cards} onDone={closePanel} onBringWords={() => { void openObject('desk'); }} />}
+          {cardAction === 'manage' && <details open className="quiet-note"><summary>Lay out all my cards and sharing choices</summary>
+          <p>{ownerWords(summaries.find(summary => summary.mirrorId === mirror.id)?.text || mirror.selfCard)}</p>
           {cards.length === 0 && <div className="room-empty"><h3>A collection waiting to grow</h3>
-            <p>Your personality check is already part of your mirror. Add your own writing at the desk to help it get to know you.</p>
-            <button onClick={() => setActiveObject('desk')}>Sit at the writing desk →</button></div>}
+            <p>Your mirror only knows what you have given it. Add a summary or your own writing at the desk.</p>
+            <button onClick={() => { void openObject('desk'); }}>Sit at the writing desk →</button></div>}
           {FACETS.map((facet) => {
             const group = everyday.filter((c) => c.facet === facet);
             return group.length > 0 && <div key={facet} className="facet"><h3>{FACET_LABELS[facet]}</h3>
@@ -86,17 +121,45 @@ export default function MirrorRoom(props: { mirrorId: bigint; onBack: () => void
           </details>}
           <p className="muted small rooms-note">Defaults: strangers at Cal Hacks and teammates see who you are, what you do and what you're into; what you've been up to and your softer side stay with old friends. Only the Cal Hacks room is open so far; your choices carry over.</p>
           <AddCard mirrorId={mirror.id} />
+          {cards.length > 0 && learning?.reviewed === false && <button onClick={() => { void confirmFacts({ mirrorId: mirror.id }); }}>I've checked these facts</button>}
+          </details>}
         </>}
         {activeObject === 'desk' && <>
-          <p>A few of your words can help your mirror understand you better.</p>
-          <Importer mirrorId={mirror.id} busy={latestImport?.status === 'processing'} />
-          {latestImport && <p role="status" className={latestImport.status === 'failed' ? 'error small' : 'muted small'}>
-            {latestImport.status === 'processing' ? `Reading ${latestImport.source}… this takes a few seconds.` : `${latestImport.source}: ${latestImport.message}`}</p>}
-          <h3>Leave a little note</h3><AddCard mirrorId={mirror.id} />
+          <MirrorSpeaker name={mirror.name} look={mirror.look} />
+          {deskAction !== 'note' && <WritingDesk onBack={() => setDeskAction(null)} initial={deskAction === 'daily' ? 'daily' : 'writing'} key={`${mirror.id}-${deskAction}`} mirrorId={mirror.id} status={latestImport} dailyAvailable={learning?.dailyDay !== venueDay(BigInt(Date.now()) * 1000n)} dailyCount={learning?.dailyCount ?? 0} onReview={() => { void openObject('cards'); }} />}
+          <details open={deskAction === 'note'} className="quiet-note"><summary>Leave a small written note instead</summary><AddCard mirrorId={mirror.id} /></details>
         </>}
-      </RoomDialog>}
-    </section>
-  );
+  </> : station === 'door' && !overview ? <section className="room-departure"><h2>Before heading out</h2>{doorWriting
+    ? <TodayTopic mirrorId={mirror.id} savedIntent={mirror.intent} savedTopic={learning?.topicDay === venueDay(BigInt(Date.now()) * 1000n) ? learning.topic : ''} onDone={props.onBack} />
+    : <><p>Anything to take into town today?</p><div className="exchange-choices"><button onClick={() => setDoorWriting(true)}>Write a thought</button><button onClick={props.onBack}>Just head out →</button></div></>}
+  </section> : undefined;
+  return <section ref={room} className="pixel-room room-stage" aria-label={`${mirror.name}'s Mirror Room`}>
+    <header className="room-stage-header"><button className="room-exit" onClick={goToDoor}>← Back to town</button><h1>{mirror.name}'s room</h1></header>
+    <RoomJourney pose={pose} station={station} overview={overview} name={mirror.name} look={mirror.look}
+      speech={overview && showWelcome ? 'Where shall we go today?' : ''} disabled={false} hasLetter={false} lookLocked onLook={() => {}}
+      deskItems={activeObject === 'desk' && !deskAction ? <>
+        <button className="stationery-note" title="Bring a letter" onClick={() => setDeskAction('writing')}><b aria-hidden="true">&#9993;</b><span>Bring a letter</span></button>
+        {learning?.dailyDay !== venueDay(BigInt(Date.now()) * 1000n) && <button title="Ask me something" onClick={() => setDeskAction('daily')}><b aria-hidden="true">?</b><span>Today's question</span></button>}
+        <button title="Leave a small written note" onClick={() => setDeskAction('note')}><b aria-hidden="true">&#9998;</b><span>Write a note</span></button>
+      </> : activeObject === 'mirror' && mirrorBeat === 'hello' ? <>
+        <button title="Change appearance" onClick={() => setChangingAppearance(true)}><b aria-hidden="true">&#9734;</b><span>Appearance</span></button>
+        <button title="Try a reply" onClick={() => setMirrorBeat('voice')}><b aria-hidden="true">&#9835;</b><span>Voice</span></button>
+        <button title="Personality check" onClick={() => setMirrorBeat('check')}><b aria-hidden="true">?</b><span>Personality</span></button>
+        <button title="Contact details" onClick={() => setMirrorBeat('contact')}><b aria-hidden="true">@</b><span>Contact</span></button>
+      </> : activeObject === 'cards' && !cardAction ? <>
+        <button title="Review what your mirror knows" onClick={() => setCardAction('review')}><b aria-hidden="true">&#9636;</b><span>Review</span></button>
+        <button title="Edit cards and sharing" onClick={() => setCardAction('manage')}><b aria-hidden="true">&#9998;</b><span>Edit & share</span></button>
+      </> : undefined}
+      onFloor={point => { ++navigation.current; setShowWelcome(false); setActiveObject(null); setOverview(true); setStation('entrance'); void walkTo(point); }}
+      activity={panel} expandedActivity={activeObject === 'diary'} onOverview={closePanel} onStation={next => {
+        setShowWelcome(false);
+        if (next === 'entrance') { closePanel(); return; }
+        if (next === 'door') goToDoor();
+        else void openObject(next);
+      }} />
+    {changingAppearance && <ChangeAppearanceDialog key={String(mirror.id)} mirrorId={mirror.id} name={mirror.name} savedLook={mirror.look} onClose={() => setChangingAppearance(false)} />}
+    <small className="room-stage-credit">Character: Cup Nooble · Sprout Lands</small>
+  </section>;
 }
 
 function ContactField({ mirrorId, saved }: { mirrorId: bigint; saved: string }) {
@@ -203,8 +266,12 @@ function CardView({ card }: { card: MirrorCard }) {
   );
 }
 
-function Importer({ mirrorId, busy }: { mirrorId: bigint; busy: boolean }) {
-  const importText = useReducer(reducers.importText);
+export type PreparedImport = { text: string; inputKind: string; relation: string; source: string; latestAt: string };
+export function Importer({ mirrorId, busy, onPrepared }: { mirrorId: bigint; busy: boolean; onPrepared?: (value: PreparedImport | null) => void }) {
+  const importText = useReducer(reducers.importWriting);
+  const [inputKind, setInputKind] = useState('ai_summary');
+  const [clipboardStatus, setClipboardStatus] = useState('');
+  const [sending, setSending] = useState(false);
   const [wechat, setWechat] = useState<WeChatImport | null>(null);
   const [reading, setReading] = useState(false);
   const [chat, setChat] = useState<ParsedChat | null>(null);
@@ -217,7 +284,8 @@ function Importer({ mirrorId, busy }: { mirrorId: bigint; busy: boolean }) {
   const [error, setError] = useState('');
 
   const onFiles = async (files: File[]) => {
-    setError(''); setChat(null); setWechat(null); setPasted(''); setMe(''); setFileName(''); setLatestAt('');
+    onPrepared?.(null);
+    setError(''); setChat(null); setWechat(null); setPasted(''); setMe(''); setFileName(''); setLatestAt(''); setInputKind('writing');
     setReading(true);
     try {
       if (files.length > 20 || files.reduce((sum, file) => sum + file.size, 0) > 10 * 1024 * 1024) throw new Error('Please choose up to 20 files, under 10 MB in total.');
@@ -239,6 +307,7 @@ function Importer({ mirrorId, busy }: { mirrorId: bigint; busy: boolean }) {
           setPasted(sampleFiles(values));
           setRelation(values.every(value => sourceScene(value) === 'ai') ? 'ai' : values.every(value => sourceScene(value) === 'friends') ? 'friends' : 'other');
           setLatestAt(newestDate(...values.map(sourceDate)));
+          setInputKind(values.every(value => sourceScene(value) === 'ai') ? 'ai_chat' : 'facts');
         }
       }
       setFileName(`${files.length} ${files.length === 1 ? 'file' : 'files'}`);
@@ -250,29 +319,39 @@ function Importer({ mirrorId, busy }: { mirrorId: bigint; busy: boolean }) {
   const pastedCsv = !chat && !wechat && looksLikeWeChatCsv(pasted);
   const text = wechat ? wechat.text : chat ? (me ? ownWords(chat, me) : '') : pastedCsv ? '' : redact(pasted);
   // Do not send filenames, contact IDs, timestamps or the other speakers' names.
-  const source = `${relation === 'ai' ? 'AI assistant' : wechat ? 'WeChat / PyWxDump' : chat ? 'WhatsApp' : 'Your words'} · ${relation}`;
+  const source = inputKind === 'ai_summary' ? "Your AI's summary" : `${relation === 'ai' ? 'AI assistant' : wechat ? 'WeChat / PyWxDump' : chat ? 'WhatsApp' : 'Your words'} · ${relation}`;
   const messageLatestAt = chat ? newestDate(...chat.lines.filter(line => line.speaker === me).map(line => line.at)) : latestAt;
 
   const submit = async () => {
-    if (reading || busy || text.trim().length < 40) return;
-    setError('');
+    if (reading || busy || sending || text.trim().length < 40) return;
+    setError(''); setSending(true);
     try {
-      await importText({ mirrorId, relation, source, text: text.slice(0, MAX_UPLOAD), latestAt: messageLatestAt });
+      const prepared = { relation: inputKind === 'ai_summary' ? 'other' : relation, source, text: text.slice(0, MAX_UPLOAD), latestAt: messageLatestAt, inputKind };
+      if (onPrepared) { onPrepared(prepared); return; }
+      await importText({ mirrorId, ...prepared });
       setChat(null);
       setWechat(null);
       setPasted('');
       setFileName('');
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
-    }
+    } finally { setSending(false); }
   };
 
   return (
     <div className="importer">
-      <p className="muted small">
-        Bring a WeChat CSV exported by PyWxDump, a WhatsApp text export, or your own writing. WeChat imports keep only your sent plain-text messages; received messages, quotes, forwards and media are skipped. It's read here in your browser, only your own lines are kept, and emails, numbers and links are removed
-        before anything is sent. The original file stays in your browser; only the filtered, redacted text is sent for processing.
-      </p>
+      <div className="onboarding-options" role="group" aria-label="What would you like to add?">
+        <button aria-pressed={inputKind === 'ai_summary'} onClick={() => { onPrepared?.(null); setInputKind('ai_summary'); setRelation('other'); setChat(null); setWechat(null); setPasted(''); setLatestAt(''); setFileName(''); }}>Ask your AI</button>
+        <button aria-pressed={inputKind === 'writing'} onClick={() => { onPrepared?.(null); setInputKind('writing'); setRelation('other'); setChat(null); setWechat(null); setPasted(''); setLatestAt(''); setFileName(''); }}>My own messages</button>
+      </div>
+      {inputKind === 'ai_summary' && <div className="ai-prompt"><p>Copy the prompt to an AI that knows you, then paste its answer here.</p>
+        <details><summary>Read the prompt</summary><textarea aria-label="Prompt for your AI" readOnly rows={6} value={ASK_YOUR_AI} /></details>
+        <button onClick={async () => { try { await navigator.clipboard.writeText(ASK_YOUR_AI); setClipboardStatus('Prompt copied. Paste it into your AI assistant.'); } catch { setClipboardStatus('Copy the prompt from the box above.'); } }}>Copy prompt</button>
+        <p className="muted small">Your AI's memory may be old or mistaken. This gives your mirror facts, not your voice.</p></div>}
+      {inputKind === 'writing' && <p>Want it to sound like you? Add a dozen messages you wrote recently. Only your words, without anyone else's replies. AI summaries cannot teach your voice.</p>}
+      <p className="muted small">Only share information about yourself. We remove contact details before processing. Raw text is discarded after reading; you can check and correct what your mirror learns.</p>
+      <details className="file-import"><summary>Or choose a writing file / chat export</summary>
+      <p className="muted small">Chat exports are filtered in your browser to keep only your own plain-text messages. Other people's messages, quoted replies and media are skipped.</p>
       <div className="import-row">
         <input type="file" aria-label="Import your writing or chat export" disabled={reading} multiple accept=".csv,.txt,text/csv,text/plain" onChange={event => {
           const files = Array.from(event.currentTarget.files ?? []);
@@ -281,10 +360,11 @@ function Importer({ mirrorId, busy }: { mirrorId: bigint; busy: boolean }) {
         }} />
         <div className="scene-choice"><span>Read as: <strong>{RELATION_LABELS[relation]}</strong></span>{' '}
           <button className="ghost small" aria-expanded={changingScene} onClick={() => setChangingScene(!changingScene)}>change</button>
-          {changingScene && <div className="speakers">{RELATIONS.map(scene => <button key={scene} aria-pressed={relation === scene} onClick={() => { setRelation(scene); setChangingScene(false); }}>{RELATION_LABELS[scene]}</button>)}</div>}
+          {changingScene && <div className="speakers">{RELATIONS.map(scene => <button key={scene} aria-pressed={relation === scene} onClick={() => { onPrepared?.(null); setRelation(scene); setChangingScene(false); }}>{RELATION_LABELS[scene]}</button>)}</div>}
         </div>
       </div>
       <p className="muted small">You can select several CSV exports or AI scene text files together. Each file gets an equal share of the reading limit.</p>
+      </details>
       {reading && <p role="status">Reading the file locally…</p>}
       {wechat ? <div className="wechat-summary" role="status">
         <strong>WeChat / PyWxDump recognized</strong>
@@ -295,7 +375,7 @@ function Importer({ mirrorId, busy }: { mirrorId: bigint; busy: boolean }) {
           <span>Which one is you?</span>
           <div className="speakers">
             {[...chat.speakers.entries()].map(([name, count]) => (
-              <button key={name} className={name === me ? 'selected' : ''} onClick={() => setMe(name)}>
+              <button key={name} className={name === me ? 'selected' : ''} onClick={() => { onPrepared?.(null); setMe(name); }}>
                 {name} <span className="muted">({count})</span>
               </button>
             ))}
@@ -309,10 +389,12 @@ function Importer({ mirrorId, busy }: { mirrorId: bigint; busy: boolean }) {
           aria-label="Your own messages or writing"
           rows={3}
           value={pasted}
-          onChange={(e) => { setPasted(e.target.value); setRelation('other'); setLatestAt(''); }}
-          placeholder="…or paste your own messages, a bio, an old post"
+          onChange={(e) => { onPrepared?.(null); setPasted(e.target.value); setRelation('other'); setLatestAt(''); }}
+          placeholder={inputKind === 'ai_summary' ? "Paste your AI’s answer here" : "Paste only messages or writing you wrote"}
         />
       )}
+      {!chat && !wechat && <button onClick={async () => { try { onPrepared?.(null); setPasted((await navigator.clipboard.readText()).slice(0, MAX_UPLOAD)); setLatestAt(''); setClipboardStatus('Pasted. Check the redacted preview below.'); } catch { setClipboardStatus('Your browser blocked clipboard access. Paste into the text box instead.'); } }}>Paste</button>}
+      {clipboardStatus && <p role="status" className="muted small">{clipboardStatus}</p>}
       {pastedCsv && <p className="error small">This looks like a WeChat export. Choose the CSV file above so we can keep only your own messages.</p>}
       {text && <details className="import-preview"><summary>Preview what your mirror will read ({Math.min(text.length, MAX_UPLOAD)} characters)</summary>
         <textarea aria-label="Filtered and redacted import preview" readOnly rows={6} value={text.slice(0, MAX_UPLOAD)} />
@@ -320,11 +402,12 @@ function Importer({ mirrorId, busy }: { mirrorId: bigint; busy: boolean }) {
       {messageLatestAt && <p className="muted small">Newest message: {messageLatestAt.slice(0, 10)}</p>}
       {text && text.trim().length < 40 && <p className="muted small">Not enough text yet (at least 40 characters). Select more WeChat CSV files together, or add a note below.</p>}
       {text.length > MAX_UPLOAD && <p className="muted small">Only the first {MAX_UPLOAD.toLocaleString()} characters shown in the preview will be sent.</p>}
+      {fileName && !wechat && !chat && relation !== 'ai' && <label className="field"><span><input type="checkbox" checked={inputKind === 'writing'} onChange={e => { onPrepared?.(null); setInputKind(e.target.checked ? 'writing' : 'facts'); }} /> This file contains only messages I wrote to people (also learn my voice)</span></label>}
       {fileName && <p className="muted small">{fileName} ready in this browser. Filenames are not sent.</p>}
       {error && <p role="alert" className="error small">{error}</p>}
       <div className="actions">
-        <button className="primary" disabled={reading || busy || text.trim().length < 40} onClick={submit}>
-          {busy ? 'Reading…' : 'Let my mirror read this'}
+        <button className="primary" disabled={reading || busy || sending || text.trim().length < 40} onClick={submit}>
+          {busy || sending ? 'Reading…' : onPrepared ? 'Use this for my mirror' : 'Let my mirror read this'}
         </button>
       </div>
     </div>
@@ -360,4 +443,20 @@ function AddCard({ mirrorId }: { mirrorId: bigint }) {
       <button onClick={submit}>Add</button>
     </div>
   );
+}
+
+function TodayTopic({ mirrorId, savedIntent, savedTopic, onDone }: { mirrorId: bigint; savedIntent: string; savedTopic: string; onDone: () => void }) {
+  const save = useReducer(reducers.setTodayTopic);
+  const [beat, setBeat] = useState<'where' | 'topic'>('where');
+  const [intent, setIntent] = useState(savedIntent);
+  const [topic, setTopic] = useState(savedTopic);
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+  return <div className="mirror-exchange">
+    <p className="exchange-line">{beat === 'where' ? 'Where should I wander today?' : 'Anything you would like me to bring up? Just for today.'}</p>
+    {beat === 'where' ? <><input autoFocus className="spoken-answer" aria-label="Where should your mirror go today?" maxLength={300} value={intent} onChange={event => setIntent(event.target.value)} placeholder="Follow your feet, or…" /><div className="exchange-choices"><button className="exchange-primary" onClick={() => setBeat('topic')}>Before you go →</button><button onClick={onDone}>Another time</button></div></> : <>
+      <textarea autoFocus className="writing-paper" aria-label="A topic just for today" rows={3} maxLength={300} value={topic} onChange={event => setTopic(event.target.value)} placeholder="A thought to take along… (optional)" />
+      <div className="exchange-choices"><button className="exchange-primary" disabled={busy} onClick={async () => { setBusy(true); setError(''); try { await save({ mirrorId, intent, topic }); onDone(); } catch { setError('I could not keep that thought. Try again?'); } finally { setBusy(false); } }}>Off you go →</button><button disabled={busy} onClick={() => setBeat('where')}>← About where we're going…</button><button disabled={busy} onClick={onDone}>Skip and head out</button></div>
+    </>}{error && <p role="alert">{error}</p>}
+  </div>;
 }

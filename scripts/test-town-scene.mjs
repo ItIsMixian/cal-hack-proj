@@ -104,6 +104,68 @@ test('general covers the viewport and is the fallback when there is no owner', (
   }
 });
 
+function assertTownCoversView(frame) {
+  for (const [x, y] of [[0, 0], [frame.width, 0], [0, frame.height], [frame.width, frame.height]]) {
+    const point = cameraExports.screenToTown(x, y, frame);
+    assert.ok(point.x >= -1e-9 && point.x <= 960 + 1e-9, `horizontal map edge exposed: ${point.x}`);
+    assert.ok(point.y >= -1e-9 && point.y <= 672 + 1e-9, `vertical map edge exposed: ${point.y}`);
+  }
+}
+
+test('general zoom and pan never expose map edges on desktop, portrait or ultrawide views', () => {
+  for (const [width, height] of [[1280, 720], [390, 844], [3440, 1440], [844, 390], [960, 672]]) {
+    const base = cameraExports.cameraTarget(width, height, 'general');
+    for (const factor of [0.01, 0.5, 1, 2, 4, 100]) {
+      for (const x of [-1000, 480, 10000]) for (const y of [-1000, 336, 10000]) {
+        const frame = cameraExports.clampGeneralCamera({ ...base, x, y, zoom: base.zoom * factor });
+        assert.ok(frame.zoom >= base.zoom && frame.zoom <= base.zoom * 4);
+        assertTownCoversView(frame);
+      }
+    }
+  }
+});
+
+test('general zoom keeps the cursor town point fixed away from constrained edges', () => {
+  for (const [width, height] of [[1280, 720], [390, 844]]) {
+    const base = cameraExports.cameraTarget(width, height, 'general');
+    const x = width * 0.65, y = height * 0.4;
+    const before = cameraExports.screenToTown(x, y, base);
+    const zoomed = cameraExports.zoomGeneralCamera(base, base.zoom * 2, x, y);
+    const after = cameraExports.screenToTown(x, y, zoomed);
+    assert.ok(Math.abs(before.x - after.x) < 1e-9);
+    assert.ok(Math.abs(before.y - after.y) < 1e-9);
+    assertTownCoversView(zoomed);
+  }
+});
+
+test('zooming out after an edge pan stays covered throughout easing and stops at the cover scale', () => {
+  for (const [width, height] of [[1280, 720], [390, 844], [3440, 1440]]) {
+    const base = cameraExports.cameraTarget(width, height, 'general');
+    for (const sign of [-1, 1]) {
+      const edge = cameraExports.clampGeneralCamera({ ...base, x: sign * 10000, y: sign * 10000, zoom: base.zoom * 4 });
+      for (let step = 0; step <= 40; step++) {
+        const frame = cameraExports.zoomGeneralCamera(edge, base.zoom * (4 - step / 10), width * 0.9, height * 0.1);
+        assertTownCoversView(frame);
+        assert.ok(frame.zoom >= base.zoom);
+      }
+      const minimum = cameraExports.zoomGeneralCamera(edge, base.zoom / 100, 0, height);
+      assert.equal(minimum.zoom, base.zoom);
+    }
+  }
+});
+
+test('resizing a zoomed and panned general view immediately preserves full viewport coverage', () => {
+  const old = cameraExports.zoomGeneralCamera(cameraExports.cameraTarget(390, 844, 'general'), 4, 350, 750);
+  for (const [width, height] of [[2560, 1080], [390, 844], [844, 390]]) {
+    const resized = cameraExports.clampGeneralCamera({ ...old, width, height });
+    assertTownCoversView(resized);
+    const screen = { x: width * 0.3, y: height * 0.6 };
+    const point = cameraExports.screenToTown(screen.x, screen.y, resized);
+    assert.ok(Math.abs((point.x - resized.x) * resized.zoom + width / 2 - screen.x) < 1e-9);
+    assert.ok(Math.abs((point.y - resized.y) * resized.zoom + height / 2 - screen.y) < 1e-9);
+  }
+});
+
 const motionExports = {};
 runInNewContext(ts.transpileModule(readFileSync(new URL('../src/TownMotion.ts', import.meta.url), 'utf8'), {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },

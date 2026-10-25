@@ -32,6 +32,12 @@ export const Conversation = __t.object("Conversation", {
 });
 export type Conversation = __Infer<typeof Conversation>;
 
+export const ConversationMaterial = __t.object("ConversationMaterial", {
+  pair: __t.string(),
+  seen: __t.array(__t.string()),
+});
+export type ConversationMaterial = __Infer<typeof ConversationMaterial>;
+
 export const DiaryEntry = __t.object("DiaryEntry", {
   id: __t.u64(),
   conversationId: __t.u64(),
@@ -85,6 +91,15 @@ export const Encounter = __t.object("Encounter", {
 });
 export type Encounter = __Infer<typeof Encounter>;
 
+export const GuestTransfer = __t.object("GuestTransfer", {
+  owner: __t.identity(),
+  token: __t.string(),
+  mirrorIds: __t.array(__t.u64()),
+  expiresAt: __t.u64(),
+  claimedBy: __t.option(__t.identity()),
+});
+export type GuestTransfer = __Infer<typeof GuestTransfer>;
+
 export const HumanMessage = __t.object("HumanMessage", {
   id: __t.u64(),
   encounterId: __t.u64(),
@@ -104,6 +119,7 @@ export const ImportJob = __t.object("ImportJob", {
   source: __t.string(),
   text: __t.string(),
   latestAt: __t.string(),
+  inputKind: __t.string(),
 });
 export type ImportJob = __Infer<typeof ImportJob>;
 
@@ -180,6 +196,18 @@ export const MirrorCard = __t.object("MirrorCard", {
 });
 export type MirrorCard = __Infer<typeof MirrorCard>;
 
+export const MirrorLearning = __t.object("MirrorLearning", {
+  mirrorId: __t.u64(),
+  owner: __t.identity(),
+  words: __t.string(),
+  dailyDay: __t.string(),
+  dailyCount: __t.u32(),
+  topic: __t.string(),
+  topicDay: __t.string(),
+  reviewed: __t.bool(),
+});
+export type MirrorLearning = __Infer<typeof MirrorLearning>;
+
 export const MirrorProfile = __t.object("MirrorProfile", {
   mirrorId: __t.u64(),
   owner: __t.identity(),
@@ -194,6 +222,15 @@ export const MirrorRest = __t.object("MirrorRest", {
 });
 export type MirrorRest = __Infer<typeof MirrorRest>;
 
+export const MirrorStyle = __t.object("MirrorStyle", {
+  mirrorId: __t.u64(),
+  owner: __t.identity(),
+  text: __t.string(),
+  examples: __t.string(),
+  editedByOwner: __t.bool(),
+});
+export type MirrorStyle = __Infer<typeof MirrorStyle>;
+
 export const MirrorSummary = __t.object("MirrorSummary", {
   mirrorId: __t.u64(),
   owner: __t.identity(),
@@ -201,6 +238,9 @@ export const MirrorSummary = __t.object("MirrorSummary", {
   updatedAt: __t.timestamp(),
 });
 export type MirrorSummary = __Infer<typeof MirrorSummary>;
+
+export const MyArchivedMirrors = __t.object("MyArchivedMirrors", {});
+export type MyArchivedMirrors = __Infer<typeof MyArchivedMirrors>;
 
 export const MyCards = __t.object("MyCards", {});
 export type MyCards = __Infer<typeof MyCards>;
@@ -210,6 +250,9 @@ export type MyDiary = __Infer<typeof MyDiary>;
 
 export const MyImports = __t.object("MyImports", {});
 export type MyImports = __Infer<typeof MyImports>;
+
+export const MyLearning = __t.object("MyLearning", {});
+export type MyLearning = __Infer<typeof MyLearning>;
 
 export const MyMirror = __t.object("MyMirror", {
   id: __t.u64(),
@@ -223,6 +266,9 @@ export type MyMirror = __Infer<typeof MyMirror>;
 
 export const MyMirrors = __t.object("MyMirrors", {});
 export type MyMirrors = __Infer<typeof MyMirrors>;
+
+export const MyStyle = __t.object("MyStyle", {});
+export type MyStyle = __Infer<typeof MyStyle>;
 
 export const MySummaries = __t.object("MySummaries", {});
 export type MySummaries = __Infer<typeof MySummaries>;
@@ -245,6 +291,13 @@ export const TickTimer = __t.object("TickTimer", {
   scheduledAt: __t.scheduleAt(),
 });
 export type TickTimer = __Infer<typeof TickTimer>;
+
+export const VoiceTrialResult = __t.object("VoiceTrialResult", {
+  index: __t.u8(),
+  prompt: __t.string(),
+  text: __t.string(),
+});
+export type VoiceTrialResult = __Infer<typeof VoiceTrialResult>;
 
 export const WorldRuntime = __t.object("WorldRuntime", {
   id: __t.u8(),

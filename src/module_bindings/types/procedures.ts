@@ -6,5 +6,8 @@
 import { type Infer as __Infer } from "spacetimedb";
 
 // Import all procedure arg schemas
+import * as TryMirrorVoiceProcedure from "../try_mirror_voice_procedure";
 
+export type TryMirrorVoiceArgs = __Infer<typeof TryMirrorVoiceProcedure.params>;
+export type TryMirrorVoiceResult = __Infer<typeof TryMirrorVoiceProcedure.returnType>;
 

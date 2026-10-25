@@ -35,9 +35,19 @@ import {
 
 // Import all reducer arg schemas
 import AddCardReducer from "./add_card_reducer";
+import AnswerDailyQuestionReducer from "./answer_daily_question_reducer";
+import ClaimGuestMirrorsReducer from "./claim_guest_mirrors_reducer";
+import ConfirmMirrorFactsReducer from "./confirm_mirror_facts_reducer";
+import CorrectVoiceTrialReducer from "./correct_voice_trial_reducer";
 import CreateMirrorReducer from "./create_mirror_reducer";
+import CreateMirrorOnboardingReducer from "./create_mirror_onboarding_reducer";
 import DeleteCardReducer from "./delete_card_reducer";
+import EditMirrorStyleReducer from "./edit_mirror_style_reducer";
 import ImportTextReducer from "./import_text_reducer";
+import ImportWritingReducer from "./import_writing_reducer";
+import MarkStyleExampleReducer from "./mark_style_example_reducer";
+import PrepareGuestTransferReducer from "./prepare_guest_transfer_reducer";
+import RefinePersonalityReducer from "./refine_personality_reducer";
 import RefreshWorldScheduleReducer from "./refresh_world_schedule_reducer";
 import ResetWorldReducer from "./reset_world_reducer";
 import RewriteCardReducer from "./rewrite_card_reducer";
@@ -46,21 +56,27 @@ import SetCardRoomReducer from "./set_card_room_reducer";
 import SetContactReducer from "./set_contact_reducer";
 import SetLlmConfigReducer from "./set_llm_config_reducer";
 import SetModelsReducer from "./set_models_reducer";
+import SetOwnMirrorActiveReducer from "./set_own_mirror_active_reducer";
 import SetResidentActiveReducer from "./set_resident_active_reducer";
+import SetTodayTopicReducer from "./set_today_topic_reducer";
 import ShowInterestReducer from "./show_interest_reducer";
 import UndoCardEditReducer from "./undo_card_edit_reducer";
 import UpdateIntentReducer from "./update_intent_reducer";
 
 // Import all procedure arg schemas
+import * as TryMirrorVoiceProcedure from "./try_mirror_voice_procedure";
 
 // Import all table schema definitions
 import ConversationRow from "./conversation_table";
 import LineRow from "./line_table";
 import MirrorRow from "./mirror_table";
+import MyArchivedMirrorsRow from "./my_archived_mirrors_table";
 import MyCardsRow from "./my_cards_table";
 import MyDiaryRow from "./my_diary_table";
 import MyImportsRow from "./my_imports_table";
+import MyLearningRow from "./my_learning_table";
 import MyMirrorsRow from "./my_mirrors_table";
+import MyStyleRow from "./my_style_table";
 import MySummariesRow from "./my_summaries_table";
 
 /** Type-only namespace exports for generated type groups. */
@@ -103,6 +119,13 @@ const tablesSchema = __schema({
       { name: 'mirror_id_key', constraint: 'unique', columns: ['id'] },
     ],
   }, MirrorRow),
+  myArchivedMirrors: __table({
+    name: 'my_archived_mirrors',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyArchivedMirrorsRow),
   myCards: __table({
     name: 'my_cards',
     indexes: [
@@ -124,6 +147,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyImportsRow),
+  myLearning: __table({
+    name: 'my_learning',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyLearningRow),
   myMirrors: __table({
     name: 'my_mirrors',
     indexes: [
@@ -131,6 +161,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyMirrorsRow),
+  myStyle: __table({
+    name: 'my_style',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyStyleRow),
   mySummaries: __table({
     name: 'my_summaries',
     indexes: [
@@ -143,9 +180,19 @@ const tablesSchema = __schema({
 /** The schema information for all reducers in this module. This is defined the same way as the reducers would have been defined in the server, except the body of the reducer is omitted in code generation. */
 const reducersSchema = __reducers(
   __reducerSchema("add_card", AddCardReducer),
+  __reducerSchema("answer_daily_question", AnswerDailyQuestionReducer),
+  __reducerSchema("claim_guest_mirrors", ClaimGuestMirrorsReducer),
+  __reducerSchema("confirm_mirror_facts", ConfirmMirrorFactsReducer),
+  __reducerSchema("correct_voice_trial", CorrectVoiceTrialReducer),
   __reducerSchema("create_mirror", CreateMirrorReducer),
+  __reducerSchema("create_mirror_onboarding", CreateMirrorOnboardingReducer),
   __reducerSchema("delete_card", DeleteCardReducer),
+  __reducerSchema("edit_mirror_style", EditMirrorStyleReducer),
   __reducerSchema("import_text", ImportTextReducer),
+  __reducerSchema("import_writing", ImportWritingReducer),
+  __reducerSchema("mark_style_example", MarkStyleExampleReducer),
+  __reducerSchema("prepare_guest_transfer", PrepareGuestTransferReducer),
+  __reducerSchema("refine_personality", RefinePersonalityReducer),
   __reducerSchema("refresh_world_schedule", RefreshWorldScheduleReducer),
   __reducerSchema("reset_world", ResetWorldReducer),
   __reducerSchema("rewrite_card", RewriteCardReducer),
@@ -154,7 +201,9 @@ const reducersSchema = __reducers(
   __reducerSchema("set_contact", SetContactReducer),
   __reducerSchema("set_llm_config", SetLlmConfigReducer),
   __reducerSchema("set_models", SetModelsReducer),
+  __reducerSchema("set_own_mirror_active", SetOwnMirrorActiveReducer),
   __reducerSchema("set_resident_active", SetResidentActiveReducer),
+  __reducerSchema("set_today_topic", SetTodayTopicReducer),
   __reducerSchema("show_interest", ShowInterestReducer),
   __reducerSchema("undo_card_edit", UndoCardEditReducer),
   __reducerSchema("update_intent", UpdateIntentReducer),
@@ -162,6 +211,7 @@ const reducersSchema = __reducers(
 
 /** The schema information for all procedures in this module. This is defined the same way as the procedures would have been defined in the server. */
 const proceduresSchema = __procedures(
+  __procedureSchema("try_mirror_voice", TryMirrorVoiceProcedure.params, TryMirrorVoiceProcedure.returnType),
 );
 
 /** The remote SpacetimeDB module schema, both runtime and type information. */

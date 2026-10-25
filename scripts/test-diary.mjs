@@ -34,7 +34,7 @@ function fixture(demo = false) {
   const db = {};
   for (const [name, def] of Object.entries(definitions)) {
     const rows = new Map(); let seq = 1n;
-    const pk = ['mirrorProfile', 'mirrorRest', 'mirrorSummary'].includes(name) ? 'mirrorId' : ['tickTimer', 'llmJob', 'importJob'].includes(name) ? 'scheduledId' : 'id';
+    const pk = name === 'conversationMaterial' ? 'pair' : name === 'guestTransfer' ? 'owner' : ['mirrorProfile', 'mirrorRest', 'mirrorSummary', 'mirrorLearning', 'mirrorStyle'].includes(name) ? 'mirrorId' : ['tickTimer', 'llmJob', 'importJob'].includes(name) ? 'scheduledId' : 'id';
     const equal = (a, b) => typeof a?.equals === 'function' ? a.equals(b) : a === b;
     const table = {
       iter: () => rows.values(), count: () => BigInt(rows.size),
@@ -43,7 +43,7 @@ function fixture(demo = false) {
     for (const col of Object.keys(def.columns)) table[col] = {
       find: value => [...rows.values()].find(row => equal(row[col], value)),
       filter: value => [...rows.values()].filter(row => equal(row[col], value)).values(),
-      update: row => rows.set(row[pk], { ...row }), delete: value => rows.delete(value),
+      update: row => { const value = { ...row }; rows.set(row[pk], value); return value; }, delete: value => rows.delete(value),
     };
     for (const index of def.options.indexes ?? []) table[index.accessor] = {
       filter: values => [...rows.values()].filter(row => index.columns.every((col, i) => equal(row[col], values[i]))).values(),
@@ -51,7 +51,7 @@ function fixture(demo = false) {
     db[name] = table;
   }
   const now = new Timestamp(1_000_000_000_000n);
-  const ctx = sender => ({ sender, timestamp: now, db, withTx(fn) { return fn(this); } });
+  const ctx = sender => ({ sender, timestamp: now, db, senderAuth: { jwt: null }, withTx(fn) { return fn(this); } });
   for (const [id, owner, name] of [[10n, A, 'Alice'], [20n, B, 'Bob']]) {
     db.mirror.insert({ id, name, demo: id === 20n && demo, intent: 'Build accessible charts together', activity: 'working', conversationId: 30n });
     db.mirrorProfile.insert({ mirrorId: id, owner, selfCard: 'I build accessible charts', contact: `${name}@example.test` });
@@ -138,9 +138,9 @@ test('good-fit evidence and repeat-conversation rules still reject unsupported c
     assert.equal(f.entries(A)[0].goodFit, c === connection); assert.equal(f.db.diaryEntry.count(), 2n);
   }
 });
-test('model failure still writes factual first-person entries, never a good-fit mark', () => {
+test('model failure records an unavailable summary without substituting simulation actions or a good-fit mark', () => {
   const f = fixture(); verdict = new Error('offline'); f.wrap();
-  assert.match(f.entries(A)[0].text, /^I was working/); assert.equal(f.entries(A)[0].goodFit, false);
+  assert.equal(f.entries(A)[0].text, 'Conversation summary unavailable.'); assert.equal(f.entries(A)[0].goodFit, false);
 });
 test('newest first uses timestamps rather than auto-increment IDs; later contact edits propagate only to mutual pairs', () => {
   const f = fixture(); verdict = diaryVerdict(null); f.wrap();
@@ -231,4 +231,124 @@ test('resident exit is admin-only and reversible, retaining profile and ending l
   assert.deepEqual(f.db.mirrorProfile.mirrorId.find(20n), profile);
   mod.setResidentActive(f.ctx(A), { mirrorId: 20n, active: true });
   assert.equal(f.db.mirror.id.find(20n).active, true);
+});
+
+const transferToken = 'a'.repeat(64);
+const accountContext = (f, sender = B) => ({ ...f.ctx(sender), senderAuth: { jwt: { issuer: 'https://auth.spacetimedb.com/oidc', fullPayload: { email: 'verified@example.test', email_verified: true } } } });
+
+test('guest transfer preserves IDs, cards, diaries, imports, learning, style, relationships and contacts', () => {
+  const f = fixture(); verdict = diaryVerdict(null); f.wrap();
+  f.db.mirrorCard.insert({ id: 50n, mirrorId: 10n, owner: A, text: 'Protected card', editedByOwner: true });
+  f.db.mirrorSummary.insert({ mirrorId: 10n, owner: A, text: 'You build charts.' });
+  f.db.mirrorLearning.insert({ mirrorId: 10n, owner: A, reviewed: false });
+  f.db.mirrorStyle.insert({ mirrorId: 10n, owner: A, text: 'Short sentences' });
+  f.db.importStatus.insert({ id: 51n, mirrorId: 10n, owner: A, status: 'processing' });
+  f.db.importJob.insert({ scheduledId: 52n, mirrorId: 10n, owner: A });
+  f.db.interest.insert({ id: 53n, fromMirrorId: 10n, toMirrorId: 20n, fromOwner: A, toOwner: B });
+  f.db.encounter.insert({ id: 54n, a: 10n, b: 20n, aOwner: A, bOwner: B });
+  const mirrorBefore = { ...f.db.mirror.id.find(10n) };
+  mod.prepareGuestTransfer(f.ctx(A), { token: transferToken });
+  mod.claimGuestMirrors(accountContext(f), { token: transferToken });
+  for (const table of ['mirrorProfile', 'mirrorSummary', 'mirrorLearning', 'mirrorStyle']) assert.ok(f.db[table].mirrorId.find(10n).owner.equals(B), table);
+  for (const table of ['mirrorCard', 'diaryEntry', 'importStatus', 'importJob']) {
+    for (const row of f.db[table].iter()) if (row.mirrorId === 10n) assert.ok(row.owner.equals(B), table);
+  }
+  assert.equal(f.entries(A).length, 0); assert.equal(f.entries(B).length, 2);
+  assert.equal(f.db.mirrorProfile.mirrorId.find(10n).contact, 'Alice@example.test');
+  assert.equal(f.db.mirrorCard.id.find(50n).editedByOwner, true);
+  assert.ok(f.db.interest.id.find(53n).fromOwner.equals(B));
+  assert.ok(f.db.encounter.id.find(54n).aOwner.equals(B));
+  assert.deepEqual(f.db.mirror.id.find(10n), mirrorBefore);
+  assert.equal(f.db.relation.count(), 1n);
+  mod.claimGuestMirrors(accountContext(f), { token: transferToken });
+  assert.throws(() => mod.claimGuestMirrors(accountContext(f, C), { token: transferToken }), /already used/);
+  assert.throws(() => mod.setContact(f.ctx(A), { mirrorId: 10n, contact: 'stolen' }), /Not your mirror/);
+});
+
+test('transfer rejects unverified, anonymous, wrong-issuer, unknown, expired and revoked proofs', () => {
+  const f = fixture();
+  mod.prepareGuestTransfer(f.ctx(A), { token: transferToken });
+  assert.throws(() => mod.claimGuestMirrors(f.ctx(B), { token: transferToken }), /verified email/);
+  for (const jwt of [
+    { issuer: 'https://other.example', fullPayload: { email: 'a@example.test' } },
+    { issuer: 'https://auth.spacetimedb.com/oidc', fullPayload: {} },
+    { issuer: 'https://auth.spacetimedb.com/oidc', fullPayload: { email: 'a@example.test', email_verified: false } },
+  ]) assert.throws(() => mod.claimGuestMirrors({ ...f.ctx(B), senderAuth: { jwt } }, { token: transferToken }), /verified email/);
+  assert.throws(() => mod.prepareGuestTransfer(accountContext(f), { token: transferToken }), /Only a guest/);
+  assert.throws(() => mod.prepareGuestTransfer(f.ctx(A), { token: 'short' }), /Invalid/);
+  assert.throws(() => mod.claimGuestMirrors(accountContext(f), { token: 'b'.repeat(64) }), /not found/);
+  mod.prepareGuestTransfer(f.ctx(A), { token: 'c'.repeat(64) });
+  assert.throws(() => mod.claimGuestMirrors(accountContext(f), { token: transferToken }), /not found/);
+  const ticket = f.db.guestTransfer.owner.find(A);
+  f.db.guestTransfer.owner.update({ ...ticket, expiresAt: 0n });
+  assert.throws(() => mod.claimGuestMirrors(accountContext(f), { token: ticket.token }), /expired/);
+  assert.ok(f.db.mirrorProfile.mirrorId.find(10n).owner.equals(A));
+  assert.equal(definitions.guestTransfer.options.public, undefined);
+});
+
+test('an owner can reversibly move out a duplicate; another identity cannot; archived data stays private', () => {
+  const f = fixture();
+  assert.throws(() => mod.setOwnMirrorActive(f.ctx(C), { mirrorId: 10n, active: false }), /Not your mirror/);
+  mod.setOwnMirrorActive(f.ctx(A), { mirrorId: 10n, active: false });
+  assert.equal(f.db.conversation.id.find(30n).active, false);
+  assert.equal(mod.myMirrors(f.ctx(A)).length, 0);
+  assert.equal(mod.myArchivedMirrors(f.ctx(A))[0].id, 10n);
+  assert.equal(mod.myArchivedMirrors(f.ctx(C)).length, 0);
+  assert.equal(f.db.mirrorProfile.mirrorId.find(10n).contact, 'Alice@example.test');
+  mod.setOwnMirrorActive(f.ctx(A), { mirrorId: 10n, active: true });
+  assert.equal(mod.myMirrors(f.ctx(A))[0].id, 10n);
+  assert.equal(mod.myArchivedMirrors(f.ctx(A)).length, 0);
+});
+
+test('both creation paths reject a duplicate owned name including archived mirrors', () => {
+  const f = fixture();
+  const args = { name: ' alice ', look: 0, tipi: [4,4,4,4,4,4,4,4,4,4], onMind: '', intent: '' };
+  assert.throws(() => mod.createMirror(f.ctx(A), args), /already have a mirror with this name/);
+  mod.setOwnMirrorActive(f.ctx(A), { mirrorId: 10n, active: false });
+  assert.throws(() => mod.createMirrorOnboarding(f.ctx(A), { ...args, words: [], text: '' }), /already have a mirror with this name/);
+});
+
+test('a diary finishing during transfer belongs to the account, not the stale guest snapshot', () => {
+  const f = fixture();
+  mod.prepareGuestTransfer(f.ctx(A), { token: transferToken });
+  verdict = { toJSON() { mod.claimGuestMirrors(accountContext(f), { token: transferToken }); return diaryVerdict(null); } };
+  f.wrap();
+  assert.equal(f.entries(A).length, 0);
+  assert.equal(f.entries(B).length, 2);
+  assert.ok([...f.db.diaryEntry.iter()].every(row => row.owner.equals(B)));
+});
+
+
+test('scheduled encounters enforce pair pacing and require changed shareable material', () => {
+  const f = fixture();
+  f.db.conversation.id.delete(30n);
+  let time = 200_000_000_000n;
+  for (const id of [10n,20n]) f.db.mirror.id.update({ ...f.db.mirror.id.find(id), x:10,y:10,targetX:10,targetY:10,
+    place:'park',active:true,conversationId:0n,lastChatAt:new Timestamp(0n),extraversion:1 });
+  const tick = () => {
+    for (const id of [10n,20n]) {
+      const row = {mirrorId:id,until:time+100_000_000n};
+      if(f.db.mirrorRest.mirrorId.find(id)) f.db.mirrorRest.mirrorId.update(row); else f.db.mirrorRest.insert(row);
+    }
+    const random = Object.assign(() => 0, {integerInRange: () => 100});
+    mod.tick({...f.ctx(A),timestamp:new Timestamp(time),random}, {timer:{}});
+  };
+  const release = () => { for(const id of [10n,20n]) f.db.mirror.id.update({...f.db.mirror.id.find(id),conversationId:0n,lastChatAt:new Timestamp(time)}); };
+  tick();
+  assert.equal([...f.db.conversation.iter()].length,1);
+  assert.equal([...f.db.conversation.iter()][0].maxTurns,4);
+  release();
+  time += 25n*60n*60n*1_000_000n;
+  tick();
+  assert.equal([...f.db.conversation.iter()].length,1, 'same material stays quiet even after a day');
+  f.db.mirrorCard.insert({id:1n,mirrorId:10n,owner:A,facet:'professional',text:'Built a camera calibration rig',personal:false,rooms:'',createdAt:new Timestamp(time)});
+  time += 2_000_000n;
+  tick();
+  assert.equal([...f.db.conversation.iter()].length,2);
+  release();
+  f.db.mirrorCard.insert({id:2n,mirrorId:10n,owner:A,facet:'professional',text:'Tested the rig',personal:false,rooms:'',createdAt:new Timestamp(time)});
+  time += 10n*60n*1_000_000n;
+  tick();
+  assert.equal([...f.db.conversation.iter()].length,2, 'new material cannot bypass the pair limit');
+  assert.equal(definitions.conversationMaterial.options.public, undefined);
 });
