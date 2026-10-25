@@ -68,3 +68,13 @@ data directory and original JWT key paths explicitly; local database identity en
 200 (previously 404). No publish/reset or data replacement. Updated exact replacement-domain
 login/logout callbacks after owner confirmation (dashboard Last Updated 17:28:42 PT).
 External guest/account and phone map checks remain Pending, delegated to owner as requested.
+
+## Single email-entry flow and consolidated panel
+
+Owner reported duplicate email entry on app and hosted provider. Supersedes earlier local
+email-field layout: the entry panel now offers Continue with email and Explore as a guest
+together, with a short premise introduction and browser-only guest note. Removed separate
+sign-up mode and local email collection/login_hint. The email is entered only on the hosted
+SpacetimeAuth page; this does not implement direct magic-link sending from the app.
+Build/typecheck: Pass. Existing auth session regression: Pass (10 tests). Desktop/phone
+composition and complete owner-operated email login: Pending. Database unchanged.

@@ -66,7 +66,9 @@ Things that are not obvious from the code.
 - **Docs reader**: `python .agents/skills/orrery-docs-local/scripts/orrery_docs.py build --target .`, then open
   `docs/_site/orrery-docs.html` (generated, gitignored).
 
-- **Login**: the entry page uses the team's exported Figma assets. Accounts use SpacetimeAuth email
+- **Login**: Continue with email opens the hosted page where email is entered once; no local
+  email field or separate sign-up toggle. Guest entry shares the main signboard panel.
+  The entry page uses the team's exported Figma assets. Accounts use SpacetimeAuth email
   magic links; guests keep their original local token. This machine's `.env.local` has the public
   `VITE_SPACETIMEAUTH_CLIENT_ID`. For setup, exact callbacks, cloud ownership and limitations see
   `design/login-and-auth.md`; acceptance is in `validation/login-figma-and-auth.md`. No client secret

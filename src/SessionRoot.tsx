@@ -77,11 +77,11 @@ function AccountGateway() {
     try { await auth.signoutRedirect({ id_token_hint: idToken }); }
     catch { setError('You have signed out of this browser. The sign-in service could not be reached.'); }
   };
-  const signIn = async (email: string) => {
+  const signIn = async () => {
     setError(''); setRedirecting(true);
     try {
       chooseMode('account');
-      await auth.signinRedirect({ prompt: 'login', login_hint: email || undefined });
+      await auth.signinRedirect({ prompt: 'login' });
     } catch { setError('Could not open secure sign-in. Please try again.'); }
     finally { setRedirecting(false); }
   };
