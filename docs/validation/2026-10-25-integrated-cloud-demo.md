@@ -54,5 +54,10 @@ name-based reassignment was performed. Real email account recovery is Pending.
   built successfully. Fresh no-mirror visual pass: Passed; the scene, actor and door label align without white hotspots.
 - Full regression: 247 Node tests and 7 native Python tests passed. Exact row/owner comparisons passed for profiles, cards, summaries, learning, styles, diary and interest; anonymous cloud private SQL was denied.
 - Desktop backend switch invalidates the old background guest token and pauses old-database capture without deleting saved notes.
-- Final Pages deployment, live email login, real model output and
-  background collection across Windows restart: Pending; update after actual checks.
+- Pages deployment: Passed for 20e7689, GitHub Actions run 40197402448. Fixed URL:
+  https://itismixian.github.io/cal-hack-proj/ . The production guest connected to Maincloud,
+  entered the corrected empty room, opened the journey, selected Mirrorville and reached
+  the migrated town. Initial room artwork loading failed once; the Retry action succeeded
+  and all five image resources returned HTTP 200. Cold-load reliability remains a limitation.
+- Live email login, fresh real model output and background collection across Windows
+  restart: Pending. No one else was signed in or prompted for an email during this check.
