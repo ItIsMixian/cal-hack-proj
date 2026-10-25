@@ -134,7 +134,7 @@ export default function MirrorRoom(props: { mirrorId: bigint; onBack: () => void
     : <><p>Anything to take into town today?</p><div className="exchange-choices"><button onClick={() => setDoorWriting(true)}>Write a thought</button><button onClick={props.onBack}>Just head out →</button></div></>}
   </section> : undefined;
   return <section ref={room} className="pixel-room room-stage" aria-label={`${mirror.name}'s Mirror Room`}>
-    <header className="room-stage-header"><button className="room-exit" onClick={goToDoor}>← Back to town</button><h1>{mirror.name}'s room</h1></header>
+    <header className="room-stage-header"><button className="room-exit" onClick={goToDoor}>← Back to town</button><div className="room-hanging-sign"><h1>{mirror.name}'s room</h1></div></header>
     <RoomJourney pose={pose} station={station} overview={overview} name={mirror.name} look={mirror.look}
       speech={overview && showWelcome ? 'Where shall we go today?' : ''} disabled={false} hasLetter={false} lookLocked onLook={() => {}}
       deskItems={activeObject === 'desk' && !deskAction ? <>

@@ -141,3 +141,18 @@
 .journey-hotspot:is(.mirror,.diary) > span { width: 132px; height: 44px; }
 
 .journey-hotspot.door > span { width: 110px; height: 37px; bottom: 0; padding: 0 18px; font-size: 14px; }
+
+/* The room belongs to the world, not a framed application panel. */
+.pixel-room.room-stage { border: 0; box-shadow: none; }
+.room-stage-header { position: relative; flex: 0 0 132px; padding: 0; display: block; background: transparent; }
+.room-stage-header .room-exit { position: absolute; left: 12px; top: 42px; z-index: 1; }
+.room-hanging-sign { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 280px; aspect-ratio: 2 / 1; background: url('/assets/ui/clock-sign.webp') center / 100% 100% no-repeat; image-rendering: pixelated; }
+.room-stage-header .room-hanging-sign h1 { position: absolute; inset: 48% 12% 16%; display: grid; place-items: center; margin: 0; color: #62452e; text-align: center; font: 24px/1 'Pixelify Sans', monospace; overflow-wrap: anywhere; }
+@media (max-width: 600px) {
+ .room-stage-header { flex-basis: 152px; padding: 0; }
+ .room-hanging-sign { width: 240px; }
+ .room-stage-header .room-hanging-sign h1 { font-size: 21px; }
+ .room-stage-header .room-exit { top: 118px; left: 8px; font-size: 14px; padding: 5px 8px; min-height: 30px; }
+}
+.pixel-room.room-stage { background: #6f5140; }
+.room-stage-header { margin-bottom: 0; }
