@@ -38,3 +38,14 @@
 No raw import/chat contents are included in this record. Runtime screenshots are kept outside
 the repository. Owner aesthetic acceptance, separate foreground occlusion masks and obstacle-aware
 pathfinding remain Pending; whole illustrated sprites do not supply those masks automatically.
+
+## Movement correction (2026-10-24)
+
+Projected server snapshots previously used unbounded exponential catch-up, amplifying the
+nonlinear placement adapter into bursts of speed. Rendering now caps travel at 1.8 world units
+per second, ties walking animation to distance, and limits a stalled frame to 50ms of travel.
+Follow camera translation tracks the rendered character directly; sprite drawing no longer
+rounds separately from the camera. Phone canvas backing scale is capped at 2 to reduce fill cost.
+Build: Pass. Town suite: Pass (10 tests), including 30/60/120Hz motion and delayed snapshot cap.
+Phone smoothness/owner visual acceptance: Pending, delegated to owner. This does not add
+obstacle-aware routes; visual crossing of buildings remains a known placement limitation.

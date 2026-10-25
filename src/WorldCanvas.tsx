@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { WORLD_W, WORLD_H, LOOK_COLORS } from '../spacetimedb/src/world';
 import { loadAuthoredTown, projectTownPosition } from './AuthoredTown';
+import { advanceTownPosition } from './TownMotion';
 import { cameraTarget, screenToTown, type CameraMode, type CameraFrame } from './TownCamera';
 import type { Mirror } from './module_bindings/types';
 
@@ -59,7 +60,7 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, cameraMo
     const draw = (now: number) => {
       const dt = Math.min(0.1, (now - last) / 1000);
       last = now;
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
       const cssWidth = canvas.clientWidth, cssHeight = canvas.clientHeight;
       if (canvas.width !== Math.round(cssWidth * dpr) || canvas.height !== Math.round(cssHeight * dpr)) {
         canvas.width = Math.round(cssWidth * dpr);
@@ -72,25 +73,27 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, cameraMo
       for (const m of mirrors) {
         const target = authored ? projectTownPosition(m.x, m.y) : m;
         const p = shown.current.get(m.id) ?? { x: target.x, y: target.y, facing: 'down' as Facing, walkTime: 0, moving: false };
-        const dx = target.x - p.x;
-        const dy = target.y - p.y;
-        p.moving = Math.hypot(dx, dy) > 0.04;
+        const next = advanceTownPosition(p, target, dt);
+        const dx = next.x - p.x;
+        const dy = next.y - p.y;
+        const travelled = Math.hypot(dx, dy);
+        p.moving = travelled > 0.0001;
         if (p.moving) {
           p.facing = Math.abs(dx) > Math.abs(dy) ? dx > 0 ? 'right' : 'left' : dy > 0 ? 'down' : 'up';
-          p.walkTime += dt;
+          p.walkTime += travelled / 1.8;
         } else p.walkTime = 0;
-        const k = Math.min(1, dt * 2.5);
-        p.x += (target.x - p.x) * k;
-        p.y += (target.y - p.y) * k;
+        p.x = next.x;
+        p.y = next.y;
         shown.current.set(m.id, p);
       }
       const player = followed === null ? undefined : shown.current.get(followed);
       const targetCamera = cameraTarget(cssWidth, cssHeight, cameraMode, player ? { x: player.x * TILE, y: player.y * TILE - 14 } : undefined);
       const previousCamera = camera.current ?? targetCamera;
       const cameraEase = reducedMotion.matches ? 1 : 1 - Math.exp(-dt * 8);
+      const followEase = cameraMode === 'follow' && player ? 1 : cameraEase;
       const view = { ...targetCamera,
-        x: previousCamera.x + (targetCamera.x - previousCamera.x) * cameraEase,
-        y: previousCamera.y + (targetCamera.y - previousCamera.y) * cameraEase,
+        x: previousCamera.x + (targetCamera.x - previousCamera.x) * followEase,
+        y: previousCamera.y + (targetCamera.y - previousCamera.y) * followEase,
         zoom: previousCamera.zoom + (targetCamera.zoom - previousCamera.zoom) * cameraEase };
       camera.current = view;
       canvas.dataset.cameraMode = cameraMode === 'follow' && player ? 'follow' : 'general';
@@ -178,7 +181,7 @@ function drawMirror(g: CanvasRenderingContext2D, m: Mirror, p: ShownMirror, isMi
     g.save();
     g.imageSmoothingEnabled = false;
     g.drawImage(sprite, FACING_X[p.facing], row * 32, 16, 32,
-      Math.round(x - CHARACTER_W / 2), Math.round(y + FOOT_Y - CHARACTER_H), CHARACTER_W, CHARACTER_H);
+      x - CHARACTER_W / 2, y + FOOT_Y - CHARACTER_H, CHARACTER_W, CHARACTER_H);
     g.restore();
     return;
   }

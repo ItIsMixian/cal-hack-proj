@@ -99,3 +99,24 @@ test('general fits the whole town and is the fallback when there is no owner', (
     assert.equal(JSON.stringify(cameraExports.cameraTarget(width, height, 'follow')), JSON.stringify(frame));
   }
 });
+
+const motionExports = {};
+runInNewContext(ts.transpileModule(readFileSync(new URL('../src/TownMotion.ts', import.meta.url), 'utf8'), {
+  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+}).outputText, { exports: motionExports });
+test('a distant or delayed snapshot cannot cause a burst of movement', () => {
+  for (const dt of [1 / 60, 1 / 30, 5]) {
+    const next = motionExports.advanceTownPosition({ x: 0, y: 0 }, { x: 300, y: 400 }, dt);
+    assert.ok(Math.hypot(next.x, next.y) <= 1.8 * Math.min(dt, 0.05) + 1e-9);
+  }
+});
+test('walking speed is stable across frame rates and stops exactly at its target', () => {
+  for (const fps of [30, 60, 120]) {
+    let point = { x: 0, y: 0 };
+    for (let i = 0; i < fps; i++) point = motionExports.advanceTownPosition(point, { x: 20, y: 0 }, 1 / fps);
+    assert.ok(Math.abs(point.x - 1.8) < 1e-9);
+    point = motionExports.advanceTownPosition(point, { x: point.x + 0.001, y: 0 }, 1 / fps);
+    const stopped = motionExports.advanceTownPosition(point, point, 1 / fps);
+    assert.equal(stopped.x, point.x);
+  }
+});
