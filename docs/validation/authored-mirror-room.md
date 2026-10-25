@@ -29,3 +29,14 @@ All furniture uses native buttons with accessible labels and focus indication.
 
 No database publication, data reset or mixian (id 9) edits were performed. No raw source messages
 or contact values are included in this record. Visual screenshots are kept outside the repository.
+
+## Loading repair (2026-10-24)
+
+Owner screenshot showed incomplete layers during a slow room load. Five original PNGs total
+5,344,427 bytes; runtime WebP copies total 347,174 bytes (93.5% reduction), preserving
+dimensions/alpha. Original art/hash tests remain unchanged. Owned sessions warm up the room
+with low-priority image requests after five seconds in town. Room mounting shares a cached
+all-images-decoded promise and hides partial layers until ready; errors expose Retry.
+Build/typecheck: Pass. Home suite: Pass (3 tests), including shipped WebP existence, shared
+load/decode/cache and retry after failure. Actual phone/network seconds and visual loading
+state: Pending (owner testing). No database changes or private data involved.

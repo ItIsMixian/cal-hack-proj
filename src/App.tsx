@@ -8,6 +8,7 @@ import Diary from './Diary';
 import MirrorRoom from './MirrorRoom';
 import RoomDialog from './RoomDialog';
 import CharacterAvatar from './CharacterAvatar';
+import { loadRoomArt } from './roomArt';
 import type { CameraMode } from './TownCamera';
 import './pixel-room.css';
 import './town-game.css';
@@ -41,6 +42,11 @@ export default function App({ sessionLabel, onExit, accountMode = false }: {
   const [conversations] = useTable(tables.conversation);
   const [lines] = useTable(tables.line);
   const [myMirrors] = useTable(tables.myMirrors);
+  useEffect(() => {
+    if (!myMirrors.length) return;
+    const timer = window.setTimeout(() => { void loadRoomArt().catch(() => {}); }, 5000);
+    return () => window.clearTimeout(timer);
+  }, [myMirrors.length]);
   const [diary] = useTable(tables.myDiary);
   const [creating, setCreating] = useState(false);
   const [selected, setSelected] = useState<bigint | null>(null);

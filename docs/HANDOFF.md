@@ -18,6 +18,10 @@ Things that are not obvious from the code.
   The current tunnel's exact login/logout callbacks were saved in SpacetimeAuth with owner approval;
   a replacement tunnel needs replacement exact entries. See `validation/mobile-login-and-share-performance.md`.
 
+- **Room delivery**: `python scripts/optimize-room-assets.py` creates 347KB WebP delivery
+  copies from 5.34MB original art. `roomArt.ts` shares preload/decode work and gates partial
+  display; owned sessions preload after five seconds in town. Rebuild after changing assets.
+
 - **Authored Mirror Room** (`yw/map-assets`): `origin/yq` commit `1f404a9` supplies `Home.tscn`
   and five PNGs. Regenerate with `node scripts/import-home-scene.mjs 1f404a9`. Keep generated
   `src/homeScene.json` in sync. All existing room actions remain connected; no data migration.

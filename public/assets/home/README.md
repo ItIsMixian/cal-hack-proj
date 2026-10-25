@@ -13,3 +13,8 @@ Diary → private journal. The address-book hotspot uses the bedside cabinet in 
 The existing character sprite is placed on the open floor. No imported messages are assets.
 
 Artwork supplied by the teammate; no additional authorship or license is asserted here.
+
+Delivery copies: `python scripts/optimize-room-assets.py` (Pillow) generates WebP files
+without changing dimensions/alpha. Five originals total 5,344,427 bytes; WebP total 347,174
+bytes. Original PNGs and scene hashes remain unchanged. `src/roomArt.ts` shares a decoded
+asset promise between town preloading and the room, with retry on errors.
