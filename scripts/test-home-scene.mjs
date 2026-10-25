@@ -2,8 +2,34 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { test } from 'node:test';
+import { runInNewContext } from 'node:vm';
+import ts from 'typescript';
 const read = name => readFileSync(new URL(`../public/assets/home/${name}`, import.meta.url));
 const scene = JSON.parse(read('scene.json'));
+
+test('room delivery loads all shipped WebP files once, awaits decode and retries after errors', async () => {
+  let fail = true, requests = 0, decoded = 0;
+  class RoomImage {
+    decode() { decoded++; return Promise.resolve(); }
+    set src(url) {
+      assert.equal(read(url.split('/').pop()).toString('ascii', 8, 12), 'WEBP');
+      requests++;
+      queueMicrotask(() => fail ? this.onerror() : this.onload());
+    }
+  }
+  const mod = {};
+  runInNewContext(ts.transpileModule(readFileSync(new URL('../src/roomArt.ts', import.meta.url), 'utf8'), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true },
+  }).outputText, { exports: mod, require: () => scene, Image: RoomImage, setTimeout, clearTimeout });
+  const failed = mod.loadRoomArt();
+  assert.equal(mod.loadRoomArt(), failed);
+  await assert.rejects(failed, /unavailable/);
+  fail = false;
+  await mod.loadRoomArt();
+  await mod.loadRoomArt();
+  assert.equal(requests, 10);
+  assert.equal(decoded, 5);
+});
 test('all five room textures retain original bytes and PNG dimensions', () => {
   assert.equal(scene.nodes.length, 5);
   for (const node of scene.nodes) {

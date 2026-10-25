@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSpacetimeDB, useTable } from 'spacetimedb/react';
 import { tables } from './module_bindings';
-import { clockLabel, currentEvent, findLandmark, venueHour } from '../spacetimedb/src/world';
+import { clockLabel, currentEvent, findLandmark, townHour } from '../spacetimedb/src/world';
 import WorldCanvas from './WorldCanvas';
 import CreateMirror from './CreateMirror';
 import Diary from './Diary';
 import MirrorRoom from './MirrorRoom';
 import RoomDialog from './RoomDialog';
 import CharacterAvatar from './CharacterAvatar';
+import { loadRoomArt } from './roomArt';
 import type { CameraMode } from './TownCamera';
 import './pixel-room.css';
 import './town-game.css';
@@ -22,10 +23,10 @@ function readSeen(key: string): bigint {
   }
 }
 
-function useVenueClock() {
-  const [hour, setHour] = useState(() => venueHour(BigInt(Date.now()) * 1000n));
+function useTownClock() {
+  const [hour, setHour] = useState(() => townHour(BigInt(Date.now()) * 1000n));
   useEffect(() => {
-    const id = setInterval(() => setHour(venueHour(BigInt(Date.now()) * 1000n)), 30_000);
+    const id = setInterval(() => setHour(townHour(BigInt(Date.now()) * 1000n)), 1000);
     return () => clearInterval(id);
   }, []);
   return hour;
@@ -36,21 +37,27 @@ export default function App({ sessionLabel, onExit, accountMode = false }: {
 }) {
   const { isActive, identity } = useSpacetimeDB();
   const seenKey = `${SEEN_KEY}/${identity?.toHexString() ?? 'connecting'}`;
-  const [mirrors] = useTable(tables.mirror);
+  const [allMirrors] = useTable(tables.mirror);
+  const mirrors = useMemo(() => allMirrors.filter(m => m.active !== false), [allMirrors]);
   const [conversations] = useTable(tables.conversation);
   const [lines] = useTable(tables.line);
   const [myMirrors] = useTable(tables.myMirrors);
+  useEffect(() => {
+    if (!myMirrors.length) return;
+    const timer = window.setTimeout(() => { void loadRoomArt().catch(() => {}); }, 5000);
+    return () => window.clearTimeout(timer);
+  }, [myMirrors.length]);
   const [diary] = useTable(tables.myDiary);
   const [creating, setCreating] = useState(false);
   const [selected, setSelected] = useState<bigint | null>(null);
   const [notice, setNotice] = useState('');
   const [roomFor, setRoomFor] = useState<bigint | null>(null);
   const [gamePanel, setGamePanel] = useState<'diary' | 'residents' | 'guide' | null>(null);
-  const [cameraMode, setCameraMode] = useState<CameraMode>('follow');
+  const [cameraMode, setCameraMode] = useState<CameraMode>('general');
   const [followedId, setFollowedId] = useState<bigint | null>(null);
   const [seen, setSeen] = useState(() => readSeen(seenKey));
   useEffect(() => setSeen(readSeen(seenKey)), [seenKey]);
-  const hour = useVenueClock();
+  const hour = useTownClock();
   const event = currentEvent(hour);
 
   const mine = useMemo(() => new Set(myMirrors.map((m) => m.id)), [myMirrors]);
@@ -111,11 +118,9 @@ export default function App({ sessionLabel, onExit, accountMode = false }: {
     <div className="app town-game">
       <header className="town-hud">
         <div className="town-title"><p>MIRRORS MEET HERE</p><h1>Mirrorville</h1></div>
-        <div className="town-clock"><strong>{clockLabel(hour)}</strong><span>{event ? event.label : 'A little time in town'}</span></div>
-        <div className="town-account"><span className={isActive ? 'status on' : 'status'}>{isActive ? 'Live' : 'Connecting…'}</span>
-          <span className="session-label" title={sessionLabel}>{sessionLabel}</span>
-          <button onClick={onExit}>{accountMode ? 'Sign out' : 'Leave town'}</button></div>
+
       </header>
+      <div className="town-clock"><strong>{clockLabel(hour)}</strong><span>{event ? event.label : 'A little time in town'}</span></div>
       {notice && <button className="town-notice" onClick={() => setNotice('')}>{notice} <span>✕</span></button>}
       <main className="town-stage">
         <div className="town-map-shell">
@@ -136,13 +141,19 @@ export default function App({ sessionLabel, onExit, accountMode = false }: {
       </aside>
       <nav className="town-dock" aria-label="Town actions">
         <button onClick={() => setGamePanel('diary')}><span className="dock-icon" aria-hidden="true">▤</span>Diary{hasNew && <span className="dot" aria-label="new" />}</button>
-        <button onClick={() => setGamePanel('residents')}><span className="dock-icon" aria-hidden="true">♧</span>Mirrors</button>
+        <button onClick={() => setGamePanel('residents')}><span className="dock-icon" aria-hidden="true">♧</span>Residents</button>
         {myMirrors.length > 0 && <button onClick={() => { setSelected(null); setRoomFor(myMirrors[0].id); }} disabled={!isActive}><span className="dock-icon" aria-hidden="true">⌂</span>Mirror Room</button>}
-        <button onClick={() => setCreating(true)} disabled={!isActive}><span className="dock-icon" aria-hidden="true">＋</span>{myMirrors.length ? 'New mirror' : 'Make your mirror'}</button>
+        {myMirrors.length === 0 && <button onClick={() => setCreating(true)} disabled={!isActive}><span className="dock-icon" aria-hidden="true">＋</span>Make your mirror</button>}
         <button onClick={() => setGamePanel('guide')} aria-label="Town guide"><span className="dock-icon" aria-hidden="true">?</span><span>Guide</span></button>
+        <details className="town-account-menu" onKeyDown={e => { if (e.key === 'Escape') e.currentTarget.open = false; }}>
+          <summary aria-label="Menu" title="Menu"><span className="dock-icon" aria-hidden="true">☰</span><span>Menu</span></summary>
+          <div className="town-account"><span className={isActive ? 'status on' : 'status'}>{isActive ? 'Live' : 'Connecting…'}</span>
+            <span className="session-label" title={sessionLabel}>{sessionLabel}</span>
+            <button onClick={onExit}>{accountMode ? 'Sign out' : 'Leave town'}</button>
+          </div>
+        </details>
       </nav>
-      <p className="town-credit">Your mirrors meet first. Then you do. <span>Character: Cup Nooble · Sprout Lands</span></p>
-      {gamePanel && <RoomDialog title={gamePanel === 'diary' ? 'Your diary' : gamePanel === 'residents' ? 'Around town' : 'Welcome to Mirrorville'} onClose={() => setGamePanel(null)}>
+      {gamePanel && <RoomDialog title={gamePanel === 'diary' ? 'Your diary' : gamePanel === 'residents' ? 'Residents' : 'Welcome to Mirrorville'} onClose={() => setGamePanel(null)}>
         {gamePanel === 'diary' ? <Diary /> : gamePanel === 'residents' ? <div className="town-roster">
           {mirrors.map(mirror => <button key={String(mirror.id)} onClick={() => { setGamePanel(null); setSelected(mirror.id); }}>
             <CharacterAvatar look={mirror.look} name={mirror.name} /><span><strong>{mirror.name}</strong><small>{mine.has(mirror.id) ? 'Your mirror · ' : ''}{findLandmark(mirror.place).label}</small></span><span aria-hidden="true">→</span>
@@ -152,7 +163,7 @@ export default function App({ sessionLabel, onExit, accountMode = false }: {
           <li>Watch it wander, stop for a coffee, and get to know people in town.</li>
           <li>Open your diary whenever you like. Show interest in someone; when you both say yes, contact details appear.</li>
           <li>Visit your Mirror Room to add your own words and choose what your mirror shares.</li>
-        </ol></div>}
+        </ol><p className="muted">Character art: Cup Nooble · Sprout Lands</p></div>}
       </RoomDialog>}
       {focus && <RoomDialog title={focus.name} onClose={() => setSelected(null)}>
         <div className="room-portrait"><CharacterAvatar look={focus.look} name={focus.name} /><div><h3>{focus.name}</h3><p>{mine.has(focus.id) ? 'Your mirror' : focus.demo ? 'Demo mirror' : 'A mirror in town'}</p></div></div>

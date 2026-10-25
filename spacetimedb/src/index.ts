@@ -6,7 +6,7 @@ import {
 import { ScheduleAt, Timestamp, type Identity } from 'spacetimedb';
 import {
   LANDMARKS, ACTIVITIES, findLandmark, landmarkForIntent,
-  venueHour, currentEvent, clockLabel,
+  townHour, currentEvent, clockLabel,
 } from './world';
 import { buildSelfCard, isValidTipi } from './tipi';
 import { chatWithDeepSeek, judge, parseJsonObject, type ChatMessage, type LlmConfig } from './llm';
@@ -51,6 +51,7 @@ const mirror = table(
     conversationId: t.u64(),
     demo: t.bool(),
     lastChatAt: t.timestamp(),
+    active: t.bool().default(true),
   },
 );
 
@@ -241,6 +242,13 @@ const tickTimer = table(
   },
 );
 
+const worldRuntime = table({ name: 'world_runtime' }, {
+  id: t.u8().primaryKey(), lastMoveAt: t.u64(), lastSocialAt: t.u64(),
+});
+const mirrorRest = table({ name: 'mirror_rest' }, {
+  mirrorId: t.u64().primaryKey(), until: t.u64(),
+});
+
 const llmJob = table(
   { name: 'llm_job' },
   {
@@ -268,6 +276,8 @@ const spacetimedb = schema({
   importStatus,
   importJob,
   tickTimer,
+  worldRuntime,
+  mirrorRest,
   llmJob,
 });
 export default spacetimedb;
@@ -280,9 +290,9 @@ type ProcCtx = ProcedureCtx<InferSchema<typeof spacetimedb>>;
 // Tuning
 // ---------------------------------------------------------------------------
 
-const TICK_MICROS = 1_000_000n;
+const TICK_MICROS = 200_000n;
 const MINUTE = 60_000_000n;
-const SPEED = 1.0; // tiles per tick
+const SPEED = 1.0; // tiles per real second, independent of tick frequency
 const NEAR = 1.8;
 const CHAT_COOLDOWN = 45_000_000n;
 const PAIR_COOLDOWN = 3n * MINUTE;
@@ -337,14 +347,14 @@ function randomPointIn(ctx: Ctx, landmarkKey: string) {
 // Events pull people in. Without an intent, explore where others are spending
 // time instead of treating the initial Park spawn as a permanent preference.
 function choosePlace(ctx: Ctx, m: { id: bigint; intent: string; landmark: string; extraversion: number }) {
-  const event = currentEvent(venueHour(micros(ctx)));
+  const event = currentEvent(townHour(micros(ctx)));
   if (event) {
     if (event.landmark === m.landmark) return event.landmark;
     const pull = event.meal ? 0.55 : 0.2 + 0.3 * m.extraversion;
     if (ctx.random() < pull) return event.landmark;
   }
   if (!m.intent.trim()) {
-    const others = [...ctx.db.mirror.iter()].filter(other => other.id !== m.id && other.activity !== 'walking');
+    const others = [...ctx.db.mirror.iter()].filter(other => other.active !== false && other.id !== m.id && other.activity !== 'walking');
     return others.length ? pick(ctx, others).place : pick(ctx, LANDMARKS).key;
   }
   const roll = ctx.random();
@@ -375,6 +385,7 @@ function addMirror(
     conversationId: 0n,
     demo: fields.demo,
     lastChatAt: ctx.timestamp,
+    active: true,
   });
   ctx.db.mirrorProfile.insert({ mirrorId: row.id, owner, selfCard: fields.selfCard,
     contact: fields.demo ? `${fields.name} · demo contact (placeholder)` : '' });
@@ -443,7 +454,6 @@ export const init = spacetimedb.init((ctx) => {
     anthropicKey: '',
     claudeModel: 'claude-opus-5-5',
   });
-  seedDemoMirrors(ctx, ctx.sender);
   ctx.db.tickTimer.insert({ scheduledId: 0n, scheduledAt: ScheduleAt.interval(TICK_MICROS) });
 });
 
@@ -451,38 +461,72 @@ export const init = spacetimedb.init((ctx) => {
 // Simulation
 // ---------------------------------------------------------------------------
 
+// Explicit, data-preserving timer upgrade for databases created at the old 1Hz rate.
+export const refreshWorldSchedule = spacetimedb.reducer((ctx) => {
+  requireAdmin(ctx);
+  for (const timer of [...ctx.db.tickTimer.iter()]) ctx.db.tickTimer.scheduledId.delete(timer.scheduledId);
+  ctx.db.tickTimer.insert({ scheduledId: 0n, scheduledAt: ScheduleAt.interval(TICK_MICROS) });
+});
+
+// Reversible exit. Cards, ownership, diaries and identity are retained.
+export const setResidentActive = spacetimedb.reducer({ mirrorId: t.u64(), active: t.bool() }, (ctx, { mirrorId, active }) => {
+  requireAdmin(ctx);
+  const resident = ctx.db.mirror.id.find(mirrorId);
+  if (!resident) throw new SenderError('Unknown resident');
+  if (!active) {
+    for (const conv of [...ctx.db.conversation.iter()]) {
+      if (conv.active && (conv.a === mirrorId || conv.b === mirrorId)) endConversation(ctx.db, conv.id, ctx.timestamp);
+    }
+    ctx.db.mirrorRest.mirrorId.delete(mirrorId);
+  }
+  ctx.db.mirror.id.update({ ...ctx.db.mirror.id.find(mirrorId)!, active });
+});
+
 export const tick = spacetimedb.reducer({ onSchedule: tickTimer }, { timer: tickTimer.rowType }, (ctx) => {
   const now = micros(ctx);
+  const runtime = ctx.db.worldRuntime.id.find(0);
+  const dt = runtime ? Math.max(0, Math.min(1, Number(now - runtime.lastMoveAt) / 1_000_000)) : 0.2;
+  const socialDue = !runtime || now - runtime.lastSocialAt >= 1_000_000n;
+  const updated = { id: 0, lastMoveAt: now, lastSocialAt: socialDue ? now : runtime.lastSocialAt };
+  if (runtime) ctx.db.worldRuntime.id.update(updated); else ctx.db.worldRuntime.insert(updated);
 
   // Move, arrive, pick something to do.
   for (const m of [...ctx.db.mirror.iter()]) {
+    if (m.active === false) continue;
     if (m.conversationId !== 0n) continue;
     const dx = m.targetX - m.x;
     const dy = m.targetY - m.y;
     const dist = Math.hypot(dx, dy);
     if (dist < 0.2) {
-      // Linger: people don't hop around every second.
-      if (ctx.random() < 0.06) {
+      const rest = ctx.db.mirrorRest.mirrorId.find(m.id);
+      if (!rest) {
+        ctx.db.mirrorRest.insert({ mirrorId: m.id, until: now + BigInt(ctx.random.integerInRange(90, 180)) * 1_000_000n });
+        if (m.activity === 'walking') ctx.db.mirror.id.update({ ...m, x: m.targetX, y: m.targetY, activity: pick(ctx, ACTIVITIES[m.place] ?? ACTIVITIES.park) });
+      } else if (now >= rest.until) {
         const place = choosePlace(ctx, m);
         const target = randomPointIn(ctx, place);
-        ctx.db.mirror.id.update({ ...m, place, targetX: target.x, targetY: target.y });
+        ctx.db.mirror.id.update({ ...m, place, targetX: target.x, targetY: target.y, activity: 'walking' });
+        ctx.db.mirrorRest.mirrorId.delete(m.id);
       }
       continue;
     }
-    const step = Math.min(SPEED, dist);
+    const step = Math.min(SPEED * dt, dist);
     const arrived = step >= dist;
     ctx.db.mirror.id.update({
       ...m,
       x: m.x + (dx / dist) * step,
       y: m.y + (dy / dist) * step,
-      activity: arrived ? pick(ctx, ACTIVITIES[m.place] ?? ACTIVITIES.park) : m.place === m.landmark ? m.activity : 'walking',
+      activity: arrived ? pick(ctx, ACTIVITIES[m.place] ?? ACTIVITIES.park) : 'walking',
     });
   }
+
+  // Higher movement cadence must not multiply encounter attempts or LLM work.
+  if (!socialDue) return;
 
   // Notice each other; sometimes start talking.
   let active = [...ctx.db.conversation.iter()].filter((c) => c.active).length;
   const free = [...ctx.db.mirror.iter()].filter(
-    (m) => m.conversationId === 0n && now - m.lastChatAt.microsSinceUnixEpoch > CHAT_COOLDOWN && m.activity !== 'walking',
+    (m) => m.active !== false && m.conversationId === 0n && now - m.lastChatAt.microsSinceUnixEpoch > CHAT_COOLDOWN && m.activity !== 'walking',
   );
   const taken = new Set<bigint>();
   for (let i = 0; i < free.length; i++) {
@@ -590,7 +634,7 @@ export const runLlmJob = spacetimedb.procedure(
         noteAboutB: (aIsLo ? rel?.noteByLo : rel?.noteByHi) ?? '',
         noteAboutA: (aIsLo ? rel?.noteByHi : rel?.noteByLo) ?? '',
         cfg: { deepseekKey: cfg.deepseekKey, deepseekModel: cfg.deepseekModel, anthropicKey: cfg.anthropicKey, claudeModel: cfg.claudeModel },
-        hour: venueHour(tx.timestamp.microsSinceUnixEpoch),
+        hour: townHour(tx.timestamp.microsSinceUnixEpoch),
       };
     });
     if (!snapshot) return {};
@@ -790,7 +834,7 @@ export const createMirror = spacetimedb.reducer(
     if (owned.length >= MAX_MIRRORS_PER_OWNER) {
       throw new SenderError(`You already have ${MAX_MIRRORS_PER_OWNER} mirrors in Mirrorville`);
     }
-    if (ctx.db.mirror.count() >= MAX_MIRRORS_TOTAL) throw new SenderError('Mirrorville is full right now');
+    if ([...ctx.db.mirror.iter()].filter(m => m.active !== false).length >= MAX_MIRRORS_TOTAL) throw new SenderError('Mirrorville is full right now');
 
     // TIPI extraversion: item 1 plus reversed item 6, on a 1-7 scale.
     const extraversion = ((args.tipi[0] + 8 - args.tipi[5]) / 2 - 1) / 6;
@@ -805,6 +849,7 @@ export const updateIntent = spacetimedb.reducer({ mirrorId: t.u64(), intent: t.s
   const intent = cleanIntent(args.intent);
   const landmark = landmarkForIntent(intent);
   const target = randomPointIn(ctx, landmark);
+  ctx.db.mirrorRest.mirrorId.delete(m.id);
   ctx.db.mirror.id.update({ ...m, intent, landmark, place: landmark, targetX: target.x, targetY: target.y });
 });
 
@@ -853,7 +898,7 @@ export const myMirrors = spacetimedb.view({ name: 'my_mirrors', public: true }, 
   const rows: { id: bigint; name: string; look: number; intent: string; selfCard: string; contact: string }[] = [];
   for (const p of ctx.db.mirrorProfile.owner.filter(ctx.sender)) {
     const m = ctx.db.mirror.id.find(p.mirrorId);
-    if (m && !m.demo) rows.push({ id: m.id, name: m.name, look: m.look, intent: m.intent, selfCard: p.selfCard, contact: p.contact });
+    if (m && m.active !== false && !m.demo) rows.push({ id: m.id, name: m.name, look: m.look, intent: m.intent, selfCard: p.selfCard, contact: p.contact });
   }
   return rows;
 });
@@ -1074,6 +1119,8 @@ export const setModels = spacetimedb.reducer(
 
 export const resetWorld = spacetimedb.reducer((ctx) => {
   const c = requireAdmin(ctx);
+  for (const row of [...ctx.db.mirrorRest.iter()]) ctx.db.mirrorRest.mirrorId.delete(row.mirrorId);
+  for (const row of [...ctx.db.worldRuntime.iter()]) ctx.db.worldRuntime.id.delete(row.id);
   for (const row of [...ctx.db.mirrorSummary.iter()]) ctx.db.mirrorSummary.mirrorId.delete(row.mirrorId);
   for (const row of [...ctx.db.mirrorCard.iter()]) ctx.db.mirrorCard.id.delete(row.id);
   for (const row of [...ctx.db.importStatus.iter()]) ctx.db.importStatus.id.delete(row.id);
@@ -1087,5 +1134,4 @@ export const resetWorld = spacetimedb.reducer((ctx) => {
   for (const row of [...ctx.db.llmJob.iter()]) ctx.db.llmJob.scheduledId.delete(row.scheduledId);
   for (const row of [...ctx.db.mirrorProfile.iter()]) ctx.db.mirrorProfile.mirrorId.delete(row.mirrorId);
   for (const row of [...ctx.db.mirror.iter()]) ctx.db.mirror.id.delete(row.id);
-  seedDemoMirrors(ctx, c.admin);
 });

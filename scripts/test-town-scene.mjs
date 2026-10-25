@@ -96,10 +96,62 @@ test('follow camera centers its owner on desktop and portrait screens', () => {
     assert.equal(inverse.x, point.x); assert.equal(inverse.y, point.y);
   }
 });
-test('general fits the whole town and is the fallback when there is no owner', () => {
+test('general covers the viewport and is the fallback when there is no owner', () => {
   for (const [width, height] of [[1200, 675], [390, 844]]) {
     const frame = cameraExports.cameraTarget(width, height, 'general');
-    assert.ok(960 * frame.zoom <= width + 1e-9 && 672 * frame.zoom <= height + 1e-9);
+    assert.ok(960 * frame.zoom >= width - 1e-9 && 672 * frame.zoom >= height - 1e-9);
     assert.equal(JSON.stringify(cameraExports.cameraTarget(width, height, 'follow')), JSON.stringify(frame));
   }
+});
+
+const motionExports = {};
+runInNewContext(ts.transpileModule(readFileSync(new URL('../src/TownMotion.ts', import.meta.url), 'utf8'), {
+  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+}).outputText, { exports: motionExports });
+const buildings = {};
+runInNewContext(ts.transpileModule(world + '\n' + readFileSync(new URL('../src/TownBuildings.ts', import.meta.url), 'utf8').replace(/import .*?;\r?\n/, ''), {
+  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+}).outputText, { exports: buildings });
+test('indoor pin requires server arrival and completed visual travel, and clears on departure', () => {
+  const m = { place: 'cafe', x: 18, y: 4, targetX: 18, targetY: 4 };
+  assert.equal(buildings.enteredBuilding(m, 0), 'cafe');
+  assert.equal(buildings.enteredBuilding(m, 1), null);
+  assert.equal(buildings.enteredBuilding({ ...m, targetX: 25 }, 0), null);
+  assert.equal(buildings.enteredBuilding({ ...m, x: 1, targetX: 1 }, 0), null);
+  assert.equal(buildings.enteredBuilding({ ...m, place: 'park', x: 20, y: 15, targetX: 20, targetY: 15 }, 0), null);
+});
+test('a distant or delayed snapshot cannot cause a burst of movement', () => {
+  for (const dt of [1 / 60, 1 / 30, 5]) {
+    const next = motionExports.advanceTownPosition({ x: 0, y: 0 }, { x: 300, y: 400 }, dt);
+    assert.ok(Math.hypot(next.x, next.y) <= 1.8 * Math.min(dt, 0.05) + 1e-9);
+  }
+});
+test('walking speed is stable across frame rates and stops exactly at its target', () => {
+  for (const fps of [30, 60, 120]) {
+    let point = { x: 0, y: 0 };
+    for (let i = 0; i < fps; i++) point = motionExports.advanceTownPosition(point, { x: 20, y: 0 }, 1 / fps);
+    assert.ok(Math.abs(point.x - 1.8) < 1e-9);
+    point = motionExports.advanceTownPosition(point, { x: point.x + 0.001, y: 0 }, 1 / fps);
+    const stopped = motionExports.advanceTownPosition(point, point, 1 / fps);
+    assert.equal(stopped.x, point.x);
+  }
+});
+
+test('small one-second updates keep moving between packets without overshooting or snapping on retarget', () => {
+  const target = { x: 0.36, y: 0 };
+  let point = { x: 0, y: 0 }, snapshot, movingFrames = 0;
+  for (let i = 0; i <= 60; i++) {
+    const sample = motionExports.sampleTownSnapshot(snapshot, point, target, i * 1000 / 60);
+    snapshot = sample.snapshot;
+    const next = motionExports.advanceTownPosition(point, sample.point, 1 / 60);
+    if (next.x > point.x + 1e-9) movingFrames++;
+    assert.ok(next.x <= target.x + 1e-9);
+    point = next;
+  }
+  assert.ok(movingFrames >= 59, `only ${movingFrames} moving frames`);
+  const before = point.x;
+  const changed = motionExports.sampleTownSnapshot(snapshot, point, { x: -1, y: 0 }, 1100);
+  assert.equal(changed.point.x, before);
+  const stopped = motionExports.sampleTownSnapshot(changed.snapshot, point, { x: -1, y: 0 }, 4000);
+  assert.equal(stopped.point.x, -1);
 });

@@ -1,8 +1,10 @@
 # Current work
 
-Updated 2026-10-24. The teammate's application code from `origin/yw/map-assets` (`cd9a1910b23b42a05ee98106fce606e311f59c42`) is being merged into local `yq`, starting at `1f404a9ba67b52ee594c2b0018dbe35449717c81`. The user's authored Godot project remains in `mirrorvile/`.
+Updated 2026-10-24. The latest teammate code from `origin/yw/map-assets` (`7509d4ba95dd383d6b0befee23c84d6246383b69`) is being merged into local `yq`, starting at `7c7f5e61c9f02283c8eb1f1ff3ad5e2539ee41b9`. The original Godot project and local login/map repairs are retained. Local checks are recorded in [update validation](validation/2026-10-24-update-yw-map-assets.md).
 
 ## Current implementation
+
+- The update includes route-aware client movement, separate 5Hz movement/social timing, the accelerated town clock, calmer stays, indoor portrait pins, revised dock/clock controls and compressed/preloaded Home art. [Town timing](decisions/proposed-town-timing.md) remains Proposed; implemented preview defaults are not consensus ADRs.
 
 - Local frontend guest preview connects to the user-supplied shared database; Live / 12 mirrors and authored map rendering checked. Fixed comma-containing map asset URLs for Vite. See [shared preview validation](validation/2026-10-24-shared-frontend-preview.md).
 - Login email focus no longer draws a second inner frame; local desktop/mobile-width checks, build and auth tests passed. See [focus validation](validation/2026-10-24-login-focus.md).
@@ -24,3 +26,11 @@ Updated 2026-10-24. The teammate's application code from `origin/yw/map-assets` 
 - The source branch lists Claude judgment-path validation, cross-browser/expiry and phone login checks, and subjective fidelity acceptance as remaining checks; see its individual validation records for exact scope.
 - The teammate's postcard-privacy and CREAO briefs remain on `yw/proposals`. The seven yq proposals remain Proposed. Newly imported unnumbered proposals are not converted into ADRs by this merge.
 - This operation downloads and merges code locally. No database publication, data migration, tunnel creation or public deployment is part of this operation.
+
+## Teammate login/map repair
+
+Integrated yq 7c7f5e6 into yw/map-assets: comma-containing asset filenames now load correctly
+through local Vite, and desktop email placement/focus follow the teammate's repair. Their
+original evidence is in validation/2026-10-24-login-focus.md and
+validation/2026-10-24-shared-frontend-preview.md. Hosted login may still require a second
+email entry; see validation/2026-10-24-email-login-investigation.md.

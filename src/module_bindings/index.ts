@@ -38,12 +38,14 @@ import AddCardReducer from "./add_card_reducer";
 import CreateMirrorReducer from "./create_mirror_reducer";
 import DeleteCardReducer from "./delete_card_reducer";
 import ImportTextReducer from "./import_text_reducer";
+import RefreshWorldScheduleReducer from "./refresh_world_schedule_reducer";
 import ResetWorldReducer from "./reset_world_reducer";
 import RewriteCardReducer from "./rewrite_card_reducer";
 import SetCardRoomReducer from "./set_card_room_reducer";
 import SetContactReducer from "./set_contact_reducer";
 import SetLlmConfigReducer from "./set_llm_config_reducer";
 import SetModelsReducer from "./set_models_reducer";
+import SetResidentActiveReducer from "./set_resident_active_reducer";
 import ShowInterestReducer from "./show_interest_reducer";
 import UndoCardEditReducer from "./undo_card_edit_reducer";
 import UpdateIntentReducer from "./update_intent_reducer";
@@ -143,12 +145,14 @@ const reducersSchema = __reducers(
   __reducerSchema("create_mirror", CreateMirrorReducer),
   __reducerSchema("delete_card", DeleteCardReducer),
   __reducerSchema("import_text", ImportTextReducer),
+  __reducerSchema("refresh_world_schedule", RefreshWorldScheduleReducer),
   __reducerSchema("reset_world", ResetWorldReducer),
   __reducerSchema("rewrite_card", RewriteCardReducer),
   __reducerSchema("set_card_room", SetCardRoomReducer),
   __reducerSchema("set_contact", SetContactReducer),
   __reducerSchema("set_llm_config", SetLlmConfigReducer),
   __reducerSchema("set_models", SetModelsReducer),
+  __reducerSchema("set_resident_active", SetResidentActiveReducer),
   __reducerSchema("show_interest", ShowInterestReducer),
   __reducerSchema("undo_card_edit", UndoCardEditReducer),
   __reducerSchema("update_intent", UpdateIntentReducer),

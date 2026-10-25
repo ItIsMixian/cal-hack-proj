@@ -34,7 +34,7 @@ function fixture(demo = false) {
   const db = {};
   for (const [name, def] of Object.entries(definitions)) {
     const rows = new Map(); let seq = 1n;
-    const pk = name === 'mirrorProfile' ? 'mirrorId' : ['tickTimer', 'llmJob', 'importJob'].includes(name) ? 'scheduledId' : 'id';
+    const pk = ['mirrorProfile', 'mirrorRest', 'mirrorSummary'].includes(name) ? 'mirrorId' : ['tickTimer', 'llmJob', 'importJob'].includes(name) ? 'scheduledId' : 'id';
     const equal = (a, b) => typeof a?.equals === 'function' ? a.equals(b) : a === b;
     const table = {
       iter: () => rows.values(), count: () => BigInt(rows.size),
@@ -154,4 +154,49 @@ test('one conversation between two mirrors of the same owner consumes only one d
     const entry = [...f.db.diaryEntry.iter()].find(e => e.conversationId === other && e.mirrorId === 10n);
     assert.equal(entry.goodFit, other === 40n);
   }
+});
+
+
+test('5Hz movement keeps one-unit-per-second speed and one-second social cadence', () => {
+  const f = fixture();
+  for (const m of [...f.db.mirror.iter()]) f.db.mirror.id.delete(m.id);
+  f.db.mirror.insert({ id: 40n, name: 'Pacing fixture', intent: '', landmark: 'park', place: 'park',
+    x: 0, y: 0, targetX: 10, targetY: 0, conversationId: 0n, activity: 'walking',
+    lastChatAt: new Timestamp(0n), extraversion: 0.5 });
+  const random = () => 0.5;
+  random.integerInRange = (lo, hi) => Math.min(hi, Math.max(lo, 120));
+  for (let i = 1; i <= 5; i++) mod.tick({ ...f.ctx(A), random, timestamp: new Timestamp(BigInt(i) * 200_000n) });
+  assert.ok(Math.abs(f.db.mirror.id.find(40n).x - 1) < 1e-8);
+  assert.equal(f.db.worldRuntime.id.find(0).lastSocialAt, 200_000n);
+});
+
+test('arrival holds a destination for the chosen dwell period before moving again', () => {
+  const f = fixture();
+  for (const m of [...f.db.mirror.iter()]) f.db.mirror.id.delete(m.id);
+  f.db.mirror.insert({ id: 40n, name: 'Rest fixture', intent: 'gym', landmark: 'gym', place: 'gym',
+    x: 5, y: 5, targetX: 5, targetY: 5, conversationId: 0n, activity: 'walking',
+    lastChatAt: new Timestamp(0n), extraversion: 0.5 });
+  const random = () => 0.5;
+  random.integerInRange = (lo, hi) => Math.min(hi, Math.max(lo, 120));
+  const tickAt = seconds => mod.tick({ ...f.ctx(A), random, timestamp: new Timestamp(BigInt(seconds) * 1_000_000n) });
+  tickAt(1); tickAt(120);
+  assert.equal(f.db.mirror.id.find(40n).targetX, 5);
+  assert.notEqual(f.db.mirror.id.find(40n).activity, 'walking');
+  tickAt(121);
+  assert.notEqual(f.db.mirror.id.find(40n).targetX, 5);
+  assert.equal(f.db.mirror.id.find(40n).activity, 'walking');
+});
+
+
+test('resident exit is admin-only and reversible, retaining profile and ending live conversations', () => {
+  const f = fixture(true);
+  f.db.config.id.update({ ...f.db.config.id.find(0), admin: A });
+  const profile = { ...f.db.mirrorProfile.mirrorId.find(20n) };
+  assert.throws(() => mod.setResidentActive(f.ctx(B), { mirrorId: 20n, active: false }), /admin/);
+  mod.setResidentActive(f.ctx(A), { mirrorId: 20n, active: false });
+  assert.equal(f.db.mirror.id.find(20n).active, false);
+  assert.equal(f.db.conversation.id.find(30n).active, false);
+  assert.deepEqual(f.db.mirrorProfile.mirrorId.find(20n), profile);
+  mod.setResidentActive(f.ctx(A), { mirrorId: 20n, active: true });
+  assert.equal(f.db.mirror.id.find(20n).active, true);
 });

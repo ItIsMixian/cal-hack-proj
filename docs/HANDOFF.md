@@ -1,6 +1,6 @@
 # Handoff / 必要交接
 
-- 当前检出个人分支 yq；本次从 origin/yw/map-assets（cd9a191）下载并合并应用代码，保留 Godot 工程、历史文档与个人 Proposed，不修改 main。
+- 当前检出个人分支 yq；本次从 origin/yw/map-assets（7509d4b）下载并合并应用代码，保留 Godot 工程、历史文档与个人 Proposed，不修改 main。
 - 用户明确：ADR 是双方已经形成共识的确定文件；只有 Proposed 是最近在考虑的想法。汇报两者必须分开，未实现的 ADR 也不是新的 Proposed。
 - 从 [PROGRESS](PROGRESS.md)、[团队原则](core/principles.md) 与 [决策索引](decisions/README.md) 开始；原对话背景在 [discussion-context](core/discussion-context.md)，不能据此覆盖共识。
 - 团队原则与 ADR 0001–0008 保留 main 原文。Proposed 接受前不编号、不改为 Accepted，也不改变既定原则。
@@ -9,6 +9,8 @@
 - Activity Helper PRD 与赞助商资料保留独立参考副本；FigJam、赛事规则与外部 API 本次未重新核验。
 - 分支交付范围和检查见 [验证记录](validation/2026-10-24-yq-branch.md)。未运行应用、调用模型或部署服务。
 
+- Latest local update checks: [7509d4b merge](validation/2026-10-24-update-yw-map-assets.md). This operation updates files only; it does not publish the backend, run refresh_world_schedule, or activate/deactivate shared residents.
+
 ## Source branch operation handoff
 
 以下保留队友分支交接内容；其中 Windows 数据路径、数据库和授权回调属于原开发机，不可直接当作本机配置。本次没有运行发布或迁移命令；检查见 [merge validation](validation/2026-10-24-merge-yw-map-assets.md)。
@@ -16,6 +18,13 @@
 # Handoff
 
 Things that are not obvious from the code.
+
+- **Town timing/navigation**: movement timer is 200ms; social decisions stay at most once/second.
+  `refresh_world_schedule` is admin-only and retimes existing databases without resetting data.
+  Arrivals rest 90–180 real seconds. Shared town day lasts 45 real minutes; real dates still govern
+  diaries/import recency/evidence caps. Rebuild navigation with `python scripts/build-town-navigation.py`
+  after scene/art edits. Collision and fixed-speed route playback are client presentation; server
+  social proximity retains abstract coordinates. See `validation/town-navigation-and-timing.md`.
 
 - **Shared preview performance / login**: public `*.trycloudflare.com` requests now serve the
   production `dist/` build through `scripts/share-preview.ts`, gzip-compressed, with no dev module
@@ -26,6 +35,10 @@ Things that are not obvious from the code.
   The current tunnel's exact login/logout callbacks were saved in SpacetimeAuth with owner approval;
   a replacement tunnel needs replacement exact entries. See `validation/mobile-login-and-share-performance.md`.
 
+- **Room delivery**: `python scripts/optimize-room-assets.py` creates 347KB WebP delivery
+  copies from 5.34MB original art. `roomArt.ts` shares preload/decode work and gates partial
+  display; owned sessions preload after five seconds in town. Rebuild after changing assets.
+
 - **Authored Mirror Room** (`yw/map-assets`): `origin/yq` commit `1f404a9` supplies `Home.tscn`
   and five PNGs. Regenerate with `node scripts/import-home-scene.mjs 1f404a9`. Keep generated
   `src/homeScene.json` in sync. All existing room actions remain connected; no data migration.
@@ -33,7 +46,10 @@ Things that are not obvious from the code.
 
 - **Authored town / camera** (`yw/map-assets`): imported `origin/yq`'s `329e7e8` scene;
   regenerate with `node scripts/import-town-scene.mjs 329e7e8`. The town fills the viewport,
-  with General/Follow modes and owned-mirror selection. No database publication is needed.
+  with General/Follow modes and owned-mirror selection. General defaults to viewport cover
+  with touch/pointer drag; conversation text is kept in character panels, with tiny pixel
+  indicators on the map. Arrived indoor mirrors render as clickable roof portrait pins
+  (cafe/gym/restaurant/clock hall/farm); park remains outdoors. No database publication is needed.
   Existing server coordinates are projected onto forecourts; this does not add collision/pathfinding.
   See `validation/authored-town-and-camera.md`. For temporary HTTPS sharing, Vite proxies only
   the SDK subscribe and websocket-token routes; client connections use the share origin.
@@ -59,8 +75,11 @@ Things that are not obvious from the code.
 - **On the original dev machine** the SpacetimeDB CLI was installed inside the coding agent's sandbox,
   so it is not on the real PATH. Anyone else should install the CLI normally (spacetimedb.com/install).
 - **PowerShell** blocks `npm`/`npx` scripts on that machine; use `npm.cmd` / `npx.cmd`.
-- **Demo mirrors** (Yun, Marco, Priya, Sam, Lena) are owned by the publisher, always wave back, and only
-  chat among themselves at a reduced rate.
+- **Resident exits**: five publisher-owned system demo mirrors (ids 1–5) are now inactive.
+  No demos are automatically seeded. Admin `set_resident_active(id, active)` reversibly hides/restores
+  a resident, ending active conversations on exit and retaining all data. Test mirrors remain pending
+  owner clarification; mixian id9 remains active. Latest temporary public origin is
+  `https://frequent-converter-stockings-place.trycloudflare.com`; exact auth callbacks saved.
 - **Docs reader**: `python .agents/skills/orrery-docs-local/scripts/orrery_docs.py build --target .`, then open
   `docs/_site/orrery-docs.html` (generated, gitignored).
 

@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import CharacterAvatar from './CharacterAvatar';
 import scene from './homeScene.json';
+import { loadRoomArt, roomArtUrl } from './roomArt';
 
 export type RoomObject = 'mirror' | 'diary' | 'cards' | 'desk' | 'contacts';
 const objects: { id: RoomObject; node?: string; label: string; hint: string }[] = [
@@ -21,18 +22,30 @@ function placement(node: typeof scene.nodes[number]) {
 
 export default function PixelRoom({ name, look, onOpen }: { name: string; look: number; onOpen: (object: RoomObject) => void }) {
   const [hover, setHover] = useState<RoomObject | null>(null);
+  const [art, setArt] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [attempt, setAttempt] = useState(0);
+  useEffect(() => {
+    let active = true;
+    setArt('loading');
+    loadRoomArt().then(() => { if (active) setArt('ready'); }, () => { if (active) setArt('error'); });
+    return () => { active = false; };
+  }, [attempt]);
   const background = scene.nodes.find(node => node.name === 'Background')!;
   const interactive = scene.nodes.filter(node => node.name !== 'Background');
-  return <div className="room-world room-world-authored">
-    <div className="room-scene room-scene-authored" aria-label="Your pixel room. Choose an object to explore.">
-      <img className="home-background" style={placement(background)} src={`/assets/home/${background.file}`} alt="" draggable={false} />
+  return <div className="room-world room-world-authored" aria-busy={art === 'loading'}>
+    {art !== 'ready' && <div className="room-art-loading" role="status">
+      <p>{art === 'error' ? 'The room artwork could not load.' : 'Opening your Mirror Room…'}</p>
+      {art === 'error' && <button onClick={() => setAttempt(n => n + 1)}>Retry</button>}
+    </div>}
+    <div className="room-scene room-scene-authored" style={{ visibility: art === 'ready' ? 'visible' : 'hidden' }} aria-label="Your pixel room. Choose an object to explore.">
+      <img className="home-background" style={placement(background)} src={roomArtUrl(background.file)} alt="" draggable={false} />
       {interactive.map(node => {
         const object = objects.find(object => object.node === node.name)!;
         return <button key={object.id} className={`room-object home-object home-object-${object.id}`} style={placement(node)}
           aria-label={`Open ${object.id === 'desk' ? 'Writing desk' : object.label}`} onClick={() => onOpen(object.id)}
           onMouseEnter={() => setHover(object.id)} onMouseLeave={() => setHover(null)}
           onFocus={() => setHover(object.id)} onBlur={() => setHover(null)}>
-          <img src={`/assets/home/${node.file}`} alt="" draggable={false} /><span>{object.label}</span>
+          <img src={roomArtUrl(node.file)} alt="" draggable={false} /><span>{object.label}</span>
         </button>;
       })}
       <button className="room-object home-contacts" aria-label="Open Address book" onClick={() => onOpen('contacts')}

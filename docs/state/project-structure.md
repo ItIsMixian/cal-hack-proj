@@ -1,6 +1,6 @@
 # Merged project structure
 
-Updated 2026-10-24. Source application branch: `yw/map-assets` at `cd9a1910b23b42a05ee98106fce606e311f59c42`; local target: `yq`, previously `1f404a9`. This records the downloaded code, not a new claim that the application has been deployed or exercised on this machine. Local checks are in [merge validation](../validation/2026-10-24-merge-yw-map-assets.md).
+Updated 2026-10-24. Latest source: `yw/map-assets` at `7509d4ba95dd383d6b0befee23c84d6246383b69`; local target: `yq`, previously `7c7f5e6`. This records downloaded code. Current local checks are in [update validation](../validation/2026-10-24-update-yw-map-assets.md); earlier merge evidence remains in [merge validation](../validation/2026-10-24-merge-yw-map-assets.md).
 
 ## Authored project retained on yq
 
@@ -22,7 +22,7 @@ As of the diary and Figma login implementations on `yw/diary` (2026-10-24). Fact
 | Path | What it is |
 | --- | --- |
 | `spacetimedb/src/index.ts` | The whole backend module: tables, tick, conversations, diaries, interest, contacts, Mirror Room, views, admin |
-| `spacetimedb/src/world.ts` | Town layout (6 places), intent → place keywords, activities, daily events, venue clock (UTC-7) |
+| `spacetimedb/src/world.ts` | Town layout (6 places), intent → place keywords, activities, daily events and shared accelerated town clock (45 real minutes/day) |
 | `spacetimedb/src/tipi.ts` | TIPI questionnaire, scoring, self-card sentence |
 | `spacetimedb/src/redact.ts` | Redaction, facets, rooms, default visibility (`isVisibleIn`) |
 | `spacetimedb/src/fidelity.ts` | Full-collection merge planning, two-card facet slots, protected edits, AI/date guards and owner pronoun display |
@@ -37,6 +37,7 @@ As of the diary and Figma login implementations on `yw/diary` (2026-10-24). Fact
 | `src/WorldCanvas.tsx`, `src/TownCamera.ts` | Full-viewport Canvas with General/Follow cameras, owned-mirror selection, walking sprites, inverse-camera picking and screen-sized speech bubbles |
 | `src/AuthoredTown.ts`, `public/assets/town/` | Teammate's complete Godot town layout (11 sprite instances, 220 House/Decoration cells), original textures/provenance, client-only forecourt projection |
 | `scripts/import-town-scene.mjs`, `scripts/test-town-scene.mjs` | Reproducible scene conversion and layout/hash/projection/camera checks |
+| `src/TownBuildings.ts`, `src/TownNavigation.ts`, `src/townNavigation.json` | Indoor portrait pins, weighted obstacle-aware paths and fixed-speed route playback |
 | `src/CharacterAvatar.tsx` | Shared idle character preview for Mirror Room and creation form |
 | `public/assets/characters/` | Original Cup Nooble PNG from teammate branch, source mapping and license |
 | `src/CreateMirror.tsx` | Make-a-mirror form (name, color, TIPI, optional on-mind and intent; blank intent starts in Park then explores occupied places) |
@@ -55,12 +56,13 @@ As of the diary and Figma login implementations on `yw/diary` (2026-10-24). Fact
 Public: `mirror`, `conversation`, `line`. Private: `config` (keys, admin), `mirror_profile` (owner,
 self-card, contact), `relation` (pair sightings/talks/notes), `diary_entry`, `interest`,
 legacy `encounter` and `human_message` (retained for migration safety; unused by the client),
-`mirror_card`, `mirror_summary`, `import_status`, plus scheduled `tick_timer`, `llm_job`, `import_job` (with migration-default latest-message ISO date).
+`mirror_card`, `mirror_summary`, `import_status`, `mirror_rest` (90–180 second stays),
+`world_runtime` (5Hz movement / at most 1Hz social gate), plus scheduled `tick_timer`, `llm_job`, `import_job` (with migration-default latest-message ISO date).
 Per-visitor views: `my_mirrors`, `my_diary`, `my_cards`, `my_summaries`, `my_imports`. The postcard/chat views and reducers have been removed.
 
 ## Implemented
 
-- Five demo mirrors seeded on init; visitors create up to 3 mirrors each, 60 total.
+- No automatic demo residents on init/reset. Existing residents can reversibly exit through admin-only `set_resident_active`; inactive rows retain profiles/cards but leave simulation and the visible roster. Visitors create up to 3 mirrors each, 60 active total.
 - Daily rhythm, visible activities, extraversion-weighted initiative, relationship sightings/talks,
   conversation length by familiarity, natural endings (`[END]`).
 - Diaries for both sides of each wrapped conversation, including non-matches; model failure uses a factual fallback.

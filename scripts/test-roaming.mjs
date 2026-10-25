@@ -24,7 +24,7 @@ function context(rows, { hour = 14, roll = 0.5, pick = 0 } = {}) {
   const random = () => roll;
   random.integerInRange = (min, max) => Math.min(max, Math.max(min, pick));
   return { random, db: { mirror: { iter: () => rows.values() } },
-    timestamp: { microsSinceUnixEpoch: BigInt(Date.UTC(2026, 9, 24, hour + 7)) * 1000n } };
+    timestamp: { microsSinceUnixEpoch: exports.GAME_EPOCH_MICROS + BigInt(Math.round(((hour - 8 + 24) % 24) * exports.GAME_DAY_SECONDS / 24)) * 1_000_000n } };
 }
 test('empty intent leaves an isolated park for an occupied destination without inventing an intent', () => {
   const rows = [me, { id: 2n, place: 'cafe', activity: 'reading' }];
@@ -46,4 +46,11 @@ test('explicit intent retains its existing home-place preference', () => {
 });
 test('daily event attraction still applies to mirrors with no intent', () => {
   assert.equal(exports.choosePlace(context([me], { hour: 15, roll: 0 }), me), 'cafe');
+});
+
+
+test('town clock advances independently through a 45-minute shared day', () => {
+  assert.equal(exports.townHour(exports.GAME_EPOCH_MICROS), 8);
+  assert.equal(exports.townHour(exports.GAME_EPOCH_MICROS + BigInt(exports.GAME_DAY_SECONDS / 2) * 1_000_000n), 20);
+  assert.equal(exports.townHour(exports.GAME_EPOCH_MICROS + BigInt(exports.GAME_DAY_SECONDS) * 1_000_000n), 8);
 });

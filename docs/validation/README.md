@@ -9,3 +9,5 @@
 - [2026-10-24：yq 个人分支交付](2026-10-24-yq-branch.md)：目录迁移、共识文件保持、链接与构建检查。
 
 - [2026-10-24: local merge of yw/map-assets](2026-10-24-merge-yw-map-assets.md): local dependency, build, test and preservation checks, separate from source-machine runtime evidence.
+
+- [2026-10-24: latest yw/map-assets update](2026-10-24-update-yw-map-assets.md): local merge from 7509d4b, with local validation separate from source-machine runtime claims.

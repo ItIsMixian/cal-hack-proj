@@ -26,4 +26,5 @@ export default __t.row({
   conversationId: __t.u64().name("conversation_id"),
   demo: __t.bool(),
   lastChatAt: __t.timestamp().name("last_chat_at"),
+  active: __t.bool(),
 });
