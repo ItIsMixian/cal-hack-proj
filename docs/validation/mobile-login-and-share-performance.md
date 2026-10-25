@@ -52,10 +52,19 @@ Artwork requests time out after 20 seconds. Town delivery copies total 1,365,282
 of 11,255,664 bytes, retaining dimensions/alpha and original PNG hashes. Tile atlases are lossless.
 A loader regression checks every shipped WebP, all 231 draws, and no partial painting on failure.
 Build and 60 tests: Pass. Phone retry/appearance and production guest connection: Pending.
-Local ports 5173/3000 were not listening after restart; no new public tunnel was started for this
-GitHub checkpoint. The previous temporary URL and its callback registration require a new session.
+At the first GitHub checkpoint, ports 5173/3000 were not listening after restart. A replacement
+tunnel was subsequently started; the previous temporary URL is obsolete.
 
 Owner requested removal of the legacy map source: deleted `src/TownArt.ts` and made the
 artwork-loading status a full-screen page with retry. Production build: Pass. Per owner request,
 phone/teammate runtime checks are delegated to them (Pending). Restarted the existing local
 database data directory and Vite, and started a replacement temporary tunnel. No DB publish/reset.
+
+## Restart correction
+
+Phone entry reported connection failure. Initial restart had opened a new empty default data
+directory rather than the original packaged Claude application directory. Restored the original
+data directory and original JWT key paths explicitly; local database identity endpoint returned
+200 (previously 404). No publish/reset or data replacement. Updated exact replacement-domain
+login/logout callbacks after owner confirmation (dashboard Last Updated 17:28:42 PT).
+External guest/account and phone map checks remain Pending, delegated to owner as requested.

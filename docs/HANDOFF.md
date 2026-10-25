@@ -25,7 +25,12 @@ Things that are not obvious from the code.
   Guest access and current temporary-domain callback registration are checked; full phone account
   magic-link completion remains Pending.
 
-- **Run locally**: `spacetime start`, then `spacetime publish mirrorville --module-path spacetimedb --server local --yes`,
+- **Original Windows data directory**: use explicit `--data-dir`
+  `C:/Users/1/AppData/Local/Packages/Claude_pzs8sxrjxfjjc/LocalCache/Local/SpacetimeDB/data`
+  and `--jwt-pub-key-path` / `--jwt-priv-key-path` pointing to `id_ecdsa.pub` / `id_ecdsa`
+  in its sibling `config/`. Plain `spacetime start` under Codex can open a different empty
+  directory after restart. Do not republish to compensate for a missing database.
+- **Run locally on other machines**: `spacetime start`, then `spacetime publish mirrorville --module-path spacetimedb --server local --yes`,
   `spacetime generate --lang typescript --out-dir src/module_bindings --module-path spacetimedb`, `npm run dev`.
   After changing the module, publish and regenerate bindings.
 - **Preserve data when publishing.** 0008 appends `contact` with a migration default and adds private
