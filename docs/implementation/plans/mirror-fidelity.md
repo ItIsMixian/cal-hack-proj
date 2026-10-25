@@ -62,12 +62,11 @@ friends, board games, arranging gatherings). It also showed where the importer i
 9. **"You", not "they"**, in the owner's own view. The stored text stays third person for other
    mirrors; the Mirror Room rewrites the pronoun for display only.
 
-### C. From small talk to fit (needs a decision first)
+### C. From small talk to fit (decision 0010)
 
-These change 0004's evidence rule. The decision is drafted as `docs/decisions/proposed-graded-fit.md` on
-branch `yw/proposals` (evidence from the conversation, personality never counts, good / maybe / none,
-a "didn't click" line, an eight-case eval set from the server log, and an address book of name cards
-instead of a "recommended" label, with the owner's own card on top); start C once it is numbered.
+Decided in 0010 (amends 0004's evidence rule): evidence from the conversation, personality never
+counts, good / maybe / none, a "didn't click" line, an eight-case eval set from the server log, and
+an address book of name cards instead of a "recommended" label, with the owner's own card on top.
 
 10. **Needs and offers.** The import also extracts, per mirror, up to three "looking for" and three
     "can offer" items (private, shown in the Mirror Room, editable like cards).

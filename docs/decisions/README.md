@@ -24,12 +24,13 @@ is implemented. Later decisions amend or supersede earlier ones instead of rewri
 | [0001](0001-spacetimedb-rewrite.md) | Build from scratch on SpacetimeDB, no AI Town code | Yes |
 | [0002](0002-model-split.md) | DeepSeek for mirror chatter, Claude for judgments | Partly (Claude path untested) |
 | [0003](0003-postcards-and-waves.md) | No popups: postcards and mutual waves instead of yes/no (partly superseded by 0008) | Yes |
-| [0004](0004-evidence-and-conduct.md) | Mirror conduct rules and evidence-checked connections (evidence rule under review) | Yes |
+| [0004](0004-evidence-and-conduct.md) | Mirror conduct rules and evidence-checked connections (evidence amended by 0010) | Yes |
 | [0005](0005-mirror-room-privacy.md) | Mirror Room: local redaction, facets, personal cards, per-room defaults | Yes (venue room only) |
 | [0006](0006-marglo-as-a-source.md) | Marglo is one data source among many | No |
 | [0007](0007-public-deployment.md) | Public deployment: Maincloud + static frontend, tunnels as fallback | No |
 | [0008](0008-diary-and-mutual-interest.md) | Mirror diaries; visible interest; mutual interest unlocks contact details | On `yw/diary` |
 | [0009](0009-accounts-and-entry-screen.md) | Accounts via SpacetimeAuth, explicit guests, Figma-designed entry screen | On `yw/diary` |
+| [0010](0010-graded-fit-and-name-cards.md) | Graded fit with evidence from the conversation; address-book name cards instead of recommendations | No |
 
 ## Proposed
 
