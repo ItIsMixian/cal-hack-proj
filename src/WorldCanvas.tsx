@@ -52,7 +52,7 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, cameraMo
     const sprite = new Image();
     sprite.onload = () => { canvas.dataset.characterRenderer = 'sprites'; };
     sprite.onerror = () => { canvas.dataset.characterRenderer = 'fallback'; };
-    sprite.src = '/assets/characters/cup-nooble-character.png';
+    sprite.src = 'assets/characters/cup-nooble-character.png';
     const town = document.createElement('canvas');
     town.width = WIDTH; town.height = HEIGHT;
     setArtStatus('loading');

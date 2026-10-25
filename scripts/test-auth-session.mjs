@@ -15,7 +15,7 @@ function storage(values = {}) {
   const valuesMap = new Map(Object.entries(values));
   return { getItem: key => valuesMap.get(key) ?? null, setItem: (key, value) => valuesMap.set(key, value), removeItem: key => valuesMap.delete(key) };
 }
-function render({ mode = null, user = null, authenticated = !!user, callback = false, configured = true, hostname = 'localhost', protocol = 'http:' } = {}) {
+function render({ mode = null, user = null, authenticated = !!user, callback = false, configured = true, hostname = 'localhost', protocol = 'http:', appBase = '/' } = {}) {
   const base = `${protocol === 'https:' ? 'wss' : 'ws'}://${hostname}${protocol === 'https:' ? '' : ':3000'}/mirrorville`;
   const local = storage({ [`${base}/auth_token`]: 'existing-guest-token' });
   const session = storage(mode ? { [`${base}/session_mode`]: mode } : {});
@@ -45,9 +45,9 @@ function render({ mode = null, user = null, authenticated = !!user, callback = f
   }).outputText;
   const exports = {};
   runInNewContext(code, { exports, require: mockRequire, URL, URLSearchParams,
-    testEnv: { VITE_SPACETIMEAUTH_CLIENT_ID: configured ? 'public-test-client' : '' },
+    testEnv: { BASE_URL: appBase, VITE_SPACETIMEAUTH_CLIENT_ID: configured ? 'public-test-client' : '' },
     localStorage: local, sessionStorage: session,
-    window: { location: { hostname, protocol, host: `${hostname}${protocol === 'https:' ? '' : ':5173'}`, port: protocol === 'https:' ? '' : '5173', origin: `${protocol}//${hostname}${protocol === 'https:' ? '' : ':5173'}`, pathname: callback ? '/callback' : '/', search: callback ? '?code=test&state=test' : '' } },
+    window: { location: { hostname, protocol, host: `${hostname}${protocol === 'https:' ? '' : ':5173'}`, port: protocol === 'https:' ? '' : '5173', origin: `${protocol}//${hostname}${protocol === 'https:' ? '' : ':5173'}`, pathname: callback ? `${appBase}callback` : appBase, search: callback ? '?code=test&state=test' : '' } },
   });
   const html = renderToStaticMarkup(React.createElement(exports.default));
   return { html, connections, local };
@@ -97,6 +97,11 @@ test('a magic-link callback in a fresh tab enters account mode after provider ve
   assert.match(result.html, /account:account@example.test/);
   assert.equal(result.connections[0].token, account.id_token);
 });
+test('a Pages subpath callback in a fresh tab enters the verified account', () => {
+  const result = render({ callback: true, user: account, appBase: '/cal-hack-proj/' });
+  assert.match(result.html, /account:/);
+});
+
 test('a forged callback URL alone does not authenticate anyone', () => {
   const result = render({ callback: true, authenticated: false });
   assert.equal(result.connections.length, 0);

@@ -9,7 +9,7 @@ type TileLayer = { type: 'tiles'; name: string; cells: { x: number; y: number; t
 type Scene = { tileSize: number; nodes: (SpriteLayer | TileLayer)[] };
 
 export async function loadAuthoredTown(g: CanvasRenderingContext2D) {
-  const response = await fetch('/assets/town/scene.json', { signal: AbortSignal.timeout(20_000) });
+  const response = await fetch('assets/town/scene.json', { signal: AbortSignal.timeout(20_000) });
   if (!response.ok) throw new Error(`Town manifest: ${response.status}`);
   const scene = await response.json() as Scene;
   const files = new Set(scene.nodes.flatMap(n => n.type === 'sprite' ? [n.texture] : n.cells.map(c => c.texture)));
@@ -19,7 +19,7 @@ export async function loadAuthoredTown(g: CanvasRenderingContext2D) {
     image.onload = () => { clearTimeout(timeout); resolve([file, image]); };
     image.onerror = () => { clearTimeout(timeout); reject(new Error(`Town texture: ${file}`)); };
     // Keep filename commas literal so Vite's static-path decoding finds the asset.
-    image.src = `/assets/town/${encodeURI(file.replace(/\.png$/, '.webp'))}`;
+    image.src = `assets/town/${encodeURI(file.replace(/\.png$/, '.webp'))}`;
   }))));
   // Commit to the cache only when all layers are ready; the UI offers retry on load errors.
   g.save();

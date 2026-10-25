@@ -21,11 +21,11 @@ export default function LoginScreen({ onAccount, onGuest, busy = false, error = 
             <h2>Your mirrors meet first.<br />Then you do.</h2>
           </div>
           <button className="login-submit login-option" type="button" disabled={busy} onClick={() => void onAccount()}>
-            <img src="/assets/login/button.webp" alt="" draggable={false} />
+            <img src="assets/login/button.webp" alt="" draggable={false} />
             <span>{busy ? 'Opening…' : 'Continue with email'}</span>
           </button>
           <button className="login-guest login-option" type="button" disabled={busy} onClick={onGuest}>
-            <img src="/assets/login/button.webp" alt="" draggable={false} />
+            <img src="assets/login/button.webp" alt="" draggable={false} />
             <span>Explore as a guest</span>
           </button>
           <p className="login-guest-note">Guest mirrors stay with this browser.</p>
@@ -37,6 +37,6 @@ export default function LoginScreen({ onAccount, onGuest, busy = false, error = 
 }
 
 function LoginArt({ name, className, mobile, alt = '' }: { name: string; className?: string; mobile?: string; alt?: string }) {
-  return <picture><source media="(max-width: 600px)" srcSet={mobile ? `/assets/login/${mobile}` : 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='} />
-    <img className={className} src={`/assets/login/${name}.webp`} alt={alt} fetchPriority={name === 'logo' ? 'high' : 'auto'} /></picture>;
+  return <picture><source media="(max-width: 600px)" srcSet={mobile ? `assets/login/${mobile}` : 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='} />
+    <img className={className} src={`assets/login/${name}.webp`} alt={alt} fetchPriority={name === 'logo' ? 'high' : 'auto'} /></picture>;
 }

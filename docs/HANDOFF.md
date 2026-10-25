@@ -2,6 +2,13 @@
 
 Things that are not obvious from the code.
 
+- **Permanent hosting**: `.github/workflows/deploy-pages.yml` publishes `yw/map-assets`
+  to `https://itismixian.github.io/cal-hack-proj/`, using Maincloud database
+  `mirrorville-yw9299-world`. Redeploy the backend with explicit `--no-config --server
+  maincloud --module-path spacetimedb --delete-data=never`; the auth project remains
+  on `mirrorville-yw9299-hyy77`. Existing local residents/cards are not yet migrated.
+  See `validation/maincloud-pages.md` for deployment checks and remaining validation.
+
 - **Town timing/navigation**: movement timer is 200ms; social decisions stay at most once/second.
   `refresh_world_schedule` is admin-only and retimes existing databases without resetting data.
   Arrivals rest 90–180 real seconds. Shared town day lasts 45 real minutes; real dates still govern

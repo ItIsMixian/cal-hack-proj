@@ -22,6 +22,7 @@ const DB_NAME = import.meta.env.VITE_SPACETIMEDB_DB_NAME ?? 'mirrorville';
 const GUEST_TOKEN_KEY = `${HOST}/${DB_NAME}/auth_token`;
 const MODE_KEY = `${HOST}/${DB_NAME}/session_mode`;
 const CLIENT_ID = import.meta.env.VITE_SPACETIMEAUTH_CLIENT_ID?.trim();
+const APP_BASE = import.meta.env.BASE_URL ?? '/';
 const AUTHORITY = import.meta.env.VITE_SPACETIMEAUTH_AUTHORITY ?? 'https://auth.spacetimedb.com/oidc';
 type Mode = 'guest' | 'account' | null;
 
@@ -33,7 +34,7 @@ function saveMode(mode: Mode) {
 }
 function initialMode(): Mode {
   // Magic links can open a fresh tab, without the initiating tab's sessionStorage.
-  if (window.location.pathname === '/callback' && new URLSearchParams(window.location.search).has('state')) return 'account';
+  if (window.location.pathname === `${APP_BASE}callback` && new URLSearchParams(window.location.search).has('state')) return 'account';
   const value = readStorage(sessionStorage, MODE_KEY);
   return value === 'guest' || value === 'account' ? value : null;
 }
@@ -41,10 +42,10 @@ function initialMode(): Mode {
 export default function SessionRoot() {
   if (!CLIENT_ID) return <GuestOnlyGateway />;
   return <AuthProvider authority={AUTHORITY} client_id={CLIENT_ID}
-    redirect_uri={import.meta.env.VITE_SPACETIMEAUTH_REDIRECT_URI ?? `${window.location.origin}/callback`}
-    post_logout_redirect_uri={window.location.origin} response_type="code" scope="openid profile email offline_access"
+    redirect_uri={import.meta.env.VITE_SPACETIMEAUTH_REDIRECT_URI ?? `${window.location.origin}${APP_BASE}callback`}
+    post_logout_redirect_uri={`${window.location.origin}${APP_BASE}`} response_type="code" scope="openid profile email offline_access"
     automaticSilentRenew userStore={new WebStorageStateStore({ store: sessionStorage })}
-    onSigninCallback={() => { saveMode('account'); window.history.replaceState({}, document.title, '/'); }}>
+    onSigninCallback={() => { saveMode('account'); window.history.replaceState({}, document.title, APP_BASE); }}>
     <AccountGateway />
   </AuthProvider>;
 }

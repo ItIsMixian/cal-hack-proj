@@ -1,0 +1,44 @@
+name: Deploy Mirrorville
+on:
+  workflow_dispatch:
+  push:
+    branches: [yw/map-assets]
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run build -- --base=/cal-hack-proj/
+        env:
+          VITE_SPACETIMEDB_HOST: wss://maincloud.spacetimedb.com
+          VITE_SPACETIMEDB_DB_NAME: mirrorville-yw9299-world
+          VITE_SPACETIMEAUTH_CLIENT_ID: client_034leYri7AY0CJTanClndG
+          VITE_SPACETIMEAUTH_AUTHORITY: https://auth.spacetimedb.com/oidc
+      # Pages serves this document for /callback; the browser retains code/state.
+      - run: cp dist/index.html dist/404.html
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publish
+        id: deployment
+        uses: actions/deploy-pages@v4

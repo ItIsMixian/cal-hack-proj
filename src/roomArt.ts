@@ -1,6 +1,6 @@
 import scene from './homeScene.json';
 
-export const roomArtUrl = (file: string) => `/assets/home/${file.replace(/\.png$/, '.webp')}`;
+export const roomArtUrl = (file: string) => `assets/home/${file.replace(/\.png$/, '.webp')}`;
 let pending: Promise<void> | undefined;
 
 // Share decode work across background warm-up, room mounting and return visits.
