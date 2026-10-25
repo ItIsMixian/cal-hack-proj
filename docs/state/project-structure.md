@@ -1,51 +1,79 @@
-# 项目结构与当前状态
+# Merged project structure
 
-新增 [mirrorvile/Home.tscn](../../mirrorvile/Home.tscn)：Home 根节点下有 Background、Bookshelf、Mirror、Diary、Carddesk 图像节点。当前证据为场景文本及资源文件，未验证运行或点击互动。
+Updated 2026-10-24. Source application branch: `yw/map-assets` at `cd9a1910b23b42a05ee98106fce606e311f59c42`; local target: `yq`, previously `1f404a9`. This records the downloaded code, not a new claim that the application has been deployed or exercised on this machine. Local checks are in [merge validation](../validation/2026-10-24-merge-yw-map-assets.md).
 
-最新地图文件为 [mirrorvile/Town map.tscn](../../mirrorvile/Town%20map.tscn)，包含 Coffee、Body_builder、Restaurant、Park、Clockbuilding、Farm 等场景节点，House / Decoration 使用 TileMapLayer。该描述来自场景文本静态读取，不代表地图或角色互动已经运行验证。
+## Authored project retained on yq
 
-## Godot 工程快照（2026-10-24）
+- [mirrorvile/project.godot](../../mirrorvile/project.godot) is the original Godot 4.5 / Forward Plus project with Player1, Player2, Town map and Home scenes and their original assets.
+- [Town map](../../mirrorvile/Town%20map.tscn) includes House / Decoration tile layers; [Home](../../mirrorvile/Home.tscn) contains Bookshelf, Mirror, Diary and Carddesk sprites. The teammate converted these scenes for the web client; the original Godot project is preserved.
+- The earlier yq state and progress documents are preserved in [historical source text](../library/history/2026-10-24-before-code-merge.md). Their statements about missing diary/login implementations are superseded by the downloaded code below.
+- [Activity Helper](../library/originals/idea1_PRD_v0.1.md) remains an independent idea. [Discussion context](../core/discussion-context.md) and the seven personal Proposed ideas are retained; merging code does not accept them or change team principles.
 
-按用户要求将 [mirrorvile 工程](../../mirrorvile/project.godot) 纳入 yq。工程配置声明 Godot 4.5 / Forward Plus，包含 Player1.tscn、Player2.tscn 与 ArtAsset 素材目录；.godot 缓存不提交。本次只核对文件与资源引用，未运行 Godot，不表示主程序技术栈或任何共识 ADR 已变更。
+## Teammate's implementation inventory
 
-检查日期：2026-10-24。来源：本地文件、cal-hack-proj HEAD `8c6b381e08ee0b0b050b90d63a99113aac67053e`、实际源码静态阅读及导入的历史记录。本次未运行应用。
+The following source text is retained from `yw/map-assets:docs/state/project-structure.md`. Its implementation and validation descriptions refer to the source branch's evidence; they are not a substitute for the local merge checks.
 
-## yq 分支交付补充
+# Project structure
 
-此前父目录合并后的文档现已纳入本仓库 docs。下表及历史章节中的 cal-hack-proj 路径是导入时的父目录布局；本分支的应用根目录就是仓库根目录。共识原则见 [core/principles](../core/principles.md)，父目录讨论背景保存在 [discussion-context](../core/discussion-context.md)。ADR 与 Proposed 不混合汇报。
+As of the diary and Figma login implementations on `yw/diary` (2026-10-24). Facts from the code; validation is recorded separately.
 
-## 导入时工作区布局
+## Layout
 
-| 路径 | 内容与边界 |
+| Path | What it is |
 | --- | --- |
-| [cal-hack-proj](../../README.md) | MirrorVille 应用 Git 仓库，本次读取时分支 main；源码位于 src/ 和 spacetimedb/src/ |
-| docs/ | 本次合并后的文档入口，不是应用代码 |
-| [项目技能](../../.agents/skills/orrery-docs-local/SKILL.md) | 本地 Orrery 文档维护与离线阅读页构建 |
-| [Activity Helper PRD](../library/originals/idea1_PRD_v0.1.md) | 独立构想原稿，不是 MirrorVille PRD |
-| [赞助商资料](../library/originals/Sponsor_Tracks_中文总结.md) | 既有截图总结，未重新核验官方规则 |
+| `spacetimedb/src/index.ts` | The whole backend module: tables, tick, conversations, diaries, interest, contacts, Mirror Room, views, admin |
+| `spacetimedb/src/world.ts` | Town layout (6 places), intent → place keywords, activities, daily events, venue clock (UTC-7) |
+| `spacetimedb/src/tipi.ts` | TIPI questionnaire, scoring, self-card sentence |
+| `spacetimedb/src/redact.ts` | Redaction, facets, rooms, default visibility (`isVisibleIn`) |
+| `spacetimedb/src/fidelity.ts` | Full-collection merge planning, two-card facet slots, protected edits, AI/date guards and owner pronoun display |
+| `spacetimedb/src/llm.ts` | Raw HTTP calls: DeepSeek chat, Claude Messages, JSON parsing |
+| `src/SessionRoot.tsx` | Entry gate, SpacetimeAuth OIDC sessions, separate guest credential and database connection |
+| `src/LoginScreen.tsx`, `src/login.css` | Figma pixel-art entry screen, email hint, hosted account login/signup and guest entry |
+| `public/assets/login/` | Original Figma image layers plus compressed desktop/mobile WebP delivery variants |
+| `scripts/optimize-login-assets.py`, `src/pixel-font.css` | Reproducible delivery variants and embedded WOFF2 font (originals/licenses retained) |
+| `scripts/share-preview.ts` | Gzipped production build for temporary share domains; localhost keeps Vite HMR |
+| `public/fonts/` | Locally hosted Pixelify Sans and OFL license |
+| `src/App.tsx`, `src/town-game.css` | Game town shell: clock, live map, action dock, resident/guide panels, diary overlay and Mirror Room entry |
+| `src/WorldCanvas.tsx`, `src/TownCamera.ts` | Full-viewport Canvas with General/Follow cameras, owned-mirror selection, walking sprites, inverse-camera picking and screen-sized speech bubbles |
+| `src/AuthoredTown.ts`, `public/assets/town/` | Teammate's complete Godot town layout (11 sprite instances, 220 House/Decoration cells), original textures/provenance, client-only forecourt projection |
+| `scripts/import-town-scene.mjs`, `scripts/test-town-scene.mjs` | Reproducible scene conversion and layout/hash/projection/camera checks |
+| `src/CharacterAvatar.tsx` | Shared idle character preview for Mirror Room and creation form |
+| `public/assets/characters/` | Original Cup Nooble PNG from teammate branch, source mapping and license |
+| `src/CreateMirror.tsx` | Make-a-mirror form (name, color, TIPI, optional on-mind and intent; blank intent starts in Park then explores occupied places) |
+| `src/MirrorRoom.tsx` | Pixel room with private summary, per-mirror diary, two-card facet defaults, explicit share-state chips, inferred import scenes, notes and contact |
+| `src/PixelRoom.tsx`, `src/pixel-room.css`, `src/homeScene.json` | Responsive interactive room with teammate-authored Home layout, keyboard-accessible furniture hotspots and existing game panels |
+| `public/assets/home/`, `scripts/import-home-scene.mjs` | Five original room PNGs and authored Home.tscn transforms/provenance; reproducible conversion |
+| `src/RoomDialog.tsx` | Native modal game panel with focus containment, Escape and focus return |
+| `src/Diary.tsx` | Paginated game journal with venue dates, optional mirror filter, visible interest and mutually unlocked contacts |
+| `src/importers.ts` | Browser-only CSV/WhatsApp own-lines extraction with latest kept-message dates, source headers and equal per-file import budgets |
+| `src/module_bindings/` | Generated by `spacetime generate`; do not edit |
+| `scripts/set-keys.mjs` | Stores model keys (hidden prompt, HTTP with admin token) |
+| `.agents/skills/orrery-docs-local/` | This documentation system's skill and reader builder |
 
-## 本次静态核对确认的代码
+## Backend tables
 
-- [package.json](../../package.json)：React、Vite、TypeScript、SpacetimeDB SDK 及构建、生成绑定等脚本。
-- [main.tsx](../../src/main.tsx)：浏览器匿名身份令牌保存在 localStorage，连接 SpacetimeDB；不是邮箱密码注册或真实社交 OAuth。
-- [App.tsx](../../src/App.tsx)、[CreateMirror.tsx](../../src/CreateMirror.tsx)：Town / Postcards、Mirror Room、分身创建和 TIPI；没有原需求 Login / Registration / Library / Settings / Share 的完整入口。
-- [后端模块](../../spacetimedb/src/index.ts)：世界 tick、模型调用 job、分身创建、postcards、wave、human_message、导入和按用户暴露的 views。
-- [隐私默认值](../../spacetimedb/src/redact.ts)：不同 facet、personal 标记、房间覆盖共同决定可见性；不是所有新卡一律隐藏。
-- [llm.ts](../../spacetimedb/src/llm.ts)：DeepSeek 对话与 Claude 判断分流代码存在；本次未调用或确认模型可用性。
+Public: `mirror`, `conversation`, `line`. Private: `config` (keys, admin), `mirror_profile` (owner,
+self-card, contact), `relation` (pair sightings/talks/notes), `diary_entry`, `interest`,
+legacy `encounter` and `human_message` (retained for migration safety; unused by the client),
+`mirror_card`, `mirror_summary`, `import_status`, plus scheduled `tick_timer`, `llm_job`, `import_job` (with migration-default latest-message ISO date).
+Per-visitor views: `my_mirrors`, `my_diary`, `my_cards`, `my_summaries`, `my_imports`. The postcard/chat views and reducers have been removed.
 
-完整模块表及已有能力描述保存在 [源仓库结构记录](repository-structure-0d59463.md)。其基线为 `0d59463`；本次静态核对 HEAD 为 `8c6b381`。源 [端到端验证](../validation/2026-10-24-local-e2e.md) 不能当成本机 HEAD 重跑。
+## Implemented
 
-## 已有代码与计划的分界
+- Five demo mirrors seeded on init; visitors create up to 3 mirrors each, 60 total.
+- Daily rhythm, visible activities, extraversion-weighted initiative, relationship sightings/talks,
+  conversation length by familiarity, natural endings (`[END]`).
+- Diaries for both sides of each wrapped conversation, including non-matches; model failure uses a factual fallback.
+- Good-fit marks preserve 0004 evidence checks, allowed reasons, repeat-talk requirement, pair deduplication and daily cap.
+- Visible directional interest; demo mirrors reciprocate. Contact details remain private until mutual interest, and can be edited or cleared in the Mirror Room (120 characters).
+- Legacy postcards still count toward pair/daily limits after a data-preserving upgrade.
+- Mirror Room per 0005; only venue-visible cards reach prompts.
 
-| 项目 | 当前证据与缺口 |
-| --- | --- |
-| 小镇、分身互动、Mirror Room、postcards / waves / 私聊 | 有代码，另有源仓库 0d59463 的历史验证；本次仅静态阅读 |
-| 日记、可见兴趣、双方联系方式解锁 | 0008 Accepted，有活动计划；源码仍为 postcard 路径，未见实现 |
-| 多小镇／私人邀请房间 | venue 为现有实现；teammates / friends 只有可见性设置，不能记为完整房间 |
-| 公开部署 | 0007 Accepted，源记录 Not implemented；本次没有部署证据 |
-| Claude 判断 | 有调用代码，历史验证未覆盖；本次未运行 |
-| 邮箱密码注册、生日、社交账号授权、Share 发布 | 当前原型没有对应完整实现与验证证据，原用户需求仍保留 |
+- Figma entry screen with guest entry/exit and real SpacetimeAuth integration. Authentication configuration and checked/Pending flows are in `validation/login-figma-and-auth.md`.
 
-## 历史与验证
+## Known gaps
 
-合并前根目录“未发现代码、无 Git”的描述保存在 [基线原稿](../library/history/2026-10-24-calhack-baseline.md)，不再作为当前工作区结论。历史安装与应用验证各保留原范围；本次合并检查见 [验证记录](../validation/2026-10-24-docs-merge.md)。
+- Only the venue room is live; teammates and old-friends rooms are visibility settings only.
+- No triadic referral, group conversations, or Messenger/36-questions import.
+- Simulation not deployed publicly; an empty Maincloud database anchors SpacetimeAuth only. Town runs on the dev machine (see HANDOFF; plan in decision 0007).
+- The contact column uses an appended migration default; new diary/interest tables are additive. Destructive publication still wipes keys and must be announced first.

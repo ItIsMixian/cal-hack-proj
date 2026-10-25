@@ -25,7 +25,7 @@ export const FACET_LABELS: Record<Facet, string> = {
   recent: 'Lately',
 };
 
-export const RELATIONS = ['friends', 'family', 'teammates', 'classmates', 'other'] as const;
+export const RELATIONS = ['friends', 'family', 'teammates', 'classmates', 'other', 'ai'] as const;
 
 // Rooms a mirror can show up in. Only the venue is live so far.
 export const ROOMS = ['venue', 'teammates', 'friends'] as const;
@@ -64,3 +64,5 @@ export function isVisibleIn(
   if (card.personal) return false;
   return DEFAULT_VISIBILITY[card.facet as Facet]?.[room] ?? false;
 }
+
+export const RELATION_LABELS: Record<typeof RELATIONS[number], string> = { friends: 'Friends', family: 'Family', teammates: 'Teammates', classmates: 'Classmates', other: 'Other', ai: 'AI assistant' };

@@ -1,5 +1,12 @@
 # 变更记录
 
+## 2026-10-24: merge teammate application code into local yq
+
+- Downloaded origin/yw/map-assets at cd9a191 and merged its application, generated bindings, assets, tests and validation records into yq, starting from 1f404a9.
+- Source files merged without conflicts; reconciled PROGRESS and project structure, preserving the previous author text in history and retaining the user's original mirrorvile project.
+- Consensus ADRs and personal Proposed ideas remain distinct; importing code does not accept new proposals. This merge does not publish a database or deploy the app.
+- Local check outcomes and limitations: [merge validation](validation/2026-10-24-merge-yw-map-assets.md).
+
 ## 2026-10-24：上传 Home 场景与素材到 yq
 
 - 按用户要求提交 mirrorvile/Home.tscn、5 张新增图片及对应 import 文件，共 11 个工程文件，约 5.1 MiB。Home 包含 Background、Bookshelf、Mirror、Diary、Carddesk 节点。
@@ -64,3 +71,52 @@ Complete deliveries and important changes only.
 - Lifelike town and postcards (0003, 0004, 0005): daily rhythm, activities, extraversion, relationships,
   grounded conversations, evidence-checked postcards with waves; Mirror Room as a page with per-room defaults.
 - Adopted the simplified Orrery documentation system (`docs/`, `.agents/skills/orrery-docs-local/`).
+
+- Implemented 0008 on `yw/diary`: conversation diaries, visible interest, mutual contact unlock and
+  Mirror Room contact editing; additive local migration preserved model keys. Legacy postcard/chat
+  tables retained for migration safety, their API removed. Acceptance and Pending items are in
+  `validation/0008-diary-and-mutual-interest.md`.
+
+- Added the team's pixel-art Figma login entry using exported source layers and a locally hosted font;
+  integrated SpacetimeAuth account sessions alongside preserved browser guests. An empty Maincloud
+  database hosts auth configuration; the simulation remains local. See `validation/login-figma-and-auth.md`.
+
+- Reused the teammate's existing Cup Nooble character sheet for four-direction walking/idle mirrors;
+  updated Mirror Room/creation previews, sprite hit areas, depth and bubble spacing. Source attribution
+  and license retained; checks and Pending items are in `validation/character-sprites.md`.
+# Optional intent — 2026-10-24
+
+Made intent optional in the creation form and create/update reducers, retaining the length limit and existing Park default. Local module updated without deleting data. Checks: `validation/optional-intent.md`.
+# Pixel room, town and journal — 2026-10-24
+
+Turned Mirror Room into a clickable pixel interior, then matched the town with furnished venues and a game action dock. Diary now opens as a paginated paper journal in game panels, including a mirror-specific room entrance. Existing import, card, contact and interest handlers retained. Evidence: `validation/pixel-room.md` and `validation/pixel-town-and-diary.md`.
+
+## Intent-free roaming — 2026-10-24
+
+Fixed blank-intent mirrors inheriting a persistent Park preference. They now explore occupied places after lingering, while explicit intents and event attraction retain their behavior. Six selector tests and ten diary tests pass; local update preserved data. Live mixian observed walking toward Café. Evidence: `validation/intent-free-roaming.md`.
+
+## WeChat CSV — 2026-10-24
+
+Added browser-only PyWxDump CSV imports at the writing desk: retain sent plain text, omit received/quoted/forwarded/media records and export metadata, redact then preview, and combine multiple CSVs. Malformed CSVs cannot fall back to raw upload. Actual local exports retained 87 and 4 text messages; ten parser/UI callback tests and production build passed. No personal exports committed or submitted to the model. See `validation/wechat-csv-import.md`.
+
+## Mirror fidelity A/B — 2026-10-24
+
+On `yw/fidelity`, replaced append-only imports with complete per-facet merges, protected owner edits, previous-text undo, explicit AI scenes and dated Recent guards. Added owner summaries, source inference and clear sharing chips. Regenerated the owner's external AI scene files and dated the WeChat export; validated live imports on isolated mirrors 10/11 without changing mixian's cards. Additive local publication preserved data. Validation and Pending human/rebase acceptance: `validation/mirror-fidelity-a-b.md`.
+
+## Authored town and Home scenes — 2026-10-24
+
+On `yw/map-assets`, imported the teammate's complete town (`329e7e8`) and Home (`1f404a9`)
+compositions with original PNGs, transforms, tile layers and provenance. Added a full-screen
+General/Follow town camera and connected the room furniture to existing panels. A temporary
+HTTPS preview supports guest access when venue Wi-Fi blocks direct LAN access. Production
+build and 55 regression/scene tests pass; desktop/portrait interactions were checked. No database
+publish/reset or mixian edits. Evidence and Pending device checks: `validation/authored-town-and-camera.md`
+and `validation/authored-mirror-room.md`.
+
+## Phone login and temporary sharing — 2026-10-24
+
+Fixed phone entry clipping and removed the second input-frame appearance. Original PNGs remain;
+phone artwork now totals about 121KB, with inline WOFF2 and gzip production delivery on share URLs.
+Retained localhost HMR. Saved exact share-domain auth callbacks after owner confirmation and verified
+the hosted email-login page opens. Build and 59 tests pass; actual phone speed and complete email
+magic-link return still need owner validation. See `validation/mobile-login-and-share-performance.md`.

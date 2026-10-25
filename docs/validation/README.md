@@ -7,3 +7,5 @@
 每条记录区分日期、确切材料版本、方法、实际结果和未覆盖项。没有执行的检查为 Pending；文档构建成功不表示应用验收通过。
 
 - [2026-10-24：yq 个人分支交付](2026-10-24-yq-branch.md)：目录迁移、共识文件保持、链接与构建检查。
+
+- [2026-10-24: local merge of yw/map-assets](2026-10-24-merge-yw-map-assets.md): local dependency, build, test and preservation checks, separate from source-machine runtime evidence.

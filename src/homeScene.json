@@ -1,0 +1,84 @@
+{
+  "nodes": [
+    {
+      "name": "Background",
+      "file": "background.png",
+      "position": [
+        19.000015,
+        5.000061
+      ],
+      "scale": [
+        0.6148325,
+        0.6148325
+      ],
+      "size": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "name": "Bookshelf",
+      "file": "bookshelf.png",
+      "position": [
+        273.00003,
+        -206
+      ],
+      "scale": [
+        0.245614,
+        0.245614
+      ],
+      "size": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "name": "Mirror",
+      "file": "mirror.png",
+      "position": [
+        -99.99999,
+        222
+      ],
+      "scale": [
+        0.18121333,
+        0.18284099
+      ],
+      "size": [
+        1024,
+        1536
+      ]
+    },
+    {
+      "name": "Diary",
+      "file": "diary.png",
+      "position": [
+        221,
+        31
+      ],
+      "scale": [
+        0.24275714,
+        0.29541016
+      ],
+      "size": [
+        1536,
+        1024
+      ]
+    },
+    {
+      "name": "Carddesk",
+      "file": "carddesk.png",
+      "position": [
+        -202.99998,
+        -37.999985
+      ],
+      "scale": [
+        0.2050451,
+        0.19828072
+      ],
+      "size": [
+        1774,
+        887
+      ]
+    }
+  ]
+}

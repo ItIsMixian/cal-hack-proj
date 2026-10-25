@@ -16,4 +16,5 @@ export default __t.row({
   look: __t.u8(),
   intent: __t.string(),
   selfCard: __t.string().name("self_card"),
+  contact: __t.string(),
 });

@@ -10,6 +10,9 @@ import {
   type Infer as __Infer,
 } from "spacetimedb";
 
-export default {
-  encounterId: __t.u64(),
-};
+export default __t.row({
+  mirrorId: __t.u64().primaryKey().name("mirror_id"),
+  owner: __t.identity(),
+  text: __t.string(),
+  updatedAt: __t.timestamp().name("updated_at"),
+});

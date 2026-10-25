@@ -1,37 +1,23 @@
-# 当前工作
+# Current work
 
-最新快照：[Home.tscn](../mirrorvile/Home.tscn) 与 5 张新增图片、对应导入文件随本次 yq 提交上传；工程与场景共 26 处资源引用检查通过，未运行 Godot。
+Updated 2026-10-24. The teammate's application code from `origin/yw/map-assets` (`cd9a1910b23b42a05ee98106fce606e311f59c42`) is being merged into local `yq`, starting at `1f404a9ba67b52ee594c2b0018dbe35449717c81`. The user's authored Godot project remains in `mirrorvile/`.
 
-最新地图快照：[Town map.tscn](../mirrorvile/Town%20map.tscn) 与新增地图素材随本次 yq 提交上传。已检查 21 处资源引用，未运行 Godot 或验证互动。
+## Current implementation
 
-最新交付：按用户要求将 mirrorvile/ Godot 工程与现有素材快照上传到个人分支 yq；见 [结构说明](state/project-structure.md)。只做文件及资源引用检查，未运行或集成 Godot。
+- The application includes the Figma entry screen, SpacetimeAuth accounts and separate guest sessions, conversation diaries, visible interest and mutually unlocked contacts.
+- The authored town and Home scenes are integrated into the web client, including General/Follow cameras and furniture hotspots. Original Godot scenes and assets remain available for editing.
+- Import fidelity Parts A/B and own-lines CSV extraction are included. Sources and remaining live checks are in [project structure](state/project-structure.md) and [teammate validation records](validation/README.md).
+- Existing teammate validation describes their machine and commit context. Checks executed on this machine for this merge are listed separately in [merge validation](validation/2026-10-24-merge-yw-map-assets.md).
 
-更新日期：2026-10-24。文档合并后，已按用户要求将之前讨论中与 main 不同的想法整理为 7 篇未编号 Proposed；没有执行产品开发或部署。
+## Navigation
 
-本次交付：按用户要求将合并文档与 Proposed 纳入个人分支 yq 并推送；[交付与验证](validation/2026-10-24-yq-branch.md)。ADR 只表示已达成共识的决定，“最近想法”只看 Proposed。
+- [Consensus ADRs](decisions/README.md#accepted) and [personal Proposed ideas](decisions/README.md#proposed) remain separate. Only Proposed describes ideas still being considered; implementation work does not change that distinction.
+- [Team principles](core/principles.md), [discussion context](core/discussion-context.md), [authored Godot town](../mirrorvile/Town%20map.tscn), [Home](../mirrorvile/Home.tscn).
+- [Original product requirements](design/mirrorville-product-workflow.md), [merge history](library/history/2026-10-24-before-code-merge.md), [handoff](HANDOFF.md).
 
-## 当前目标与导航
+## Remaining work from the source branch
 
-产品方向是 MirrorVille。仓库演示目标为评委创建分身、观察小镇、回顾日记并表达兴趣；仓库记录的首次 Devpost 提交目标为 2026-10-25 09:00 PT，未独立核验。当前对话的登录、Library、Settings、Share 需求仍保留，差异见 [项目原则](core/discussion-context.md)。
-
-- 当前代码与缺口：[项目结构](state/project-structure.md)。
-- 为什么这样设计：[ADR 0001–0008](decisions/README.md)；[仓库产品设计](design/product-pipeline.md)。
-- 原始用户需求与 FigJam：[产品流程](design/mirrorville-product-workflow.md)。
-- 本次合并：[差异处理](library/docs-merge-notes.md)、[验证](validation/2026-10-24-docs-merge.md)。
-- 待讨论的差异：[Proposed 索引](decisions/README.md#proposed)，含账号、Onboarding、Library、Settings、Share、小镇组织和备选后端；[本次整理验证](validation/2026-10-24-discussion-proposals.md)。
-
-## 仓库导入的后续优先级
-
-以下为源 PROGRESS 的下一步，没有因合并变成已完成或当前用户新增承诺：
-
-1. 按 [0008 活动计划](implementation/plans/0008-diary-and-mutual-interest.md) 实现日记、可见兴趣、双方联系方式解锁及 Mirror Room 联系字段。
-2. 按 [0007](decisions/0007-public-deployment.md) 先验证 Maincloud procedure 能否调用 DeepSeek，再处理公开部署。
-3. 讨论源文档提到的 `yw/proposals` 上 postcard privacy 与 CREAO team brief 草稿；此前已读取远端对应的两篇 Proposed；这是队友尚在考虑的内容，与 Accepted ADR 分开。
-4. 验证 [0002](decisions/0002-model-split.md) 的 Claude 判断路径；源记录没有 Anthropic 路径通过证据。
-5. 演示脚本、视频备份、Devpost 页面与现场真实使用。
-
-其他待对齐需求与未评估构想见 [backlog](backlog.md)。
-
-## 本次交付边界
-
-已导入源码仓库的设计、ADR、计划及历史验证，并将当前对话的差异整理为 Proposed。提案区分用户要求和助手建议，注明已有重叠与范围冲突；没有更改 Accepted ADR、团队原则或 main。源码静态检查确认原型代码存在；没有在本机运行应用、调用模型、验证 OAuth、双用户同步或公开部署。应用代码和原始 Activity Helper PRD、赞助商资料保持原样；参考副本随文档纳入本分支。
+- Public simulation deployment (0007) and Maincloud model-call verification remain outstanding.
+- The source branch lists Claude judgment-path validation, cross-browser/expiry and phone login checks, and subjective fidelity acceptance as remaining checks; see its individual validation records for exact scope.
+- The teammate's postcard-privacy and CREAO briefs remain on `yw/proposals`. The seven yq proposals remain Proposed. Newly imported unnumbered proposals are not converted into ADRs by this merge.
+- This operation downloads and merges code locally. No database publication, data migration, tunnel creation or public deployment is part of this operation.

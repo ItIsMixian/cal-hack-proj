@@ -11,6 +11,6 @@ import {
 } from "spacetimedb";
 
 export default {
-  encounterId: __t.u64(),
-  text: __t.string(),
+  mirrorId: __t.u64(),
+  contact: __t.string(),
 };
