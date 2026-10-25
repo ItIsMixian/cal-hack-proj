@@ -1,0 +1,33 @@
+.world-settings { color: #514834; }
+.world-settings-intro { margin-bottom: 24px; }
+.world-owner-badge { display: inline-block; padding: 4px 10px; background: #dce4c9; color: #4d6541; font: 15px 'Pixelify Sans', monospace; }
+.world-settings-intro > p { margin: 10px 0 0; font-size: 15px; color: #78715f; }
+.world-settings-intro .world-preview-note { font-size: 12px; }
+.world-settings fieldset { display: flex; flex-direction: column; min-width: 0; margin: 0; padding: 0; border: 0; }
+.world-settings label { display: block; margin: 0 0 8px; color: #5c4d36; font: 20px 'Pixelify Sans', monospace; }
+.world-field-optional { margin-left: 6px; font: 12px system-ui, sans-serif; color: #8a816e; }
+.world-settings input:not([type='checkbox']), .world-settings textarea { width: 100%; padding: 10px 12px; box-sizing: border-box; font-family: inherit; font-size: 16px; line-height: 1.5; }
+.world-settings textarea { resize: vertical; min-height: 88px; }
+.world-settings fieldset > input { margin-bottom: 20px; }
+.world-settings fieldset > textarea { margin-bottom: 24px; }
+.world-setting-rule { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 20px 0; border-top: 1px dashed #cdbd99; }
+.world-setting-rule > div { min-width: 0; }
+.world-setting-rule label { margin-bottom: 6px; }
+.world-setting-rule p { margin: 0; font-size: 13px; color: #7b725e; }
+.world-settings input[type='checkbox'] { appearance: none; position: relative; flex: 0 0 52px; width: 52px; height: 30px; margin: 0; padding: 0; border: 2px solid #a59472; border-radius: 2px; background: #d2c9b5; cursor: pointer; }
+.world-settings input[type='checkbox']::before { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; background: #fff7e5; box-shadow: 0 2px #8b7e5b55; }
+.world-settings input[type='checkbox']:checked { background: #738b5a; border-color: #526c40; }
+.world-settings input[type='checkbox']:checked::before { left: 25px; }
+.world-settings input:focus-visible, .world-settings textarea:focus-visible { outline: 3px solid #667d55; outline-offset: 3px; }
+.world-capacity-rule > input { flex: 0 0 88px; max-width: 88px; text-align: center; }
+.world-settings-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 16px; }
+.world-settings-actions button { min-height: 44px; padding: 8px 16px; font: 18px 'Pixelify Sans', monospace; }
+.world-settings-error { color: #994735; }
+.world-preview-role { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: #796d55; }
+.world-preview-role select { width: 100%; min-height: 38px; border: 1px solid #94805a; border-radius: 0; padding: 6px 8px; background: #fff9e7; color: #514834; font: 16px 'Pixelify Sans', monospace; }
+.town-account-menu .town-account .world-edit-button { background: #dce4c9; border-color: #73815c; color: #405735; }
+@media (max-width: 450px) {
+  .world-setting-rule { gap: 12px; }
+  .world-settings label { font-size: 18px; }
+  .world-settings-actions button { flex: 1; }
+}

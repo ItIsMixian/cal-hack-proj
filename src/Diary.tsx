@@ -3,7 +3,7 @@ import { useReducer, useSpacetimeDB, useTable } from 'spacetimedb/react';
 import { reducers, tables } from './module_bindings';
 import type { DiaryItem } from './module_bindings/types';
 import { findLandmark } from '../spacetimedb/src/world';
-import { diaryTopics, sessionSummary } from './DiaryReview';
+import { diaryTopics, sessionSummary, splitDiaryEvidence } from './DiaryReview';
 import { diarySessions, type DiarySession } from './DiarySessions';
 import { diaryCutoff } from './DiaryHistory';
 import { useDiaryWindow } from './useDiaryWindow';
@@ -14,11 +14,11 @@ const dateFormat = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Ang
 const timeFormat = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', minute: '2-digit' });
 const dateOf = (entry: DiaryItem) => new Date(Number(entry.createdAt.microsSinceUnixEpoch / 1000n));
 
-export default function Diary({ mirrorId }: { mirrorId?: bigint } = {}) {
+export default function Diary({ mirrorId, historyScope = '' }: { mirrorId?: bigint; historyScope?: string } = {}) {
   const [entries] = useTable(tables.myDiary);
-  const [mirrors] = useTable(tables.mirror);
+  const [mirrors] = useTable(tables.visibleMirrors);
   const { identity } = useSpacetimeDB();
-  const history = useDiaryWindow(identity?.toHexString(), mirrorId);
+  const history = useDiaryWindow(identity ? identity.toHexString() + historyScope : undefined, mirrorId);
   const sorted = [...entries].filter(entry => mirrorId === undefined || entry.mirrorId === mirrorId)
     .sort((a, b) => a.createdAt.microsSinceUnixEpoch > b.createdAt.microsSinceUnixEpoch ? -1 : 1);
   const groups = new Map<string, DiaryItem[]>();
@@ -108,6 +108,7 @@ function DiaryEntry({ session, showMirror }: { session: DiarySession; showMirror
   const hasRange = oldest.createdAt.microsSinceUnixEpoch !== e.createdAt.microsSinceUnixEpoch;
   const fit = session.entries.find(entry => entry.goodFit);
   const summary = sessionSummary(session.entries.map(entry => entry.text));
+  const evidence = session.entries.map(entry => splitDiaryEvidence(entry.text).source).find(source => source !== null);
   const showInterest = useReducer(reducers.showInterest);
   const { isActive } = useSpacetimeDB();
   const [busy, setBusy] = useState(false);
@@ -124,6 +125,7 @@ function DiaryEntry({ session, showMirror }: { session: DiarySession; showMirror
 
     {summary ? <p className="diary-summary">{summary}</p>
       : <p className="diary-missing-topics">Specific conversation topics weren't recorded for this exchange.</p>}
+    {evidence && <aside className="diary-evidence" aria-label="Shared information source"><small><span aria-hidden="true">▤</span> {evidence.kind === 'intent' ? 'Their stated intention' : evidence.kind === 'topic' ? 'Their chosen topic' : 'From their shared information'}</small><p>{evidence.text}</p><small>Shared information, not independent verification. This supports the excerpt, not every idea in the conversation.</small></aside>}
     <details className="diary-source"><summary>Time and source</summary><p className="diary-comment-meta"><time dateTime={start.toISOString()}>{dateFormat.format(start)} · {timeFormat.format(start)}</time>
       {hasRange && <> – <time dateTime={end.toISOString()}>{dateFormat.format(start) !== dateFormat.format(end) ? `${dateFormat.format(end)} · ` : ''}{timeFormat.format(end)}</time></>}
       <span aria-hidden="true"> · </span><span>{findLandmark(e.place).label}</span>

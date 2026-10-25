@@ -1,0 +1,52 @@
+.empty-world-window { position: absolute; z-index: 2; top: 50%; left: 50%; transform: translate(-50%, -50%); box-sizing: border-box; width: min(800px, calc(100% - 40px)); max-height: calc(100svh - 260px); overflow: auto; border: 3px solid #8e7958; background: #f7efd9; color: #514834; box-shadow: 0 0 0 3px #ddcda6, 0 12px 0 #15171955; padding: 28px 30px 24px; }
+.empty-world-heading { display: block; margin: 0 0 26px; text-align: center; }
+.empty-world-kicker { color: #83916c; font: 11px 'Pixelify Sans', monospace; letter-spacing: 2px; }
+.empty-world-heading h2 { margin: 10px 0 8px; font: 500 30px/1.15 'Pixelify Sans', monospace; color: #614e34; }
+.empty-world-heading p { margin: 0; color: #8b8069; font-size: 13px; }
+.empty-world-choices { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.empty-world-choice { display: flex; flex-direction: column; min-width: 0; padding-right: 28px; }
+.empty-world-choice + .empty-world-choice { border-left: 1px dashed #c8b792; padding: 0 0 0 28px; }
+.empty-world-icon { display: grid; place-items: center; width: 38px; height: 38px; border: 1px solid #c2b38c; background: #eee5ca; color: #72845d; font: 28px 'Pixelify Sans', monospace; }
+.empty-world-choice h3 { margin: 14px 0 10px; font: 500 24px 'Pixelify Sans', monospace; color: #614e34; }
+.empty-world-choice > p { margin: 0 0 20px; color: #81765f; font-size: 13px; line-height: 1.65; }
+.empty-world-choice form { margin-top: auto; }
+.empty-world-choice label { display: block; margin-bottom: 8px; font: 16px 'Pixelify Sans', monospace; color: #65553b; }
+.empty-world-choice input { box-sizing: border-box; width: 100%; min-height: 44px; padding: 10px 12px; border: 2px solid #c4b38e; border-radius: 0; background: #fffaf0; color: #514834; font-size: 16px; }
+.empty-world-choice input:focus-visible { outline: 3px solid #738b5a; outline-offset: 2px; }
+.empty-world-choice input[aria-invalid='true'] { border-color: #a85d46; }
+.town-game .empty-world-choice button { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 44px; margin-top: 12px; padding: 10px 14px; font: 18px 'Pixelify Sans', monospace; }
+.town-game .empty-world-choice button:disabled { opacity: .5; cursor: default; }
+.town-game .empty-world-choice button.primary { border-color: #526b40; background: #738b5a; color: #fff9e7; box-shadow: 0 3px #425635; }
+.empty-world-create-action { margin-top: auto; }
+.empty-world-choice .empty-world-feedback { min-height: 36px; margin: 12px 0 0; color: #8b806c; font-size: 11px; line-height: 1.6; overflow-wrap: anywhere; }
+.empty-world-choice .empty-world-feedback.is-error { color: #994735; }
+@media (max-width: 600px) {
+  .empty-world-window { width: calc(100% - 32px); max-height: calc(100svh - 220px); padding: 18px 20px; }
+  .empty-world-heading { margin-bottom: 16px; }
+  .empty-world-heading h2 { font-size: 26px; }
+  .empty-world-choices { grid-template-columns: minmax(0, 1fr); }
+  .empty-world-choice { display: grid; grid-template-columns: 30px minmax(0, 1fr); column-gap: 10px; align-items: center; padding: 0; }
+  .empty-world-choice + .empty-world-choice { border-left: 0; border-top: 1px dashed #c8b792; padding: 16px 0 0; margin-top: 16px; }
+  .empty-world-icon { width: 30px; height: 30px; font-size: 22px; }
+  .empty-world-choice h3 { margin: 0; font-size: 22px; }
+  .empty-world-choice > p, .empty-world-choice form, .empty-world-create-action { grid-column: 1 / -1; }
+  .empty-world-choice > p { margin: 8px 0 12px; }
+  .empty-world-choice .empty-world-feedback { min-height: 0; }
+}
+
+/* Three entry paths share one row when the available width permits it. */
+.town-game .empty-world-window { width: min(1100px, calc(100% - 40px)); padding: 16px 24px; }
+.empty-world-choices { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.town-game .empty-world-heading { margin-bottom: 14px; }
+.town-game .empty-world-choice { padding-right: 20px; }
+.town-game .empty-world-choice + .empty-world-choice { padding-left: 20px; }
+.town-game .empty-world-choice .empty-world-feedback { min-height: 0; margin-top: 8px; }
+@media (max-width: 960px) and (min-width: 601px) {
+  .empty-world-choices { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .empty-world-choice.empty-world-public { grid-column: 1 / -1; border-left: 0; border-top: 1px dashed #c8b792; margin-top: 16px; padding: 16px 0 0; }
+}
+@media (max-width: 600px) {
+  .empty-world-choices { grid-template-columns: minmax(0, 1fr); }
+  .town-game .empty-world-choice { padding-right: 0; }
+  .town-game .empty-world-choice + .empty-world-choice { padding-left: 0; }
+}

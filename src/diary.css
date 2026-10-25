@@ -68,3 +68,7 @@
 .diary-leaf-heading > .diary-interest-mark { margin: 0 auto 10px; }
 .diary-encounter[aria-pressed='true'] .diary-encounter-copy { text-decoration: none; }
 .diary-encounter[aria-pressed='true'] .diary-name-line > strong { text-decoration: underline; text-decoration-color: #a4b078; text-underline-offset: 7px; }
+
+.diary-evidence { margin: 16px 0; padding: 12px 14px; border-left: 3px solid #8e9a6b; background: #e8e8cc; overflow-wrap: anywhere; }
+.diary-evidence small { display: block; font: 12px/1.4 system-ui, sans-serif; color: #606b47; }
+.diary-evidence p { margin: 8px 0; font: 16px/1.5 Georgia, serif; white-space: pre-wrap; }

@@ -1,7 +1,15 @@
 node_modules
+.local-backend/
 dist
 *.log
 .DS_Store
 .env*.local
 spacetime.local.json
 docs/_site/
+
+dist-desktop/
+output/
+*.tsbuildinfo
+**/__pycache__/
+*.pyc
+desktop/app/model-client.cjs

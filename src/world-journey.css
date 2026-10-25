@@ -1,0 +1,103 @@
+.world-journey { position: fixed; inset: 0; z-index: 20; overflow: auto; background: #263c35; color: #f6edcf; font-family: 'Pixelify Sans', monospace; display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; place-items: center; }
+.journey-layout { box-sizing: border-box; width: min(1240px, 100%, calc((100svh - 148px) * 16 / 9)); padding: 24px; }
+.journey-header, .journey-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.journey-header { margin-bottom: 16px; }
+.journey-header h1 { font-size: 28px; font-weight: 400; margin: 0; }
+.journey-header p, .journey-toolbar p { margin: 0; color: #c1d0ae; font-size: 16px; }
+.journey-stage { position: relative; aspect-ratio: 16 / 9; isolation: isolate; overflow: hidden; background: #b7cfa2; box-shadow: 0 12px #182e28, 0 0 0 3px #62745c; }
+.journey-stage canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+.world-journey.is-empty-world, .world-journey.is-empty-world .journey-stage { background: #303236; }
+.world-journey.is-empty-world canvas { visibility: hidden; }
+.journey-caption { position: absolute; left: 5%; top: 7%; margin: 0; max-width: 85%; font-size: clamp(16px, 2vw, 23px); color: #364a36; background: #fff1d2ed; padding: 10px 18px; box-shadow: 3px 3px #6d7756; }
+.journey-controls { position: absolute; right: 4%; top: 5%; width: min(440px, 45%); max-height: 64%; overflow: auto; box-sizing: border-box; color: #4e5139; background: #fff0cf; border: 4px solid #8d6949; padding: 18px; box-shadow: 5px 6px #454c3680; }
+.world-journey.is-empty-world .journey-controls { max-height: 88%; }
+.journey-controls h2 { font-size: 26px; line-height: 1.2; font-weight: 400; margin: 0 0 8px; }
+.journey-controls > p { margin: 0 0 14px; color: #7c7759; }
+.world-journey button { font: inherit; cursor: pointer; border: 2px solid #879068; border-radius: 0; background: #f7edcf; color: #4e573b; padding: 10px 14px; min-height: 44px; box-shadow: 0 3px #697456; }
+.world-journey button:hover { background: #e1e6b7; }
+.world-journey button:focus-visible, .journey-controls:focus-visible { outline: 3px solid #e6ae55; outline-offset: 3px; }
+.world-journey button:disabled { opacity: .55; cursor: default; }
+.journey-destinations { display: grid; gap: 6px; }
+.journey-destinations button { display: flex; align-items: center; justify-content: space-between; width: 100%; text-align: left; font-size: 18px; line-height: 1.15; padding: 6px 10px; gap: 12px; overflow-wrap: anywhere; }
+.journey-destinations small { display: block; color: #77795c; font-size: 12px; line-height: 1.3; margin-top: 2px; }
+.journey-controls .journey-back { min-height: 36px; padding: 4px 8px; margin-bottom: 14px; background: transparent; box-shadow: none; font-size: 14px; }
+.journey-controls .journey-error { color: #994735; margin: 10px 0; overflow-wrap: anywhere; }
+.journey-toolbar { margin-top: 28px; }
+.journey-toolbar > div { display: flex; gap: 10px; flex-shrink: 0; }
+.journey-toolbar button { background: transparent; color: #efedcf; border-color: #728b70; box-shadow: none; }
+.journey-controls .empty-world-window { position: static; transform: none; width: auto; max-height: none; overflow: visible; border: 0; box-shadow: none; padding: 0; background: transparent; }
+.journey-controls .empty-world-choices { grid-template-columns: minmax(0, 1fr); }
+.journey-controls .empty-world-choice { padding: 0; }
+.journey-controls .empty-world-choice + .empty-world-choice { border-left: 0; border-top: 1px dashed #c8b792; padding: 16px 0 0; margin-top: 16px; }
+.journey-controls .empty-world-heading { display: none; }
+.journey-controls .empty-world-icon { display: none; }
+.journey-controls .empty-world-choice h3 { margin-top: 0; }
+.journey-controls .empty-world-choice > p { margin-bottom: 10px; }
+.journey-controls .empty-world-choice button { width: 100%; margin-top: 10px; }
+.journey-controls .world-settings input, .journey-controls .world-settings textarea { box-sizing: border-box; }
+@media (max-width: 700px) {
+  .journey-layout { width: min(100%, calc((100svh - 160px) * .8)); padding: 18px 12px; }
+  .journey-header p { display: none; }
+  .journey-stage { aspect-ratio: 4 / 5; }
+  .journey-stage canvas { position: absolute; bottom: 0; height: auto; }
+  .journey-controls { top: 4%; right: 5%; width: 90%; max-height: 65%; padding: 14px; }
+  .journey-destinations { gap: 5px; }
+  .journey-destinations button { padding: 7px 10px; font-size: 18px; }
+  .journey-toolbar { align-items: flex-start; flex-direction: column; gap: 12px; }
+  .journey-toolbar > div { width: 100%; }
+  .journey-toolbar button { flex: 1; padding: 8px; }
+  .journey-controls .empty-world-choice { display: block; }
+}
+@media (prefers-reduced-motion: reduce) { .world-journey * { scroll-behavior: auto; } }
+
+.journey-options { min-width: 0; border: 0; padding: 0; margin: 0; }
+.journey-options > p { margin: 0 0 14px; color: #7c7759; }
+.public-towns > p { font-size: 16px; line-height: 1.4; color: #7c7759; }
+.public-town-search { display: grid; gap: 8px; margin: 16px 0; font-size: 18px; }
+.public-town-search input { box-sizing: border-box; width: 100%; min-height: 44px; padding: 10px 12px; border: 2px solid #c4b38e; border-radius: 0; background: #fffaf0; color: #514834; font: 16px 'Pixelify Sans', monospace; }
+.public-town-search input:focus-visible { outline: 3px solid #738b5a; outline-offset: 2px; }
+.public-town-list { list-style: none; margin: 18px 0 0; padding: 0; display: grid; gap: 12px; }
+.public-town-list li { display: flex; align-items: center; gap: 20px; padding: 16px; border: 2px solid #c8b792; background: #fff6df; }
+.public-town-details { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.public-town-details h3 { margin: 0 0 8px; font-size: 22px; font-weight: 400; }
+.public-town-details p { margin: 0 0 8px; font-size: 16px; line-height: 1.4; white-space: pre-wrap; }
+.public-town-details small { color: #77795c; font-size: 14px; }
+.public-town-list button { flex-shrink: 0; }
+@media (max-width: 680px) {
+  .public-town-list li { align-items: stretch; flex-direction: column; gap: 12px; padding: 12px; }
+}
+
+/* Join/create needs a full dialog, rather than the small bus-side selector. */
+.world-journey.is-empty-world .journey-layout { width: min(1100px, 100%); padding: 20px; }
+.world-journey.is-empty-world .journey-header { position: absolute; top: 16px; left: 24px; right: 24px; margin: 0; }
+.world-journey.is-empty-world .journey-header h1 { font-size: 24px; line-height: 1.2; }
+.world-journey.is-empty-world .journey-stage { display: grid; place-items: center; aspect-ratio: auto; overflow: visible; box-shadow: none; }
+.world-journey.is-empty-world canvas { display: none; }
+.world-journey.is-empty-world .journey-controls { position: static; transform: none; width: min(960px, 100%); max-height: calc(100svh - 112px); padding: 24px 28px; }
+.world-journey.is-empty-world .journey-toolbar { display: none; }
+.world-journey.is-empty-world .journey-back { margin-bottom: 12px; }
+.world-journey.is-empty-world .empty-world-choices { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.world-journey.is-empty-world .empty-world-choice { display: flex; flex-direction: column; align-items: stretch; padding: 0 24px 0 0; }
+.world-journey.is-empty-world .empty-world-choice + .empty-world-choice { margin: 0; padding: 0 0 0 24px; border-top: 0; border-left: 1px dashed #c8b792; }
+.world-journey.is-empty-world .empty-world-choice h3 { font-size: 24px; line-height: 1.2; margin: 12px 0 10px; }
+.world-journey.is-empty-world .empty-world-choice > p { font-size: 13px; line-height: 1.5; margin-bottom: 14px; }
+.world-journey.is-empty-world .empty-world-feedback { min-height: 0; margin: 10px 0 0; }
+.world-journey.is-empty-world .empty-world-choice button { min-height: 44px; }
+.world-journey.is-empty-world .world-settings-intro { margin-bottom: 18px; }
+.world-journey.is-empty-world .world-setting-rule { padding: 12px 0; }
+@media (max-width: 960px) and (min-width: 681px) {
+  .world-journey.is-empty-world .empty-world-choices { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 680px) {
+  .world-journey.is-empty-world .journey-layout { padding: 16px 12px; }
+  .world-journey.is-empty-world .journey-controls { max-height: calc(100svh - 100px); padding: 18px; }
+  .world-journey.is-empty-world .journey-controls h2 { font-size: 24px; }
+  .world-journey.is-empty-world .empty-world-choices { grid-template-columns: minmax(0, 1fr); }
+  .world-journey.is-empty-world .empty-world-choice { padding: 0; }
+  .world-journey.is-empty-world .empty-world-choice + .empty-world-choice { border-left: 0; border-top: 1px dashed #c8b792; padding: 16px 0 0; margin-top: 16px; }
+  .world-journey.is-empty-world .empty-world-choice h3 { font-size: 22px; margin: 8px 0; }
+  .world-journey.is-empty-world .empty-world-choice > p { line-height: 1.4; margin-bottom: 10px; }
+  .world-journey.is-empty-world .empty-world-choice label { margin-bottom: 6px; }
+  .world-journey.is-empty-world .empty-world-choice button { margin-top: 8px; }
+  .world-journey.is-empty-world .empty-world-feedback { margin-top: 8px; line-height: 1.4; }
+}

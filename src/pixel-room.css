@@ -127,6 +127,9 @@
 .room-fullscreen .room-dialogue p { font-size: 13px; }
 .room-fullscreen .room-dialogue-mark { font-size: 24px; }
 .room-fullscreen .room-art-credit { position: absolute; z-index: 5; bottom: 3px; right: 10px; margin: 0; color: #fff8e3; text-shadow: 0 1px #4d4839; pointer-events: none; }
+.room-entry-welcome { position: absolute; z-index: 5; left: 50%; bottom: 80px; transform: translateX(-50%); box-sizing: border-box; width: min(480px, calc(100% - 32px)); padding: 12px 16px; text-align: center; background: #f7efd9ed; border: 2px solid #887759; }
+.room-entry-welcome p { margin: 0 0 10px; line-height: 1.4; }
+.room-entry-welcome button { min-height: 44px; padding: 8px 16px; }
 @media (max-width: 600px) {
   .room-fullscreen .room-hud { left: 12px; right: 12px; gap: 6px; }
   .room-fullscreen .room-hud > * { padding: 6px 8px; }

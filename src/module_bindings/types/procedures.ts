@@ -7,7 +7,10 @@ import { type Infer as __Infer } from "spacetimedb";
 
 // Import all procedure arg schemas
 import * as TryMirrorVoiceProcedure from "../try_mirror_voice_procedure";
+import * as UnderstandActivityProcedure from "../understand_activity_procedure";
 
 export type TryMirrorVoiceArgs = __Infer<typeof TryMirrorVoiceProcedure.params>;
 export type TryMirrorVoiceResult = __Infer<typeof TryMirrorVoiceProcedure.returnType>;
+export type UnderstandActivityArgs = __Infer<typeof UnderstandActivityProcedure.params>;
+export type UnderstandActivityResult = __Infer<typeof UnderstandActivityProcedure.returnType>;
 

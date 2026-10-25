@@ -14,10 +14,11 @@ const SOURCES: { id: Source; title: string; detail: string }[] = [
 ];
 
 // All sources hand over the same reviewed letter; no source reads or submits on opening the chooser.
-export default function SourceOffering({ onReady, onBack, busy = false, initialGift = null, onDesk = false, sharedDraft = null }: {
+export default function SourceOffering({ onReady, onBack, busy = false, initialGift = null, onDesk = false, sharedDraft = null, mirrorId }: {
   onReady: (gift: WordGift) => void; onBack: () => void; busy?: boolean;
   initialGift?: WordGift | null; onDesk?: boolean;
   sharedDraft?: MobileShareDraft | null;
+  mirrorId?: bigint;
 }) {
   const [source, setSource] = useState<Source | null>(null);
   const [visited, setVisited] = useState<Source[]>([]);
@@ -41,7 +42,7 @@ export default function SourceOffering({ onReady, onBack, busy = false, initialG
         <p className="source-note">Read and change your letter before giving it to your mirror.</p>
       </section>}
       {source === 'github' && <GitHubOffering busy={busy} onBack={back} onReady={ready} />}
-      {source === 'desktop' && <DesktopObservationOffering busy={busy} onBack={back} onReady={ready} />}
+      {source === 'desktop' && <DesktopObservationOffering mirrorId={mirrorId} busy={busy} onBack={back} onReady={ready} />}
       {source === 'iphone' && sharedDraft && <MobileShareLetter key={JSON.stringify(sharedDraft)} draft={sharedDraft} busy={busy} onBack={back} onReady={ready} />}
       {/* Keep only manual drafts mounted when changing sources. Network/file adapters close on Back. */}
       {(['ai_summary', 'writing'] as const).filter(kind => visited.includes(kind)).map(kind => <div key={kind} className="source-panel" hidden={source !== kind}>

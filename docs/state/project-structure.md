@@ -1,3 +1,115 @@
+
+# Merged project structure
+
+Latest integration (2026-10-25): yw web/desktop + yq independent worlds and room-first entry are combined. Maincloud migration preserves the original local database and resident ID 9. See [integration checks](../validation/2026-10-25-integrated-cloud-demo.md) for deployment state and Pending checks.
+
+
+Latest 2026-10-25 entry: App initializes roomOpen=true and journeyOpen=false.
+MirrorRoom supports an authored no-mirror/loading room with an in-room CreateMirror
+entry; the selected owned mirror is used once subscribed. Go to town opens the journey;
+invitations are deferred until that departure. This supersedes initial static selection.
+[Checks](../validation/2026-10-25-room-first-entry.md).
+
+Latest 2026-10-25 animation scope: App.tsx enables WorldJourney's animated mode only
+from MirrorRoom.onBack. Initial/menu selectors render without a canvas/scene; map
+WorldNavigator arrows use changeMapWorld directly and retain transactional enterWorld
+for existing slots. This supersedes the earlier login/map-arrow animation behavior.
+[Checks](../validation/2026-10-25-room-only-departure.md).
+
+Latest 2026-10-25 public discovery: App.tsx opens a separate PublicTowns.tsx view;
+the component subscribes to discoverable_worlds only while mounted. The sender-scoped
+view filters membership, allowStrangers and member capacity, exposing only id/name/
+description/maxMembers/memberCount. Existing joinOpenWorld enforces admission and
+creates a world-local mirror before committed selection permits departure. All joined
+world slots now appear by name in the main list, including the default lobby.
+[Actual checks](../validation/2026-10-25-public-town-discovery.md).
+
+Latest 2026-10-25 journey integration: App.tsx gates world entry behind WorldJourney.tsx,
+with the handed-off route/art drawn by DepartureScene.ts and world-journey.css. Actual
+world slots, invitations and creation call existing reducers; committed selection gates
+visual departure. The standalone prototypes/departure/ remains unchanged, with runtime
+assets under public/assets/departure/. No other yw/map-assets work was imported.
+[Checks](../validation/2026-10-25-departure-integration.md).
+
+Latest 2026-10-25 addition: private mirror_prototype records hold identity-level starting
+name/look/selfCard/extraversion/intent. getMirrorPrototype lazily backfills existing users;
+activateWorld ensures one independent owned resident before switching the view. Creating,
+invitation joining and open joining share this path. No world history/contact/card copying.
+[Evidence and limits](../validation/2026-10-25-auto-world-mirrors.md).
+
+Current local test runtime (2026-10-25): `spacetimedb/src/index.ts` now has private worlds,
+memberships/selections, invite/update/join/enter reducers and member-scoped mirror/conversation/
+line views. Mirrors and personal profiles belong to their creation world; switching only changes views.
+World-local simulation clocks/randomness/quotas keep all worlds running without viewers.
+Cards, imports, contacts, diaries and relation memories stay world-scoped. `scripts/start-local-worlds.ps1` deploys the isolated local
+database on port 3010; `App.tsx` uses the generated world API in default worldtest mode.
+Original .env.local/shared data remain unchanged. Earlier browser-only slot storage is not
+imported. [Runtime and limits](../design/local-world-test-environment.md),
+[initial checks](../validation/2026-10-25-local-world-backend.md),
+[independent-mirror fix](../validation/2026-10-25-independent-world-mirrors.md).
+
+Latest 2026-10-25 empty-slot UI: `EmptyWorld.tsx` / `empty-world.css` present invitation
+input and a create-world entry on the dark background. `WorldSettings.tsx` also supports
+creation; `WorldPreview.ts` restores valid extra-slot settings as device-local worlds.
+Those worlds use the authored map with no residents and no shared Diary/Residents/mirror
+creation access. Slot 1 alone receives live resident presentation. Browser-local world
+creation is implemented; server creation/invitation joining is not. [Checks](../validation/2026-10-25-empty-world-entry.md).
+
+Local 2026-10-25 owner-settings preview: `WorldSettings.tsx` supplies the editable
+name/introduction, strangers switch and maximum-people form; `WorldPreview.ts` validates
+and stores preview settings in browser storage per world ID. `App.tsx` has a Preview as
+role selector and conditionally shows Edit world for existing worlds in owner view.
+`WorldNavigator.tsx` receives the saved display name. This has no real owner identity,
+server persistence or admission/capacity enforcement. [Checks](../validation/2026-10-25-world-settings.md).
+
+Local 2026-10-25 addition: `src/WorldNavigator.tsx` provides a five-slot, wrapping world
+selector using the user's unchanged `public/assets/ui/world-nameplate.png`. `App.tsx`
+renders the live shared town only for slot 1; uncreated slots unmount the canvas and show a
+solid dark-gray background plus the entry window. Slots 2–5 can now hold local preview maps;
+Diary, Residents and mirror creation stay disabled outside slot 1. Mirror Room
+remains enabled for an available owned mirror in every slot and opens the same personal
+room, preserving the selected slot on return. No backend world model
+or isolation has been added. See [validation](../validation/2026-10-25-world-navigation.md).
+
+Updated 2026-10-24. Latest source: `yw/map-assets` at `7509d4ba95dd383d6b0befee23c84d6246383b69`; local target: `yq`, previously `7c7f5e6`. This records downloaded code. Current local checks are in [update validation](../validation/2026-10-24-update-yw-map-assets.md); earlier merge evidence remains in [merge validation](../validation/2026-10-24-merge-yw-map-assets.md).
+
+## Authored project retained on yq
+
+- [mirrorvile/project.godot](../../mirrorvile/project.godot) is the original Godot 4.5 / Forward Plus project with Player1, Player2, Town map and Home scenes and their original assets.
+- [Town map](../../mirrorvile/Town%20map.tscn) includes House / Decoration tile layers; [Home](../../mirrorvile/Home.tscn) contains Bookshelf, Mirror, Diary and Carddesk sprites. The teammate converted these scenes for the web client; the original Godot project is preserved.
+- The earlier yq state and progress documents are preserved in [historical source text](../library/history/2026-10-24-before-code-merge.md). Their statements about missing diary/login implementations are superseded by the downloaded code below.
+- [Activity Helper](../library/originals/idea1_PRD_v0.1.md) remains an independent idea. [Discussion context](../core/discussion-context.md) and the seven personal Proposed ideas are retained; merging code does not accept them or change team principles.
+
+## Teammate's implementation inventory
+
+Local Diary read-window addition: `src/DiaryHistory.ts` stores close cutoffs per identity,
+with a town-wide timestamp and per-mirror timestamps. `src/useDiaryWindow.ts` snapshots
+the cutoff while open and saves on real unmount/pagehide, ignoring StrictMode replay.
+`Diary.tsx` excludes records at or before the applicable cutoff before grouping/summary;
+`App.tsx` uses the same boundaries for its quiet new-content dot. `MirrorRoom.tsx` no longer
+marks all diaries seen when one mirror's Diary opens. First use includes existing notes;
+no server schema or stored diary rows change. See [validation and limits](../validation/2026-10-24-diary-comments.md#since-the-previous-close-2026-10-24).
+
+Local Status card addition on `yq`: `src/ResidentStatusCard.tsx`, `src/ResidentConversations.ts` and `src/resident-status-card.css` replace the selected-resident raw conversation view through `App.tsx`. Cards show activity/location and recent owner-pair source-content highlights, matching exact participant IDs. No schema or model generation changes are needed; see [current validation](../validation/2026-10-24-resident-status-card.md).
+
+Local Diary addition on `yq`: `src/Diary.tsx`, `src/DiaryReview.ts` and `src/diary.css` render a concise chat summary with time/place metadata and preserved interest/contact controls. `diaryTopics`/`sessionTopics` filter and deduplicate legacy content; `sessionSummary` selects at most two sentences, bounded by 50 words and 280 characters. Common scene actions, stage directions and AI decisions are filtered by English/Chinese heuristics. `spacetimedb/src/index.ts` requests only spoken content in 1–2 sentences (40 words / 100 Chinese characters), with a summary-unavailable fallback on failure; these backend changes remain unpublished. See [current local validation and limits](../validation/2026-10-24-diary-comments.md#concise-chat-only-summary-2026-10-24).
+
+The Diary UI now groups those comments by `otherName` from the current view, retaining
+all conversations under a single displayed-name heading. Groups and their notes are ordered
+by recency; see [current grouping and API boundary](../validation/2026-10-24-diary-comments.md#grouping-by-person-2026-10-24).
+
+`src/DiarySessions.ts` now groups nearby same-venue exchanges into bounded 30-minute visits
+per own mirror/displayed person. Diary renders one comment per visit, retaining source rows
+and their interest/contact reducer IDs. See [current merging checks](../validation/2026-10-24-diary-comments.md#nearby-exchanges-in-one-comment-2026-10-24).
+
+Local room layout addition on `yq`: `App.tsx`, `MirrorRoom.tsx`, `PixelRoom.tsx` and `pixel-room.css` provide a full-viewport room with proportional cover scaling, bounded panning and clickable furniture. The summary disclosure, privacy label and bottom shortcut buttons have been removed. [Current local validation](../validation/authored-mirror-room.md#simplified-room-controls-2026-10-24) is separate from the source-branch inventory below.
+
+The mirror panel now includes the existing contact editor; the independent Address book hotspot and `contacts` room-object route are removed. Four furniture routes remain. See [mirror/contact validation](../validation/authored-mirror-room.md#contact-editing-merged-into-the-mirror-2026-10-24).
+
+Local addition on `yq`: `src/TownCamera.ts` and `src/WorldCanvas.tsx` now provide cursor-anchored General wheel zoom with viewport-cover scale and position bounds. Build, 14 scene/camera tests and desktop/portrait browser checks passed; see [zoom validation](../validation/2026-10-24-general-wheel-zoom.md).
+
+The following source text is retained from `yw/map-assets:docs/state/project-structure.md`. Its implementation and validation descriptions refer to the source branch's evidence; they are not a substitute for the local merge checks.
+
 # Project structure
 
 As of the diary and Figma login implementations on `yw/diary` (2026-10-24). Facts from the code; validation is recorded separately.

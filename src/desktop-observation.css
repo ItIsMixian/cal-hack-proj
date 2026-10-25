@@ -11,3 +11,20 @@
 .observation-settings summary { cursor: pointer; }
 .observation-settings button { display: block; margin-top: 8px; }
 .desktop-observation-offering .source-pieces:empty { display: none; }
+.activity-memory-count { color: #786c50; font-size: 13px; margin: 8px 0; }
+.activity-note { padding: 12px; background: #f6efd6; border-left: 3px solid #7e8e64; }
+.activity-note > small { color: #807352; font-size: 12px; }
+.activity-note-text { font-size: 18px; line-height: 1.6; margin: 10px 0; }
+.activity-evidence { font-size: 13px; padding: 7px 0; overflow-wrap: anywhere; border-bottom: 1px solid #d2c5a4; }
+.activity-evidence small { display: block; color: #807352; margin-top: 3px; }
+.activity-note textarea { width: 100%; }
+.activity-input-preview { margin: 14px 0; font-size: 13px; }
+.activity-input-preview p { font-size: 13px; line-height: 1.5; }
+.activity-auto { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; line-height: 1.5; margin: 12px 0; }
+.activity-auto input { width: auto; flex: 0 0 auto; margin-top: 4px; }
+.activity-understanding > button { font-size: 14px; padding: 8px 10px; }
+.activity-empty { font-size: 15px; line-height: 1.5; }
+.activity-learning-time { display: block; color: #807352; }
+
+.activity-understanding > small { display: block; margin: .65rem 0 1rem; line-height: 1.6; }
+.activity-understanding > button { max-width: 100%; }

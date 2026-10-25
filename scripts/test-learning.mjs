@@ -14,7 +14,7 @@ const t = new Proxy({}, { get: () => () => builder });
 let definitions;
 const schema = tables => {
   definitions = tables;
-  return Object.fromEntries(['reducer', 'procedure', 'view', 'init'].map(key => [key, (...args) => args.at(-1)]));
+  return Object.fromEntries(['reducer', 'procedure', 'view', 'init', 'clientConnected', 'clientDisconnected'].map(key => [key, (...args) => args.at(-1)]));
 };
 let verdict = null; let capturedPrompt = ''; let linePrompt = ''; let duringJudge = null;
 let activityResponse=null,activityPayload='',duringActivity=null;
@@ -35,11 +35,11 @@ function fixture(demo = false) {
   const db = {};
   for (const [name, def] of Object.entries(definitions)) {
     const rows = new Map(); let seq = 1n;
-    const pk = ['guestTransfer','activityBudget'].includes(name) ? 'owner' : ['mirrorProfile', 'mirrorRest', 'mirrorSummary', 'mirrorLearning', 'mirrorStyle'].includes(name) ? 'mirrorId' : ['tickTimer', 'llmJob', 'importJob'].includes(name) ? 'scheduledId' : 'id';
+    const pk = ['worldSelection','mirrorPrototype'].includes(name) ? 'owner' : ['guestTransfer','activityBudget'].includes(name) ? 'owner' : ['mirrorProfile', 'mirrorRest', 'mirrorSummary', 'mirrorLearning', 'mirrorStyle'].includes(name) ? 'mirrorId' : ['tickTimer', 'llmJob', 'importJob'].includes(name) ? 'scheduledId' : 'id';
     const equal = (a, b) => typeof a?.equals === 'function' ? a.equals(b) : a === b;
     const table = {
       iter: () => rows.values(), count: () => BigInt(rows.size),
-      insert(row) { const value = { ...row, [pk]: row[pk] === 0n ? seq++ : row[pk] }; rows.set(value[pk], value); return value; },
+      insert(row) { const value = { ...(Object.hasOwn(def.columns,'worldId') ? {worldId:0n} : {}), ...row, [pk]: row[pk] === 0n && !['world','worldSimulation'].includes(name) ? seq++ : row[pk] }; rows.set(value[pk], value); return value; },
     };
     for (const col of Object.keys(def.columns)) table[col] = {
       find: value => [...rows.values()].find(row => equal(row[col], value)),
@@ -47,10 +47,13 @@ function fixture(demo = false) {
       update: row => rows.set(row[pk], { ...row }), delete: value => rows.delete(value),
     };
     for (const index of def.options.indexes ?? []) table[index.accessor] = {
-      filter: values => [...rows.values()].filter(row => index.columns.every((col, i) => equal(row[col], values[i]))).values(),
+      filter: values => [...rows.values()].filter(row => (Array.isArray(values) ? values : [values]).every((value, i) => equal(row[index.columns[i]], value))).values(),
     };
     db[name] = table;
   }
+  db.mirror = db.mirrorStorage; db.conversation = db.conversationStorage; db.line = db.lineStorage;
+  db.world.insert({id:0n,owner:A,name:'Test world',maxMembers:100,allowStrangers:true});
+  for(const owner of [A,B,C]) {db.worldMember.insert({id:0n,owner,worldId:0n,slot:0});db.worldSelection.insert({owner,worldId:0n});}
   const now = new Timestamp(1_792_889_200_000_000n);
   const ctx = sender => ({ sender, timestamp: now, db, random: Object.assign(() => 0.5, { integerInRange: (lo) => lo }), senderAuth: { jwt: null }, withTx(fn) { return fn(this); } });
   for (const [id, owner, name] of [[10n, A, 'Alice'], [20n, B, 'Bob']]) {
@@ -58,7 +61,7 @@ function fixture(demo = false) {
     db.mirrorProfile.insert({ mirrorId: id, owner, selfCard: 'I build accessible charts', contact: `${name}@example.test` });
   }
   db.config.insert({ id: 0, deepseekKey: 'test', anthropicKey: '' });
-  db.conversation.insert({ id: 30n, a: 10n, b: 20n, turns: 2, active: true, maxTurns: 4, place: 'park' });
+  db.conversation.insert({ id: 30n, a: 10n, b: 20n, turns: 2, active: true, maxTurns: 4, place: 'park', startedAt: now });
   const wrap = () => mod.runLlmJob(ctx(A), { job: { conversationId: 30n, kind: 'wrap' } });
   const entries = owner => mod.myDiary(ctx(owner));
   return { db, ctx, wrap, entries };
@@ -223,8 +226,6 @@ test('a later import retains the owner-written voice correction and its provenan
   assert.equal(example.text, 'Let me show you the little version first.');
   assert.equal(example.verdict, 'yes'); assert.match(example.prompt, /making or thinking/);
 });
-
-
 test('activity understanding authenticates selected profile, grounds output and leaves all facts untouched',()=>{
  const f=fixture(),ctx=f.ctx(A),at=Number(ctx.timestamp.microsSinceUnixEpoch/1000n);
  const episode={id:'a'.repeat(24),app:'code.exe',title:'Mirrorville desktop activity memory - VS Code',startAt:new Date(at-60_000).toISOString(),endAt:new Date(at).toISOString(),seconds:30};

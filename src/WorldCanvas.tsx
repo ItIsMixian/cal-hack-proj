@@ -5,7 +5,7 @@ import { findTownPath, nearestWalkPoint, walkTownPath } from './TownNavigation';
 import type { MotionPoint } from './TownMotion';
 import { BUILDING_PINS, enteredBuilding } from './TownBuildings';
 import { cameraTarget, clampGeneralCamera, screenToTown, zoomGeneralCamera, type CameraMode, type CameraFrame } from './TownCamera';
-import type { Mirror } from './module_bindings/types';
+import type { MirrorStorage as Mirror } from './module_bindings/types';
 import { characterSheet, loadCharacterSheets, originalCharacterUrl } from './characterSprites';
 import { characterWalkFrame } from './characterAnimation';
 

@@ -3,8 +3,9 @@ import { clearDesktopObservations, DesktopBridgeError, desktopObservations, desk
 import { margloDate, margloLetter, type MargloItem } from './margloPackage';
 import type { WordGift } from './WordOffering';
 import './desktop-observation.css';
+import ActivityUnderstandingPanel from './ActivityUnderstandingPanel';
 
-export default function DesktopObservationOffering({ onReady, onBack, busy }: { onReady: (gift: WordGift) => void; onBack: () => void; busy: boolean }) {
+export default function DesktopObservationOffering({ onReady, onBack, busy, mirrorId }: { onReady: (gift: WordGift) => void; onBack: () => void; busy: boolean;mirrorId?:bigint }) {
   const native = isNativeDesktop();
   const [found, setFound] = useState(false), [code, setCode] = useState(''), [token, setToken] = useState(native ? 'native-desktop-private-pipe-session' : '');
   const [status, setStatus] = useState<DesktopStatus | null>(null), [items, setItems] = useState<MargloItem[]>([]);
@@ -37,7 +38,7 @@ export default function DesktopObservationOffering({ onReady, onBack, busy }: { 
   };
   useEffect(() => { const panel = root.current?.closest('.journey-activity'); if (panel) panel.scrollTop = 0; mounted.current = true; return () => { mounted.current = false; pending.current?.abort(); }; }, []);
   useEffect(() => {
-    if (!token) return;
+    if (!token || native) return;
     const controller = new AbortController(); let running = false;
     const poll = async () => {
       if (running || operating.current) return; running = true;
@@ -54,9 +55,10 @@ export default function DesktopObservationOffering({ onReady, onBack, busy }: { 
     try { await operation(controller.signal); } catch (e) { if (!controller.signal.aborted) fail(e); }
     finally { operating.current = false; if (mounted.current) setWorking(false); }
   };
+  if(native)return <div ref={root} className="desktop-observation-offering"><h3 className="observation-heading">Recent notes</h3><ActivityUnderstandingPanel mirrorId={mirrorId} busy={busy} onReady={onReady}/><button className="exchange-back" disabled={busy} onClick={onBack}>← Back to the desk</button></div>;
   return <div ref={root} className="desktop-observation-offering">
-    <h3 className="observation-heading">Local observation</h3>
-    <p className="observation-privacy">Only reviewed clues are handed to your mirror.</p>
+    <h3 className="observation-heading">{native?'Recent notes':'Local observation'}</h3>
+    <p className="observation-privacy">{native?'Observation continues after the town closes. Notes are shared when you return.':'Only reviewed clues are handed to your mirror.'}</p>
     {!token ? <>
       <details className="quiet-note" open={!found}><summary>Start the desktop companion</summary><p>On this Windows computer, run the helper from your Mirrorville folder. It starts paused and shows a pairing code.</p><code>python desktop/observer.py --origin {origin}</code><p>The current code is also in your local Mirrorville observer folder’s pairing-code.txt. It changes after pairing. Keep the helper running. Your browser may ask to allow local-network access. A phone cannot observe another computer.</p></details>
       {!found ? <button disabled={working || busy} onClick={() => void act(async signal => { await findDesktopObserver(signal); if (mounted.current) setFound(true); })}>{working ? 'Looking for companion…' : 'Find my desktop companion'}</button> : <>
@@ -66,22 +68,23 @@ export default function DesktopObservationOffering({ onReady, onBack, busy }: { 
       </>}
     </> : <>
       <p role="status">{status ? status.enabled ? 'Connected · observing this computer' : 'Connected · observation paused' : 'Connected · checking observation status…'}</p>
-      <div className="observation-live" aria-label="Live observation status">
+      {!native && <div className="observation-live" aria-label="Live observation status">
         <strong>{status?.observations ?? 0} local clues</strong>
         <small>Last check: {clock(status?.lastSampleAt)} · Last saved: {clock(status?.lastClueAt)}</small>
         {status?.enabled && <p>{stateText[status.sampleState ?? 'waiting'] ?? stateText.waiting}</p>}
-      </div>
+      </div>}
       <div className="observation-controls">
         <button disabled={working || busy || !status} onClick={() => void act(async signal => { await setDesktopCapture(token, !status!.enabled, browserTopics, signal); await refresh(token, signal); })}>{status?.enabled ? 'Pause observation' : 'Start observation'}</button>
         <button disabled={working || busy} onClick={() => void act(signal => refresh(token, signal))}>Refresh local clues</button>
       </div>
-      {status && !items.length && <p role="status">No clues yet. Work in a supported app for a few seconds, then return. This list refreshes every 5 seconds.</p>}
-      <div className="source-pieces">{items.map(item => <div className="source-piece" key={item.id}>
+      {native && <ActivityUnderstandingPanel mirrorId={mirrorId} busy={busy} onReady={onReady} />}
+      {!native && status && !items.length && <p role="status">No clues yet. Work in a supported app for a few seconds, then return. This list refreshes every 5 seconds.</p>}
+      {!native && <div className="source-pieces">{items.map(item => <div className="source-piece" key={item.id}>
         <small>Tentative activity · {margloDate(item.startAt)}{item.endAt !== item.startAt ? ` to ${margloDate(item.endAt)}` : ''}</small>
         <textarea aria-label={`Review desktop clue ${item.id}`} rows={3} maxLength={2_000} value={item.text} disabled={working || busy} onChange={event => { editedItems.current.add(item.id); protectedItems.current.add(item.id); setChecked(values => values.filter(id => id !== item.id)); setItems(values => values.map(value => value.id === item.id ? { ...value, text: event.target.value } : value)); }} />
         <label><input aria-label={`Approve desktop clue ${item.id}`} type="checkbox" checked={checked.includes(item.id)} disabled={working || busy || !item.text.trim()} onChange={event => { if (event.target.checked) protectedItems.current.add(item.id); else if (!editedItems.current.has(item.id)) protectedItems.current.delete(item.id); setChecked(values => event.target.checked ? [...values, item.id] : values.filter(id => id !== item.id)); }} />I checked this describes me and may be handed over.</label>
-      </div>)}</div>
-      {!!items.length && <>
+      </div>)}</div>}
+      {!native && !!items.length && <>
         <p className="quiet-note">App use is not proof of preference, motive or completion. Correct the clue and remove other people’s details. Reviewed or edited pieces stay unchanged while new clues refresh.</p>
         <details className="quiet-note"><summary>Preview the exact letter</summary><pre className="source-letter">{text || 'Review and check a clue first.'}</pre></details>
         <button className="exchange-primary" disabled={working || busy || letter.characters < 40} onClick={() => onReady({ text, latestAt: letter.latestAt, source: 'Desktop · reviewed observations', inputKind: 'facts', relation: 'other' })}>Hand over reviewed clues ✉</button>
@@ -89,9 +92,9 @@ export default function DesktopObservationOffering({ onReady, onBack, busy }: { 
       </>}
       <details className="observation-settings"><summary>Observation settings & supported apps</summary>
       <label className="source-owner"><input type="checkbox" checked={browserTopics} disabled={working || busy || status?.enabled} onChange={event => setBrowserTopics(event.target.checked)} />Also observe browser page topics. Page titles are interpreted locally and may contain sensitive information; this is off by default.</label>
-        <p className="quiet-note">Only the foreground app is checked: Codex/OpenAI desktop (app use only, no conversation), VS Code/Cursor, Unity, Blender, and opted-in research/project browser topics. No screenshots, clipboard or typed text. Other apps and unrecognized or sensitive titles are skipped.</p>
+        <p className="quiet-note">{native?'Foreground window titles and durations become local episodes. Private/sensitive titles, system windows and Mirrorville itself are skipped. Browser titles need the separate option above. Titles are reduced locally; original paths, URLs and contact details are not kept. Selected Codex conversations are read from local records, using only your own messages. No screenshots, clipboard or keystrokes are captured.':'Only supported foreground contexts are checked. No screenshots, clipboard or typed text.'}</p>
         <p className="quiet-note">Minimize keeps observation running. Pause here or in the tray; quitting stops it. Every app restart starts paused.</p>
-        <button disabled={working || busy} onClick={() => void act(async signal => { await clearDesktopObservations(token, signal); setItems([]); setChecked([]); protectedItems.current.clear(); editedItems.current.clear(); await refresh(token, signal); })}>Clear local clues & pause</button>
+        <button disabled={working || busy} onClick={() => void act(async signal => { await clearDesktopObservations(token, signal); setItems([]); setChecked([]); protectedItems.current.clear(); editedItems.current.clear(); await refresh(token, signal); window.dispatchEvent(new Event('mirrorville-activity-memory-changed')); })}>{native?'Clear local activity and memories & pause':'Clear local clues & pause'}</button>
         {!native && <button disabled={working || busy} onClick={() => void act(async signal => { await disconnectDesktopObserver(token, signal); if (mounted.current) { reset(); setFound(false); } })}>Disconnect & pause</button>}
       </details>
     </>}

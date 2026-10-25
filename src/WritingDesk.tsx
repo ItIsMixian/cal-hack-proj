@@ -31,7 +31,7 @@ export default function WritingDesk({ mirrorId, status, initial = 'choose', dail
     <div className="exchange-choices">{status?.status === 'failed' ? <button className="exchange-primary" disabled={!gift} onClick={() => { if (gift) void give(gift); }}>Try reading it again</button> : <button className="exchange-primary" onClick={onReview}>Show me what you learned →</button>}<button onClick={back}>Bring another letter</button></div>
     {error && <p role="alert">{error}</p>}
   </div>;
-  if (beat === 'writing') return <><SourceOffering onBack={back} busy={sending} onReady={value => void give(value)} />{error && <p role="alert">{error}</p>}</>;
+  if (beat === 'writing') return <><SourceOffering mirrorId={mirrorId} onBack={back} busy={sending} onReady={value => void give(value)} />{error && <p role="alert">{error}</p>}</>;
   return <div className="mirror-exchange"><p className="exchange-line">Pull up a chair.<br />What did you bring today?</p><div className="exchange-choices exchange-responses">
     <button onClick={() => setBeat('writing')}><span aria-hidden="true">✉</span><span>Bring a letter<small>Computer activity, GitHub, my AI, or my own update</small></span><span aria-hidden="true">→</span></button>
     {dailyAvailable && <button onClick={() => setBeat('daily')}><span aria-hidden="true">?</span><span>Ask me something<small>One quiet question for today</small></span><span aria-hidden="true">→</span></button>}

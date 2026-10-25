@@ -15,7 +15,7 @@ function load(path, imports = require) {
   }).outputText, { exports, require: imports });
   return exports;
 }
-const { diaryTopics, sessionTopics, sessionSummary } = load('../src/DiaryReview.ts');
+const { diaryTopics, sessionTopics, sessionSummary, splitDiaryEvidence } = load('../src/DiaryReview.ts');
 const { diarySessions } = load('../src/DiarySessions.ts');
 const { diaryCutoff, closeDiary, readDiaryHistory } = load('../src/DiaryHistory.ts');
 const world = load('../spacetimedb/src/world.ts');
@@ -30,7 +30,7 @@ function render(entries, mirrorId, history = { all: 0n, mirrors: new Map() }, pe
     if (name === './CharacterSprite') return { default: () => null };
     if (name === 'spacetimedb/react') return { useTable: table => [table === 'mirrors' ? [] : entries], useReducer: () => async () => {}, useSpacetimeDB: () => ({ isActive: true }) };
     if (name === './module_bindings') return { tables: { mirror: 'mirrors' }, reducers: {} };
-    if (name === './DiaryReview') return { diaryTopics, sessionSummary };
+    if (name === './DiaryReview') return { diaryTopics, sessionSummary, splitDiaryEvidence };
     if (name === './DiarySessions') return { diarySessions };
     if (name === './DiaryHistory') return { diaryCutoff };
     if (name === './useDiaryWindow') return { useDiaryWindow: () => history };
@@ -228,4 +228,19 @@ test('interest is visible beside people before opening a conversation', () => {
  assert.match(html, /Mutual interest/);
  assert.ok(!html.includes('PRIVATE_CONTACT'));
  assert.ok(!html.includes('Time and source'));
+});
+
+
+test('verified source metadata is separate from prose; legacy notes receive no invented label', () => {
+  const marker = '\n\n[mirrorville-source-v1]\n';
+  const source = { id: 'card:42', kind: 'card', text: 'I am building a Unity prototype.' };
+  const text = 'We discussed checkpoint designs.' + marker + JSON.stringify(source);
+  assert.equal(splitDiaryEvidence(text).source.text, source.text);
+  assert.equal(sessionSummary([text]), 'We discussed checkpoint designs.');
+  assert.equal(splitDiaryEvidence('Old diary.').source, null);
+  assert.equal(splitDiaryEvidence('We discussed checkpoints.' + marker + '{broken').source, null);
+  const html = render([{ ...base, text }], 1n, undefined, 'Maya');
+  assert.match(html, /From their shared information/);
+  assert.match(html, /Unity prototype/);
+  assert.ok(!html.includes('[mirrorville-source-v1]'));
 });

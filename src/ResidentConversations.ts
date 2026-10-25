@@ -1,4 +1,4 @@
-import type { Conversation, Line } from './module_bindings/types';
+import type { ConversationStorage as Conversation, LineStorage as Line } from './module_bindings/types';
 
 export const RECENT_CHAT_LIMIT = 5;
 const RECENT_WINDOW_US = 7n * 24n * 60n * 60n * 1_000_000n;

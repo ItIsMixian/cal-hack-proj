@@ -14,7 +14,7 @@ function loadPure(path) {
 const find = (node, check) => {
   if (!node || typeof node !== 'object') return;
   if (check(node)) return node;
-  for (const child of [node.props?.children, node.props?.activity, node.props?.naming].flat(Infinity)) { const result = find(child, check); if (result) return result; }
+  for (const child of [node.props?.children, node.props?.activity, node.props?.tutorialControls, node.props?.deskItems, node.props?.naming].flat(Infinity)) { const result = find(child, check); if (result) return result; }
 };
 function harness(file, name, props) {
   const states = []; let cursor = 0; const calls = []; const walks = [];
@@ -40,7 +40,7 @@ function harness(file, name, props) {
     return { default: components[module.slice(2)] ?? (() => null) };
   } });
   const render = () => { cursor = 0; return exports[name](props); };
-  return { render, calls, walks, components, button: text => find(render(), node => node.type === 'button' && [node.props.children].flat(Infinity).includes(text)) };
+  return { render, calls, walks, components, button: text => find(render(), node => node.type === 'button' && ([node.props.children].flat(Infinity).includes(text) || node.props.title === text)) };
 }
 
 const flush = () => new Promise(resolve => setImmediate(resolve));
@@ -51,7 +51,7 @@ async function startTour(h, name) {
   await flush(); return room;
 }
 async function advance(room) {
-  find(room().props.activity, node => node.type === 'button' && node.props.className === 'tour-next').props.onClick();
+  find(room().props.tutorialControls ?? room().props.activity, node => node.type === 'button').props.onClick();
   await flush();
 }
 test('all four furniture visits precede creation; the door cannot bypass the tour', async () => {

@@ -1,7 +1,7 @@
 import { parseMargloPackage, type MargloPackage } from './margloPackage';
 
 export const DESKTOP_OBSERVER_URL = 'http://127.0.0.1:17358';
-export type DesktopStatus = { enabled: boolean; observations: number; browserTopics: boolean; sampleState?: string; lastSampleAt?: string | null; lastClueAt?: string | null };
+export type DesktopStatus = { enabled: boolean; observations: number; browserTopics: boolean; contextTitles?:boolean; sampleState?: string; lastSampleAt?: string | null; lastClueAt?: string | null };
 declare global {
   interface Window {
     mirrorvilleDesktop?: { readonly version: 1; request: (method: string, body?: object) => Promise<Record<string, unknown>> };
@@ -70,11 +70,12 @@ export async function desktopStatus(token: string, signal?: AbortSignal): Promis
   const states = ['waiting', 'paused', 'locked', 'idle', 'self', 'unsupported', 'browser_off', 'filtered', 'eligible', 'unavailable', 'error'];
   const date = (v: unknown) => typeof v === 'string' && Number.isFinite(Date.parse(v)) ? v : null;
   return { enabled: value.enabled, observations: Number(value.observations), browserTopics: value.browserTopics === true,
+    contextTitles:value.contextTitles===true,
     sampleState: typeof value.sampleState === 'string' && states.includes(value.sampleState) ? value.sampleState : undefined,
     lastSampleAt: date(value.lastSampleAt), lastClueAt: date(value.lastClueAt) };
 }
 export async function setDesktopCapture(token: string, enabled: boolean, browserTopics: boolean, signal?: AbortSignal): Promise<void> {
-  await request('/capture', token, { enabled, browserTopics }, signal);
+  await request('/capture', token, { enabled, browserTopics, ...(isNativeDesktop()?{contextTitles:true}:{}) }, signal);
 }
 export async function desktopObservations(token: string, signal?: AbortSignal): Promise<MargloPackage> {
   const value = await request('/observations', token, undefined, signal);

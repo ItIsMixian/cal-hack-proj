@@ -4,11 +4,16 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
+    "dev": "vite --mode worldtest --host 127.0.0.1 --port 5173 --strictPort",
+    "dev:worlds": "vite --mode worldtest --host 127.0.0.1 --port 5173 --strictPort",
+    "build:worlds": "tsc -b && vite build --mode worldtest",
+    "setup:worlds": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-local-worlds.ps1",
+    "test:worlds:live": "node scripts/test-worlds-live.mjs",
+    "test:public-towns:live": "node scripts/test-public-towns-live.mjs",
+    "build": "tsc -b && vite build --mode worldtest",
     "preview": "vite preview",
     "generate": "spacetime generate --lang typescript --out-dir src/module_bindings --module-path spacetimedb",
-    "publish:local": "spacetime publish mirrorville --module-path spacetimedb --server local --yes",
+    "publish:local": "npm run setup:worlds",
     "set-keys": "node scripts/set-keys.mjs",
     "test:diary": "node --test scripts/test-diary.mjs scripts/test-diary-comments.mjs scripts/test-diary-window.mjs",
     "test:status-card": "node --test scripts/test-resident-status.mjs",
@@ -25,7 +30,12 @@
     "test:learning": "node --test scripts/test-learning.mjs",
     "test:fidelity": "node --test scripts/test-fidelity.mjs",
     "test:auth": "node --test scripts/test-auth-session.mjs",
-    "check-decisions": "node scripts/check-decisions.mjs"
+    "check-decisions": "node scripts/check-decisions.mjs",
+    "desktop:ui": "node scripts/build-desktop.mjs",
+    "desktop:helper": "python scripts/build-desktop-helper.py",
+    "desktop:dev": "npm run desktop:ui && electron .",
+    "desktop:pack": "npm run desktop:ui && npm run desktop:helper && electron-builder --config desktop/electron-builder.json --win --x64",
+    "test:desktop-app": "node --test scripts/test-desktop-app.mjs"
   },
   "dependencies": {
     "compromise": "^14.19.0",
@@ -41,6 +51,11 @@
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^5.0.2",
     "typescript": "~5.6.2",
-    "vite": "^7.1.5"
-  }
+    "vite": "^7.1.5",
+    "electron": "^45.0.0",
+    "electron-builder": "^26.18.0"
+  },
+  "main": "desktop/app/main.mjs",
+  "description": "Mirrorville desktop with private, opt-in local observation",
+  "author": "Mirrorville team"
 }

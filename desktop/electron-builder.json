@@ -1,0 +1,12 @@
+{
+  "appId": "com.mirrorville.desktop",
+  "productName": "Mirrorville",
+  "directories": { "output": "output/desktop-release" },
+  "files": ["desktop/app/**", "!desktop/app/agent-smoke.mjs", "!desktop/app/model-client.ts", "dist-desktop/**", "package.json"],
+  "extraResources": [{ "from": "output/desktop-helper/mirrorville-observer", "to": "observer" }],
+  "asar": true,
+  "npmRebuild": false,
+  "win": { "target": ["nsis", "portable"], "icon": "desktop/app/icon.ico", "signAndEditExecutable": false },
+  "nsis": { "oneClick": false, "perMachine": false, "allowToChangeInstallationDirectory": true, "createDesktopShortcut": true, "artifactName": "Mirrorville-Setup-${version}-${arch}.${ext}" },
+  "portable": { "artifactName": "Mirrorville-Portable-${version}-${arch}.${ext}" }
+}

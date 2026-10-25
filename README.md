@@ -1,5 +1,12 @@
 # Mirrorville
 
+Current local multi-world test environment: run `npm.cmd run setup:worlds`, then
+`npm.cmd run dev` (or `dev:worlds`). Open `http://127.0.0.1:5173/` and choose guest.
+Backend: `127.0.0.1:3010`, database `mirrorville-worlds-test`. Original shared database
+and `.env.local` are not modified. [Setup, behavior and limits](docs/design/local-world-test-environment.md).
+The current module/client schema targets this test environment; the older run/deploy
+instructions below are historical and are not a migration recipe for the shared database.
+
 **Your mirrors meet first. Then you do.**
 
 Mirrorville is a small shared town for the people at a hackathon. You make a *mirror*: a clearly

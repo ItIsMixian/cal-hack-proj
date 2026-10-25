@@ -1,3 +1,17 @@
+export type DiaryEvidence = { id: string; kind: 'card' | 'intent' | 'topic'; text: string };
+export function splitDiaryEvidence(text: string): { body: string; source: DiaryEvidence | null } {
+  const marker = '\n\n[mirrorville-source-v1]\n';
+  const at = text.indexOf(marker);
+  if (at < 0) return { body: text, source: null };
+  const body = text.slice(0, at);
+  try {
+    const value = JSON.parse(text.slice(at + marker.length));
+    if (value && typeof value.id === 'string' && typeof value.text === 'string' && value.text.trim()
+      && ['card', 'intent', 'topic'].includes(value.kind)) return { body, source: value };
+  } catch { /* Invalid metadata never becomes a fact label or summary text. */ }
+  return { body, source: null };
+}
+
 const sentences = new Intl.Segmenter(undefined, { granularity: 'sentence' });
 
 const contentCue = /\b(?:discuss\w*|mention\w*|compar\w*|shar\w*|ask\w*|explain\w*|describ\w*|suggest\w*|said|told|cover\w*)\b|\b(?:talk(?:ed|ing)?|chat(?:ted|ting)?|spoke|speaking)\b.*\b(?:about|on)\b|聊到|聊了|聊起|谈到|谈了|讨论|提到|分享|交换|比较|交流了|说起|讲了|问了|介绍|建议/iu;
@@ -34,7 +48,7 @@ function contentSentence(sentence: string): string {
 // Extract only available conversation content; never reconstruct absent topics.
 // Legacy prose filtering is heuristic. New notes must follow the server's stricter prompt.
 export function diaryTopics(text: string): string[] {
-  return [...sentences.segment(text)].map(part => contentSentence(part.segment.trim())).filter(Boolean);
+  return [...sentences.segment(splitDiaryEvidence(text).body)].map(part => contentSentence(part.segment.trim())).filter(Boolean);
 }
 
 const SUMMARY_CHAR_LIMIT = 280;

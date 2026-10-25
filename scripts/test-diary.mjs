@@ -14,7 +14,7 @@ const t = new Proxy({}, { get: () => () => builder });
 let definitions;
 const schema = tables => {
   definitions = tables;
-  return Object.fromEntries(['reducer', 'procedure', 'view', 'init'].map(key => [key, (...args) => args.at(-1)]));
+  return Object.fromEntries(['reducer', 'procedure', 'view', 'init', 'clientConnected', 'clientDisconnected'].map(key => [key, (...args) => args.at(-1)]));
 };
 let verdict = null;
 function load(path) {
@@ -25,7 +25,7 @@ function load(path) {
     if (name === './llm') return { judge: () => { if (verdict instanceof Error) throw verdict; return JSON.stringify(verdict); }, parseJsonObject: JSON.parse };
     return load(new URL(`../spacetimedb/src/${name.slice(2)}.ts`, import.meta.url));
   };
-  const js = ts.transpileModule(readFileSync(path, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
+  const js = ts.transpileModule(readFileSync(path, 'utf8') + (String(path).endsWith('/index.ts') ? '\nexport { tickWorld as fixtureTickWorld };' : ''), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
   runInNewContext(js, { exports, require, console });
   return exports;
 }
@@ -34,11 +34,11 @@ function fixture(demo = false) {
   const db = {};
   for (const [name, def] of Object.entries(definitions)) {
     const rows = new Map(); let seq = 1n;
-    const pk = name === 'conversationMaterial' ? 'pair' : name === 'guestTransfer' ? 'owner' : ['mirrorProfile', 'mirrorRest', 'mirrorSummary', 'mirrorLearning', 'mirrorStyle'].includes(name) ? 'mirrorId' : ['tickTimer', 'llmJob', 'importJob'].includes(name) ? 'scheduledId' : 'id';
+    const pk = ['worldSelection','mirrorPrototype'].includes(name) ? 'owner' : name === 'conversationMaterial' ? 'pair' : name === 'guestTransfer' ? 'owner' : ['mirrorProfile', 'mirrorRest', 'mirrorSummary', 'mirrorLearning', 'mirrorStyle'].includes(name) ? 'mirrorId' : ['tickTimer', 'llmJob', 'importJob'].includes(name) ? 'scheduledId' : 'id';
     const equal = (a, b) => typeof a?.equals === 'function' ? a.equals(b) : a === b;
     const table = {
       iter: () => rows.values(), count: () => BigInt(rows.size),
-      insert(row) { const value = { ...row, [pk]: row[pk] === 0n ? seq++ : row[pk] }; rows.set(value[pk], value); return value; },
+      insert(row) { const value = { ...(Object.hasOwn(def.columns,'worldId') ? {worldId:0n} : {}), ...row, [pk]: row[pk] === 0n && !['world','worldSimulation'].includes(name) ? seq++ : row[pk] }; rows.set(value[pk], value); return value; },
     };
     for (const col of Object.keys(def.columns)) table[col] = {
       find: value => [...rows.values()].find(row => equal(row[col], value)),
@@ -46,10 +46,13 @@ function fixture(demo = false) {
       update: row => { const value = { ...row }; rows.set(row[pk], value); return value; }, delete: value => rows.delete(value),
     };
     for (const index of def.options.indexes ?? []) table[index.accessor] = {
-      filter: values => [...rows.values()].filter(row => index.columns.every((col, i) => equal(row[col], values[i]))).values(),
+      filter: values => [...rows.values()].filter(row => (Array.isArray(values) ? values : [values]).every((value, i) => equal(row[index.columns[i]], value))).values(),
     };
     db[name] = table;
   }
+  db.mirror = db.mirrorStorage; db.conversation = db.conversationStorage; db.line = db.lineStorage;
+  db.world.insert({id:0n,owner:A,name:'Test world',maxMembers:100,allowStrangers:true});
+  for(const owner of [A,B,C]) {db.worldMember.insert({id:0n,owner,worldId:0n,slot:0});db.worldSelection.insert({owner,worldId:0n});}
   const now = new Timestamp(1_000_000_000_000n);
   const ctx = sender => ({ sender, timestamp: now, db, senderAuth: { jwt: null }, withTx(fn) { return fn(this); } });
   for (const [id, owner, name] of [[10n, A, 'Alice'], [20n, B, 'Bob']]) {
@@ -197,9 +200,9 @@ test('5Hz movement keeps one-unit-per-second speed and one-second social cadence
     lastChatAt: new Timestamp(0n), extraversion: 0.5 });
   const random = () => 0.5;
   random.integerInRange = (lo, hi) => Math.min(hi, Math.max(lo, 120));
-  for (let i = 1; i <= 5; i++) mod.tick({ ...f.ctx(A), random, timestamp: new Timestamp(BigInt(i) * 200_000n) });
+  for (let i = 1; i <= 5; i++) mod.fixtureTickWorld({ ...f.ctx(A), random, timestamp: new Timestamp(BigInt(i) * 200_000n) }, 0n);
   assert.ok(Math.abs(f.db.mirror.id.find(40n).x - 1) < 1e-8);
-  assert.equal(f.db.worldRuntime.id.find(0).lastSocialAt, 200_000n);
+  assert.equal(f.db.worldSimulation.id.find(0n).lastSocialAt, 200_000n);
 });
 
 test('arrival holds a destination for the chosen dwell period before moving again', () => {
@@ -210,7 +213,7 @@ test('arrival holds a destination for the chosen dwell period before moving agai
     lastChatAt: new Timestamp(0n), extraversion: 0.5 });
   const random = () => 0.5;
   random.integerInRange = (lo, hi) => Math.min(hi, Math.max(lo, 120));
-  const tickAt = seconds => mod.tick({ ...f.ctx(A), random, timestamp: new Timestamp(BigInt(seconds) * 1_000_000n) });
+  const tickAt = seconds => mod.fixtureTickWorld({ ...f.ctx(A), random, timestamp: new Timestamp(BigInt(seconds) * 1_000_000n) }, 0n);
   tickAt(1); tickAt(120);
   assert.equal(f.db.mirror.id.find(40n).targetX, 5);
   assert.notEqual(f.db.mirror.id.find(40n).activity, 'walking');
@@ -331,7 +334,7 @@ test('scheduled encounters enforce pair pacing and require changed shareable mat
       if(f.db.mirrorRest.mirrorId.find(id)) f.db.mirrorRest.mirrorId.update(row); else f.db.mirrorRest.insert(row);
     }
     const random = Object.assign(() => 0, {integerInRange: () => 100});
-    mod.tick({...f.ctx(A),timestamp:new Timestamp(time),random}, {timer:{}});
+    mod.fixtureTickWorld({...f.ctx(A),timestamp:new Timestamp(time),random}, 0n);
   };
   const release = () => { for(const id of [10n,20n]) f.db.mirror.id.update({...f.db.mirror.id.find(id),conversationId:0n,lastChatAt:new Timestamp(time)}); };
   tick();
@@ -351,4 +354,22 @@ test('scheduled encounters enforce pair pacing and require changed shareable mat
   tick();
   assert.equal([...f.db.conversation.iter()].length,2, 'new material cannot bypass the pair limit');
   assert.equal(definitions.conversationMaterial.options.public, undefined);
+});
+
+
+test('diary source IDs are scoped to the other person and cannot expose a private card', () => {
+  const f=fixture();
+  f.db.mirrorCard.insert({id:71n,mirrorId:20n,owner:B,facet:'background',text:'I build a Unity prototype.',personal:false,rooms:'{"venue":"on"}'});
+  f.db.mirrorCard.insert({id:72n,mirrorId:20n,owner:B,facet:'background',text:'Private information',personal:true,rooms:'{"venue":"off"}'});
+  verdict={...diaryVerdict(null),sourceForA:'card:71',sourceForB:'card:71'};
+  f.wrap();
+  assert.match(f.entries(A)[0].text,/mirrorville-source-v1/);
+  assert.match(f.entries(A)[0].text,/Unity prototype/);
+  assert.ok(!f.entries(B)[0].text.includes('mirrorville-source-v1'));
+  f.db.conversation.id.update({...f.db.conversation.id.find(30n),id:31n,active:true});
+  verdict={...diaryVerdict(null),sourceForA:'card:72'};
+  mod.runLlmJob(f.ctx(A),{job:{conversationId:31n,kind:'wrap'}});
+  const second=[...f.db.diaryEntry.iter()].find(e=>e.conversationId===31n&&e.mirrorId===10n);
+  assert.ok(!second.text.includes('Private information'));
+  assert.ok(!second.text.includes('mirrorville-source-v1'));
 });

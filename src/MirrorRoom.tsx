@@ -23,7 +23,7 @@ import { decodeImportFile, looksLikeWeChatCsv, ownWords, parseWeChatCsv, parseWh
 
 const MAX_UPLOAD = 30_000;
 
-export default function MirrorRoom(props: { mirrorId: bigint; onBack: () => void; onDiaryOpen?: () => void }) {
+export default function MirrorRoom(props: { mirrorId: bigint | null; onBack: () => void; onDiaryOpen?: () => void; onCreate?: () => void; loading?: boolean; historyScope?: string }) {
   const [activeObject, setActiveObject] = useState<RoomObject | null>(null);
   const room = useRef<HTMLElement>(null);
   const [station, setStation] = useState<RoomStation>('entrance');
@@ -73,7 +73,12 @@ export default function MirrorRoom(props: { mirrorId: bigint; onBack: () => void
     .filter((i) => i.mirrorId === props.mirrorId)
     .sort((a, b) => a.createdAt.microsSinceUnixEpoch > b.createdAt.microsSinceUnixEpoch ? -1 : a.createdAt.microsSinceUnixEpoch < b.createdAt.microsSinceUnixEpoch ? 1 : 0)[0];
 
-  if (!mirror) return <section className="pixel-room"><p>This mirror is away from town or still loading.</p><button onClick={props.onBack}>← Back to town</button></section>;
+  if (!mirror) return <section className="pixel-room room-stage" aria-label="Your Mirror Room">
+    <header className="room-stage-header"><div className="room-hanging-sign"><h1>Your room</h1></div></header>
+    <RoomJourney pose={pose} station="entrance" overview name="Your room" look={0} speech="" disabled={!!props.loading} hasLetter={false}
+      onLook={() => props.onCreate?.()} onStation={next => next === 'door' ? props.onBack() : props.onCreate?.()}
+      activity={<><h2>Welcome home</h2><p>Make your mirror, then choose where to go.</p><div className="exchange-choices"><button disabled={props.loading} onClick={props.onCreate}>Make your mirror</button><button disabled={props.loading} onClick={props.onBack}>Go to town →</button></div></>} />
+  </section>;
   const everyday = cards.filter((c) => !c.personal);
   const personal = cards.filter((c) => c.personal);
 
