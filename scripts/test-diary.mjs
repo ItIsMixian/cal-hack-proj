@@ -57,7 +57,7 @@ function fixture(demo = false) {
     db.mirrorProfile.insert({ mirrorId: id, owner, selfCard: 'I build accessible charts', contact: `${name}@example.test` });
   }
   db.config.insert({ id: 0, deepseekKey: 'test', anthropicKey: '' });
-  db.conversation.insert({ id: 30n, a: 10n, b: 20n, turns: 2, active: true, maxTurns: 4, place: 'park' });
+  db.conversation.insert({ id: 30n, a: 10n, b: 20n, turns: 2, active: true, maxTurns: 4, place: 'park', startedAt: now });
   const wrap = () => mod.runLlmJob(ctx(A), { job: { conversationId: 30n, kind: 'wrap' } });
   const entries = owner => mod.myDiary(ctx(owner));
   return { db, ctx, wrap, entries };

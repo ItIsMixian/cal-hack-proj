@@ -294,10 +294,13 @@ const TICK_MICROS = 200_000n;
 const MINUTE = 60_000_000n;
 const SPEED = 1.0; // tiles per real second, independent of tick frequency
 const NEAR = 1.8;
-const CHAT_COOLDOWN = 45_000_000n;
-const PAIR_COOLDOWN = 3n * MINUTE;
+const FIRST_CHAT_WAIT = 45_000_000n;
+const CHAT_COOLDOWN = 5n * MINUTE;
+const PAIR_COOLDOWN = 15n * MINUTE;
+const SOCIAL_WINDOW = 30n * MINUTE;
+const MAX_CHATS_PER_WINDOW = 3;
 const SIGHTING_GAP = 3n * MINUTE;
-const MAX_ACTIVE_CONVERSATIONS = 6;
+const MAX_ACTIVE_CONVERSATIONS = 2;
 const LINE_DELAY = 2_000_000n;
 const POSTCARDS_PER_DAY = 2;
 const MAX_MIRRORS_PER_OWNER = 3;
@@ -524,9 +527,12 @@ export const tick = spacetimedb.reducer({ onSchedule: tickTimer }, { timer: tick
   if (!socialDue) return;
 
   // Notice each other; sometimes start talking.
-  let active = [...ctx.db.conversation.iter()].filter((c) => c.active).length;
+  const conversations = [...ctx.db.conversation.iter()];
+  let active = conversations.filter((c) => c.active).length;
+  const recentChats = socialHistory(conversations, now);
   const free = [...ctx.db.mirror.iter()].filter(
-    (m) => m.active !== false && m.conversationId === 0n && now - m.lastChatAt.microsSinceUnixEpoch > CHAT_COOLDOWN && m.activity !== 'walking',
+    (m) => m.active !== false && m.conversationId === 0n
+      && readyToChat(now, m.lastChatAt.microsSinceUnixEpoch, recentChats.get(m.id)) && m.activity !== 'walking',
   );
   const taken = new Set<bigint>();
   for (let i = 0; i < free.length; i++) {
@@ -550,7 +556,7 @@ export const tick = spacetimedb.reducer({ onSchedule: tickTimer }, { timer: tick
       const sameActivity = a.activity === b.activity ? 1.5 : 1;
       const outgoing = 0.3 + Math.max(a.extraversion, b.extraversion);
       const bothDemo = a.demo && b.demo ? 0.3 : 1;
-      if (ctx.random() > 0.05 * familiarity * sameActivity * outgoing * bothDemo) continue;
+      if (ctx.random() >= 0.005 * familiarity * sameActivity * outgoing * bothDemo) continue;
 
       // The more outgoing one usually speaks first.
       const [first, second] = ctx.random() < 0.5 + (a.extraversion - b.extraversion) ? [a, b] : [b, a];
@@ -576,6 +582,22 @@ export const tick = spacetimedb.reducer({ onSchedule: tickTimer }, { timer: tick
     }
   }
 });
+
+// Count starts in real time, including conversations still active. Keeping a zero
+// entry for older partners distinguishes an established resident from a newcomer.
+function socialHistory(conversations: Iterable<{ a: bigint; b: bigint; startedAt: Timestamp }>, now: bigint) {
+  const counts = new Map<bigint, number>();
+  for (const conversation of conversations) {
+    const recent = conversation.startedAt.microsSinceUnixEpoch > now - SOCIAL_WINDOW;
+    for (const id of [conversation.a, conversation.b]) counts.set(id, (counts.get(id) ?? 0) + (recent ? 1 : 0));
+  }
+  return counts;
+}
+
+function readyToChat(now: bigint, lastChatAt: bigint, recent: number | undefined) {
+  return (recent ?? 0) < MAX_CHATS_PER_WINDOW
+    && now - lastChatAt >= (recent === undefined ? FIRST_CHAT_WAIT : CHAT_COOLDOWN);
+}
 
 function endConversation(db: Db, conversationId: bigint, at: Timestamp) {
   const conv = db.conversation.id.find(conversationId);
