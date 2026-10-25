@@ -66,7 +66,8 @@ friends, board games, arranging gatherings). It also showed where the importer i
 
 These change 0004's evidence rule. The decision is drafted as `docs/decisions/proposed-graded-fit.md` on
 branch `yw/proposals` (evidence from the conversation, personality never counts, good / maybe / none,
-a "didn't click" line, and an eight-case eval set from the server log); start C once it is numbered.
+a "didn't click" line, an eight-case eval set from the server log, and an address book of name cards
+instead of a "recommended" label, with the owner's own card on top); start C once it is numbered.
 
 10. **Needs and offers.** The import also extracts, per mirror, up to three "looking for" and three
     "can offer" items (private, shown in the Mirror Room, editable like cards).
