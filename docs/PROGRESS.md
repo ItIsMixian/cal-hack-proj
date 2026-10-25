@@ -1,5 +1,12 @@
 # Current work
 
+Completed integration: the web and desktop demo, English interface copy, Maincloud
+data migration and production guest entry are delivered. Live web demo:
+https://itismixian.github.io/cal-hack-proj/ . See
+[integration verification and remaining limits](validation/2026-10-25-integrated-cloud-demo.md).
+ADR 0008 and 0009 are implemented on `main`; their validation links are in the
+[decision index](decisions/README.md).
+
 Latest: temporary guest residency and a host-controlled Demo OFF/ON switch are implemented. Protected mixian #9 retained; duplicate #18 retired. [Checks](validation/2026-10-25-guests-and-demo-toggle.md).
 
 Latest integration (2026-10-25): yw web/desktop + yq independent worlds and room-first entry are combined. Maincloud migration preserves the original local database and resident ID 9. See [integration checks](./validation/2026-10-25-integrated-cloud-demo.md) for deployment state and Pending checks.
@@ -95,8 +102,10 @@ Latest runtime check: the user reported connection refused at `127.0.0.1:5173`; 
 
 The team's Figma login screen is implemented with local exported assets. SpacetimeAuth accounts and
 explicit browser guests are integrated; see `validation/login-figma-and-auth.md` for user-assisted
-login, verified guest compatibility and Pending cross-browser/expiry checks. The auth project is
-configured on Maincloud, while the town simulation remains local.
+login, verified guest compatibility and Pending cross-browser/expiry checks. The current
+published web demo uses Maincloud for both authentication and the migrated town simulation;
+the original local database is retained independently. See the
+[cloud migration and production checks](validation/2026-10-25-integrated-cloud-demo.md).
 
 Phone entry layout, compressed production sharing and the current tunnel's exact auth callbacks
 were repaired after phone feedback; see `validation/mobile-login-and-share-performance.md`.
