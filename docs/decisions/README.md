@@ -61,3 +61,5 @@ Proposed drafts stay on their author's branch until accepted, so `main` only hol
 on. To see everyone's drafts and spot clashes early, run `npm run check-decisions`: it fetches all
 branches and lists, per branch, the decision and principle files changed since `main`, plus files more
 than one branch is touching.
+
+- [Temporary guests and demo control](proposed-temporary-guests-and-demo-control.md): user-requested behavior implemented; team ratification pending.

@@ -19,6 +19,19 @@ import { FACETS, RELATIONS, ROOMS, redact, isVisibleIn, type Room } from './reda
 // Tables
 // ---------------------------------------------------------------------------
 
+// Only verified email authentication makes a resident persistent. Unknown legacy
+// owners are left untouched until observed; names never establish account ownership.
+const residentSession = table({name:'resident_session'}, {
+  owner:t.identity().primaryKey(), verified:t.bool(), expiresAt:t.u64(), archived:t.array(t.u64()),
+});
+const residentConnection = table({name:'resident_connection'}, {
+  connectionId:t.connectionId().primaryKey(), owner:t.identity().index('btree'),
+});
+
+const demoControl = table({name:'demo_control'}, {
+  worldId:t.u64().primaryKey(), operator:t.identity(), enabled:t.bool(), until:t.u64(), lastEncounterAt:t.u64(),
+});
+
 const config = table(
   { name: 'config' },
   {
@@ -322,6 +335,7 @@ const ActivityEpisodeInput = t.object('ActivityEpisodeInput', {
 const ActivityThemeResult = t.object('ActivityThemeResult', {text:t.string(),episodeIds:t.array(t.string()),evidence:t.string()});
 
 const spacetimedb = schema({
+  residentSession, residentConnection, demoControl,
   activityBudget,
   world, worldMember, worldSelection, mirrorPrototype,
   config,
@@ -685,13 +699,76 @@ export const visibleLines = spacetimedb.view({ name: 'line', public: true }, t.a
   return [...ctx.db.conversationStorage.worldId.filter(worldId)].flatMap(conv => [...ctx.db.lineStorage.conversationId.filter(conv.id)]);
 });
 
+// Demo pacing is world-local and explicit. It never changes evidence checks.
+export const grantDemoControl = spacetimedb.reducer({mirrorId:t.u64()},(ctx,{mirrorId})=>{
+  requireAdmin(ctx);
+  const mirror=ctx.db.mirrorStorage.id.find(mirrorId),profile=ctx.db.mirrorProfile.mirrorId.find(mirrorId);
+  if(!mirror||!profile)throw new SenderError('Unknown resident');
+  const row=ctx.db.demoControl.worldId.find(mirror.worldId);
+  const value={worldId:mirror.worldId,operator:profile.owner,enabled:false,until:0n,lastEncounterAt:0n};
+  if(row)ctx.db.demoControl.worldId.update(value);else ctx.db.demoControl.insert(value);
+});
+export const setDemoMode = spacetimedb.reducer({enabled:t.bool()},(ctx,{enabled})=>{
+  const worldId=selectedWorldId(ctx),town=requireWorldMember(ctx,worldId);
+  const saved=ctx.db.demoControl.worldId.find(worldId);
+  if(!town.owner.equals(ctx.sender)&&!saved?.operator.equals(ctx.sender))throw new SenderError('Only the world host can change demo mode');
+  const value={worldId,operator:saved?.operator??ctx.sender,enabled,until:enabled?micros(ctx)+5n*MINUTE:0n,lastEncounterAt:0n};
+  if(saved)ctx.db.demoControl.worldId.update(value);else ctx.db.demoControl.insert(value);
+  // Wake idle actors; movement speed remains unchanged. No positions teleport.
+  if(enabled){
+    const residents=[...ctx.db.mirrorStorage.worldId.filter(worldId)].filter(m=>m.active!==false&&!m.demo&&m.conversationId===0n);
+    const ownIds=new Set([...ctx.db.mirrorProfile.owner.filter(ctx.sender)].map(p=>p.mirrorId));
+    const host=residents.find(m=>ownIds.has(m.id))??residents[0];
+    if(host){
+      const other=residents.filter(m=>m.id!==host.id).sort((a,b)=>Math.hypot(a.x-host.x,a.y-host.y)-Math.hypot(b.x-host.x,b.y-host.y))[0];
+      const target=randomPointIn(ctx,host.place);
+      for(const [i,m] of [host,other].filter((m):m is typeof host=>!!m).entries()){
+        ctx.db.mirrorRest.mirrorId.delete(m.id);
+        ctx.db.mirrorStorage.id.update({...m,place:host.place,targetX:target.x+i*.35,targetY:target.y,activity:'walking'});
+      }
+    }
+  }
+});
+const DemoSetting=t.row('DemoSetting',{worldId:t.u64().primaryKey(),enabled:t.bool(),canManage:t.bool()});
+export const myDemoSettings=spacetimedb.view({name:'my_demo_settings',public:true},t.array(DemoSetting),ctx=>{
+  const worldId=selectedWorldId(ctx),town=ctx.db.world.id.find(worldId);
+  if(!town||!isWorldMember(ctx,worldId))return [];
+  const control=ctx.db.demoControl.worldId.find(worldId);
+  return [{worldId,enabled:control?.enabled??false,canManage:town.owner.equals(ctx.sender)||control?.operator.equals(ctx.sender)===true}];
+});
+
 export const connectWorld = spacetimedb.clientConnected(ctx => {
+  const previous=ctx.db.residentSession.owner.find(ctx.sender);
+  const session={owner:ctx.sender,verified:emailAccount(ctx)||previous?.verified===true,expiresAt:0n,archived:previous?.archived??[]};
+  if(previous)ctx.db.residentSession.owner.update(session);else ctx.db.residentSession.insert(session);
+  if(ctx.connectionId&&!ctx.db.residentConnection.connectionId.find(ctx.connectionId))
+    ctx.db.residentConnection.insert({connectionId:ctx.connectionId,owner:ctx.sender});
   if (isWorldMember(ctx, 0n)) return;
   const lobby = ctx.db.world.id.find(0n);
   if (!lobby || [...ctx.db.worldMember.worldId.filter(0n)].length >= lobby.maxMembers) return;
   addWorldMember(ctx, 0n, 0);
   if (!ctx.db.worldSelection.owner.find(ctx.sender)) activateWorld(ctx, 0n);
 });
+
+export const disconnectWorld = spacetimedb.clientDisconnected(ctx => {
+  if(ctx.connectionId)ctx.db.residentConnection.connectionId.delete(ctx.connectionId);
+  if([...ctx.db.residentConnection.owner.filter(ctx.sender)].length)return;
+  const session=ctx.db.residentSession.owner.find(ctx.sender);
+  if(session&&!session.verified)ctx.db.residentSession.owner.update({...session,expiresAt:micros(ctx)+60_000_000n});
+});
+
+function expireGuestResidents(ctx: Ctx) {
+  for(const session of ctx.db.residentSession.iter()) {
+    if(session.verified||session.expiresAt===0n||session.expiresAt>micros(ctx))continue;
+    if([...ctx.db.residentConnection.owner.filter(session.owner)].length)continue;
+    const archived=[...session.archived];
+    for(const profile of ctx.db.mirrorProfile.owner.filter(session.owner)) {
+      const mirror=ctx.db.mirrorStorage.id.find(profile.mirrorId);
+      if(mirror&&!mirror.demo&&mirror.active!==false){changeResidentActive(ctx,mirror.id,false);if(!archived.includes(mirror.id))archived.push(mirror.id);}
+    }
+    ctx.db.residentSession.owner.update({...session,expiresAt:0n,archived});
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Lifecycle
@@ -749,6 +826,8 @@ export const setOwnMirrorActive = spacetimedb.reducer({ mirrorId: t.u64(), activ
 
 function tickWorld(ctx: SimulationCtx, worldId: bigint) {
   const now = micros(ctx);
+  const demoState=ctx.db.demoControl.worldId.find(worldId);
+  const demo=!!demoState?.enabled&&now<demoState.until;
   const runtime = ctx.db.worldSimulation.id.find(worldId);
   const dt = runtime ? Math.max(0, Math.min(1, Number(now - runtime.lastMoveAt) / 1_000_000)) : 0.2;
   const socialDue = !runtime || now - runtime.lastSocialAt >= 1_000_000n;
@@ -765,7 +844,7 @@ function tickWorld(ctx: SimulationCtx, worldId: bigint) {
     if (dist < 0.2) {
       const rest = ctx.db.mirrorRest.mirrorId.find(m.id);
       if (!rest) {
-        ctx.db.mirrorRest.insert({ mirrorId: m.id, until: now + BigInt(ctx.random.integerInRange(90, 180)) * 1_000_000n });
+        ctx.db.mirrorRest.insert({ mirrorId: m.id, until: now + BigInt(demo ? 8 : ctx.random.integerInRange(90, 180)) * 1_000_000n });
         if (m.activity === 'walking') ctx.db.mirrorStorage.id.update({ ...m, x: m.targetX, y: m.targetY, activity: pick(ctx, ACTIVITIES[m.place] ?? ACTIVITIES.park) });
       } else if (now >= rest.until) {
         const place = choosePlace(ctx, m);
@@ -790,10 +869,11 @@ function tickWorld(ctx: SimulationCtx, worldId: bigint) {
 
   // Notice each other; sometimes start talking.
   const conversations = [...ctx.db.conversationStorage.worldId.filter(worldId)];
+  if(demo&&(conversations.some(c=>c.active)||now-demoState!.lastEncounterAt<45_000_000n))return;
   const recentChats = socialHistory(conversations, now);
   const free = [...ctx.db.mirrorStorage.worldId.filter(worldId)].filter(
     (m) => m.active !== false && m.conversationId === 0n
-      && readyToChat(now, m.lastChatAt.microsSinceUnixEpoch, recentChats.get(m.id)) && m.activity !== 'walking',
+      && (demo || readyToChat(now, m.lastChatAt.microsSinceUnixEpoch, recentChats.get(m.id))) && m.activity !== 'walking',
   );
   const taken = new Set<bigint>();
   for (let i = 0; i < free.length; i++) {
@@ -808,11 +888,11 @@ function tickWorld(ctx: SimulationCtx, worldId: bigint) {
       if (now - rel.lastSeenAt.microsSinceUnixEpoch > SIGHTING_GAP || rel.sightings === 0) {
         rel = ctx.db.relation.id.update({ ...rel, sightings: rel.sightings + 1, lastSeenAt: ctx.timestamp });
       }
-      if (rel.lastTalkAt.microsSinceUnixEpoch !== 0n && now - rel.lastTalkAt.microsSinceUnixEpoch < PAIR_COOLDOWN) continue;
+      if (!demo && rel.lastTalkAt.microsSinceUnixEpoch !== 0n && now - rel.lastTalkAt.microsSinceUnixEpoch < PAIR_COOLDOWN) continue;
       const pair = `${worldId}:` + (a.id < b.id ? `${a.id}:${b.id}` : `${b.id}:${a.id}`);
       const priorMaterial = ctx.db.conversationMaterial.pair.find(pair);
       const material = [a, b].flatMap(m => conversationFacts(ctx.db, m.id, now).map(text => `${m.id}:${text}`));
-      if (!hasNewConversationMaterial(material, priorMaterial?.seen ?? [])) continue;
+      if (!demo && !hasNewConversationMaterial(material, priorMaterial?.seen ?? [])) continue;
 
       // Strangers mostly just notice each other the first time; people who
       // keep running into each other, or already know each other, talk.
@@ -820,7 +900,7 @@ function tickWorld(ctx: SimulationCtx, worldId: bigint) {
       const sameActivity = a.activity === b.activity ? 1.5 : 1;
       const outgoing = 0.3 + Math.max(a.extraversion, b.extraversion);
       const bothDemo = a.demo && b.demo ? 0.3 : 1;
-      if (ctx.random() >= 0.005 * familiarity * sameActivity * outgoing * bothDemo) continue;
+      if (!demo && ctx.random() >= 0.005 * familiarity * sameActivity * outgoing * bothDemo) continue;
 
       // The more outgoing one usually speaks first.
       const [first, second] = ctx.random() < 0.5 + (a.extraversion - b.extraversion) ? [a, b] : [b, a];
@@ -843,8 +923,10 @@ function tickWorld(ctx: SimulationCtx, worldId: bigint) {
       }
       ctx.db.relation.id.update({ ...rel, lastTalkAt: ctx.timestamp });
       scheduleJob(ctx.db, conv.id, 'line', now);
+      if(demo)ctx.db.demoControl.worldId.update({...demoState!,lastEncounterAt:now});
       taken.add(a.id);
       taken.add(b.id);
+      if(demo)return;
       break;
     }
   }
@@ -866,6 +948,8 @@ function worldRandom(now: bigint, worldId: bigint): SimulationCtx['random'] {
 }
 
 export const tick = spacetimedb.reducer({ onSchedule: tickTimer }, { timer: tickTimer.rowType }, (ctx) => {
+  expireGuestResidents(ctx);
+  for(const setting of ctx.db.demoControl.iter())if(setting.enabled&&micros(ctx)>=setting.until)ctx.db.demoControl.worldId.update({...setting,enabled:false});
   // Selection is a view preference. Every world's simulation runs even without viewers.
   for (const world of ctx.db.world.iter()) {
     tickWorld({ db: ctx.db, timestamp: ctx.timestamp, random: worldRandom(micros(ctx), world.id) }, world.id);
@@ -1243,6 +1327,13 @@ export const claimGuestMirrors = spacetimedb.reducer({ token: t.string() }, (ctx
     if (ids.has(row.a) || ids.has(row.b)) ctx.db.encounter.id.update({ ...row,
       aOwner: ids.has(row.a) ? ctx.sender : row.aOwner, bOwner: ids.has(row.b) ? ctx.sender : row.bOwner });
   }
+  // Signing in during/after the grace period keeps only the guest residents
+  // automatically archived by this policy, not manually retired residents.
+  const guestSession=ctx.db.residentSession.owner.find(ticket.owner);
+  for(const id of guestSession?.archived??[])if(ids.has(id))changeResidentActive(ctx,id,true);
+  const accountSession=ctx.db.residentSession.owner.find(ctx.sender);
+  const persistent={owner:ctx.sender,verified:true,expiresAt:0n,archived:[]};
+  if(accountSession)ctx.db.residentSession.owner.update(persistent);else ctx.db.residentSession.insert(persistent);
   ctx.db.guestTransfer.owner.update({ ...ticket, claimedBy: ctx.sender });
 });
 

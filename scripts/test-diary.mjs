@@ -34,11 +34,11 @@ function fixture(demo = false) {
   const db = {};
   for (const [name, def] of Object.entries(definitions)) {
     const rows = new Map(); let seq = 1n;
-    const pk = ['worldSelection','mirrorPrototype'].includes(name) ? 'owner' : name === 'conversationMaterial' ? 'pair' : name === 'guestTransfer' ? 'owner' : ['mirrorProfile', 'mirrorRest', 'mirrorSummary', 'mirrorLearning', 'mirrorStyle'].includes(name) ? 'mirrorId' : ['tickTimer', 'llmJob', 'importJob'].includes(name) ? 'scheduledId' : 'id';
+    const pk = name === 'residentConnection' ? 'connectionId' : ['worldSelection','mirrorPrototype','residentSession'].includes(name) ? 'owner' : name === 'conversationMaterial' ? 'pair' : name === 'guestTransfer' ? 'owner' : ['mirrorProfile', 'mirrorRest', 'mirrorSummary', 'mirrorLearning', 'mirrorStyle'].includes(name) ? 'mirrorId' : ['tickTimer', 'llmJob', 'importJob'].includes(name) ? 'scheduledId' : 'id';
     const equal = (a, b) => typeof a?.equals === 'function' ? a.equals(b) : a === b;
     const table = {
       iter: () => rows.values(), count: () => BigInt(rows.size),
-      insert(row) { const value = { ...(Object.hasOwn(def.columns,'worldId') ? {worldId:0n} : {}), ...row, [pk]: row[pk] === 0n && !['world','worldSimulation'].includes(name) ? seq++ : row[pk] }; rows.set(value[pk], value); return value; },
+      insert(row) { const value = { ...(Object.hasOwn(def.columns,'worldId') ? {worldId:0n} : {}), ...row, [pk]: row[pk] === 0n && !['world','worldSimulation','demoControl'].includes(name) ? seq++ : row[pk] }; rows.set(value[pk], value); return value; },
     };
     for (const col of Object.keys(def.columns)) table[col] = {
       find: value => [...rows.values()].find(row => equal(row[col], value)),
@@ -372,4 +372,82 @@ test('diary source IDs are scoped to the other person and cannot expose a privat
   const second=[...f.db.diaryEntry.iter()].find(e=>e.conversationId===31n&&e.mirrorId===10n);
   assert.ok(!second.text.includes('Private information'));
   assert.ok(!second.text.includes('mirrorville-source-v1'));
+});
+
+
+test('guests retire after their last tab closes; reconnects and verified accounts persist',()=>{
+ const f=fixture(),guest=f.ctx(A);guest.connectionId=identity('tab-a');
+ mod.connectWorld(guest);
+ const tab2={...guest,connectionId:identity('tab-b')};mod.connectWorld(tab2);
+ mod.disconnectWorld(guest);
+ assert.equal(f.db.residentSession.owner.find(A).expiresAt,0n);
+ mod.disconnectWorld(tab2);
+ const expiry=f.db.residentSession.owner.find(A).expiresAt;
+ assert.equal(expiry,guest.timestamp.microsSinceUnixEpoch+60_000_000n);
+ mod.tick({...guest,timestamp:new Timestamp(expiry-1n)});
+ assert.notEqual(f.db.mirror.id.find(10n).active,false);
+ mod.connectWorld(guest);mod.tick({...guest,timestamp:new Timestamp(expiry+1n)});
+ assert.notEqual(f.db.mirror.id.find(10n).active,false);
+ mod.disconnectWorld(guest);mod.tick({...guest,timestamp:new Timestamp(expiry+1n)});
+ assert.equal(f.db.mirror.id.find(10n).active,false);
+ assert.ok(f.db.mirrorProfile.mirrorId.find(10n),'historical ownership retained');
+ assert.equal(f.db.conversation.id.find(30n).active,false);
+ const account=f.ctx(B);account.connectionId=identity('account-tab');
+ account.senderAuth={jwt:{issuer:'https://auth.spacetimedb.com/oidc',fullPayload:{email:'test@example.test',email_verified:true}}};
+ mod.connectWorld(account);mod.disconnectWorld(account);
+ mod.tick({...guest,timestamp:new Timestamp(expiry+3600_000_000n)});
+ assert.notEqual(f.db.mirror.id.find(20n).active,false);
+});
+
+test('unknown legacy owners are never classified by duplicate names',()=>{
+ const f=fixture();mod.tick(f.ctx(A));
+ assert.notEqual(f.db.mirror.id.find(10n).active,false);
+ assert.notEqual(f.db.mirror.id.find(20n).active,false);
+});
+
+
+test('email claim revives auto-expired guests and makes them persistent without touching manually retired data',()=>{
+ const f=fixture(),guest=f.ctx(A);guest.connectionId=identity('transfer-tab');
+ mod.connectWorld(guest);mod.prepareGuestTransfer(guest,{token:transferToken});mod.disconnectWorld(guest);
+ const expiry=f.db.residentSession.owner.find(A).expiresAt;
+ mod.tick({...guest,timestamp:new Timestamp(expiry+1n)});
+ assert.equal(f.db.mirror.id.find(10n).active,false);
+ mod.claimGuestMirrors(accountContext(f),{token:transferToken});
+ assert.equal(f.db.mirror.id.find(10n).active,true);
+ assert.equal(f.db.mirrorProfile.mirrorId.find(10n).owner,B);
+ assert.equal(f.db.residentSession.owner.find(B).verified,true);
+ mod.tick({...guest,timestamp:new Timestamp(expiry+1000_000_000n)});
+ assert.equal(f.db.mirror.id.find(10n).active,true);
+});
+
+
+test('demo toggle is host-only, world-scoped, reversible and expires after five minutes',()=>{
+ const f=fixture();
+ const row=f.db.mirror.id.find(10n);f.db.mirror.id.update({...row,worldId:0n,active:true,lastChatAt:new Timestamp(0n),place:'park',x:10,y:10,targetX:10,targetY:10,conversationId:0n});
+ f.db.mirror.id.update({...f.db.mirror.id.find(20n),worldId:0n,active:true,lastChatAt:new Timestamp(0n),place:'park',x:12,y:10,targetX:12,targetY:10,conversationId:0n});
+ const host=f.ctx(A);host.random=()=>.5;host.random.integerInRange=()=>90;
+ assert.throws(()=>mod.setDemoMode(f.ctx(B),{enabled:true}),/world host/);
+ mod.setDemoMode(host,{enabled:true});
+ assert.equal(mod.myDemoSettings(host)[0].enabled,true);
+ assert.equal(mod.myDemoSettings(f.ctx(B))[0].canManage,false);
+ assert.equal(f.db.demoControl.worldId.find(0n).until,host.timestamp.microsSinceUnixEpoch+300_000_000n);
+ assert.equal(f.db.mirror.id.find(10n).activity,'walking');
+ assert.equal(f.db.mirror.id.find(10n).x,10,'switch never teleports');
+ mod.setDemoMode(host,{enabled:false});assert.equal(mod.myDemoSettings(host)[0].enabled,false);
+ mod.setDemoMode(host,{enabled:true});
+ mod.tick({...host,timestamp:new Timestamp(host.timestamp.microsSinceUnixEpoch+300_000_001n)});
+ assert.equal(mod.myDemoSettings(host)[0].enabled,false);
+});
+
+
+test('demo starts only one real encounter while skipping pacing, not evidence validation',()=>{
+ const f=fixture(),ctx=f.ctx(A);ctx.random=()=>.5;ctx.random.integerInRange=()=>90;
+ f.db.conversation.id.delete(30n);
+ for(const id of [10n,20n])f.db.mirror.id.update({...f.db.mirror.id.find(id),active:true,worldId:0n,conversationId:0n,place:'park',x:10,y:10,targetX:10,targetY:10,activity:'resting',lastChatAt:ctx.timestamp});
+ f.db.demoControl.insert({worldId:0n,operator:A,enabled:true,until:ctx.timestamp.microsSinceUnixEpoch+300_000_000n,lastEncounterAt:0n});
+ mod.fixtureTickWorld(ctx,0n);
+ assert.equal([...f.db.conversation.iter()].filter(c=>c.active).length,1);
+ mod.fixtureTickWorld({...ctx,timestamp:new Timestamp(ctx.timestamp.microsSinceUnixEpoch+1_000_000n)},0n);
+ assert.equal([...f.db.conversation.iter()].filter(c=>c.active).length,1);
+ assert.equal([...f.db.llmJob.iter()].length,1);
 });

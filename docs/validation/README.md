@@ -1,5 +1,7 @@
 # Validation
 
+- [Guest retirement and demo toggle](2026-10-25-guests-and-demo-toggle.md): duplicate #18 retired, #9 preserved, multi-tab expiry and host-only OFF/ON pacing.
+
 - [Integrated cloud demo and migration](2026-10-25-integrated-cloud-demo.md): worlds, desktop, English labels, snapshot counts and remaining acceptance.
 
 Each record: date, exact version, method, result, and what was not covered. Anything not run is Pending.

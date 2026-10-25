@@ -45,6 +45,7 @@ import CreateWorldReducer from "./create_world_reducer";
 import DeleteCardReducer from "./delete_card_reducer";
 import EditMirrorStyleReducer from "./edit_mirror_style_reducer";
 import EnterWorldReducer from "./enter_world_reducer";
+import GrantDemoControlReducer from "./grant_demo_control_reducer";
 import ImportTextReducer from "./import_text_reducer";
 import ImportWritingReducer from "./import_writing_reducer";
 import JoinOpenWorldReducer from "./join_open_world_reducer";
@@ -60,6 +61,7 @@ import RotateWorldInviteReducer from "./rotate_world_invite_reducer";
 import SetAppearanceReducer from "./set_appearance_reducer";
 import SetCardRoomReducer from "./set_card_room_reducer";
 import SetContactReducer from "./set_contact_reducer";
+import SetDemoModeReducer from "./set_demo_mode_reducer";
 import SetLlmConfigReducer from "./set_llm_config_reducer";
 import SetModelsReducer from "./set_models_reducer";
 import SetOwnMirrorActiveReducer from "./set_own_mirror_active_reducer";
@@ -78,6 +80,7 @@ import * as UnderstandActivityProcedure from "./understand_activity_procedure";
 import DiscoverableWorldsRow from "./discoverable_worlds_table";
 import MyArchivedMirrorsRow from "./my_archived_mirrors_table";
 import MyCardsRow from "./my_cards_table";
+import MyDemoSettingsRow from "./my_demo_settings_table";
 import MyDiaryRow from "./my_diary_table";
 import MyImportsRow from "./my_imports_table";
 import MyLearningRow from "./my_learning_table";
@@ -135,6 +138,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyCardsRow),
+  myDemoSettings: __table({
+    name: 'my_demo_settings',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyDemoSettingsRow),
   myDiary: __table({
     name: 'my_diary',
     indexes: [
@@ -199,6 +209,7 @@ const reducersSchema = __reducers(
   __reducerSchema("delete_card", DeleteCardReducer),
   __reducerSchema("edit_mirror_style", EditMirrorStyleReducer),
   __reducerSchema("enter_world", EnterWorldReducer),
+  __reducerSchema("grant_demo_control", GrantDemoControlReducer),
   __reducerSchema("import_text", ImportTextReducer),
   __reducerSchema("import_writing", ImportWritingReducer),
   __reducerSchema("join_open_world", JoinOpenWorldReducer),
@@ -214,6 +225,7 @@ const reducersSchema = __reducers(
   __reducerSchema("set_appearance", SetAppearanceReducer),
   __reducerSchema("set_card_room", SetCardRoomReducer),
   __reducerSchema("set_contact", SetContactReducer),
+  __reducerSchema("set_demo_mode", SetDemoModeReducer),
   __reducerSchema("set_llm_config", SetLlmConfigReducer),
   __reducerSchema("set_models", SetModelsReducer),
   __reducerSchema("set_own_mirror_active", SetOwnMirrorActiveReducer),

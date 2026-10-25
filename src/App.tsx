@@ -47,6 +47,10 @@ export default function App({ sessionLabel, onExit, accountMode = false, onSignI
   mobileShare?: MobileShareDraft | null; onDiscardShare?: () => void;
 }) {
   useActivityLearning();
+  const [demoSettings]=useTable(tables.myDemoSettings);
+  const demoSetting=demoSettings[0];
+  const setDemoMode=useReducer(reducers.setDemoMode);
+  const [demoBusy,setDemoBusy]=useState(false);
   const { isActive, identity, getConnection } = useSpacetimeDB();
   const [allMirrors] = useTable(tables.visibleMirrors);
   const liveMirrors = useMemo(() => allMirrors.filter(m => m.active !== false), [allMirrors]);
@@ -346,6 +350,11 @@ export default function App({ sessionLabel, onExit, accountMode = false, onSignI
           } : undefined} />}
       </main>
       {currentWorld.exists && <aside className="town-camera-hud" aria-label="Town camera">
+        {demoSetting?.canManage ? <button className="demo-mode-toggle" aria-pressed={demoSetting.enabled} disabled={demoBusy}
+          title="Faster encounters for five minutes. Evidence rules stay the same."
+          onClick={async()=>{setDemoBusy(true);try{await setDemoMode({enabled:!demoSetting.enabled});}catch(e){setNotice(e instanceof Error?e.message:'Could not change demo mode.');}finally{setDemoBusy(false);}}}>
+          {demoSetting.enabled?'● Demo: ON':'○ Demo: OFF'}
+        </button> : demoSetting?.enabled ? <small className="demo-mode-label">Demo mode</small> : null}
         <div className="town-camera-switch" role="group" aria-label="Camera view">
           <button aria-pressed={cameraMode === 'general' || !followed} onClick={() => setCameraMode('general')}>General</button>
           <button aria-pressed={cameraMode === 'follow' && !!followed} disabled={!followed} onClick={() => setCameraMode('follow')}>Follow</button>

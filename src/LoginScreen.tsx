@@ -28,7 +28,7 @@ export default function LoginScreen({ onAccount, onGuest, busy = false, error = 
             <img src="assets/login/button.webp" alt="" draggable={false} />
             <span>Explore as a guest</span>
           </button>
-          <p className="login-guest-note">Start as a guest. Sign in here later to keep your mirror.</p>
+          <p className="login-guest-note">Guest mirrors leave when you do. Sign in to keep yours.</p>
           <div className="login-feedback" aria-live="polite">{error && <p role="alert">{error}</p>}</div>
         </section>
       </div>

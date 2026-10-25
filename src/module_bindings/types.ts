@@ -64,6 +64,22 @@ export const ConversationStorage = __t.object("ConversationStorage", {
 });
 export type ConversationStorage = __Infer<typeof ConversationStorage>;
 
+export const DemoControl = __t.object("DemoControl", {
+  worldId: __t.u64(),
+  operator: __t.identity(),
+  enabled: __t.bool(),
+  until: __t.u64(),
+  lastEncounterAt: __t.u64(),
+});
+export type DemoControl = __Infer<typeof DemoControl>;
+
+export const DemoSetting = __t.object("DemoSetting", {
+  worldId: __t.u64(),
+  enabled: __t.bool(),
+  canManage: __t.bool(),
+});
+export type DemoSetting = __Infer<typeof DemoSetting>;
+
 export const DiaryEntry = __t.object("DiaryEntry", {
   id: __t.u64(),
   conversationId: __t.u64(),
@@ -295,6 +311,9 @@ export type MyArchivedMirrors = __Infer<typeof MyArchivedMirrors>;
 export const MyCards = __t.object("MyCards", {});
 export type MyCards = __Infer<typeof MyCards>;
 
+export const MyDemoSettings = __t.object("MyDemoSettings", {});
+export type MyDemoSettings = __Infer<typeof MyDemoSettings>;
+
 export const MyDiary = __t.object("MyDiary", {});
 export type MyDiary = __Infer<typeof MyDiary>;
 
@@ -339,6 +358,20 @@ export const Relation = __t.object("Relation", {
   worldId: __t.u64(),
 });
 export type Relation = __Infer<typeof Relation>;
+
+export const ResidentConnection = __t.object("ResidentConnection", {
+  connectionId: __t.connectionId(),
+  owner: __t.identity(),
+});
+export type ResidentConnection = __Infer<typeof ResidentConnection>;
+
+export const ResidentSession = __t.object("ResidentSession", {
+  owner: __t.identity(),
+  verified: __t.bool(),
+  expiresAt: __t.u64(),
+  archived: __t.array(__t.u64()),
+});
+export type ResidentSession = __Infer<typeof ResidentSession>;
 
 export const TickTimer = __t.object("TickTimer", {
   scheduledId: __t.u64(),

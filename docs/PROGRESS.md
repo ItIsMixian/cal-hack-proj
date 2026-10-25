@@ -1,5 +1,7 @@
 # Current work
 
+Latest: temporary guest residency and a host-controlled Demo OFF/ON switch are implemented. Protected mixian #9 retained; duplicate #18 retired. [Checks](validation/2026-10-25-guests-and-demo-toggle.md).
+
 Latest integration (2026-10-25): yw web/desktop + yq independent worlds and room-first entry are combined. Maincloud migration preserves the original local database and resident ID 9. See [integration checks](./validation/2026-10-25-integrated-cloud-demo.md) for deployment state and Pending checks.
 
 

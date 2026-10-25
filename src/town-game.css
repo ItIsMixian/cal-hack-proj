@@ -208,3 +208,7 @@
   .town-clock { top: max(102px, calc(env(safe-area-inset-top) + 94px)); width: 138px; right: 10px; }
   .town-camera-hud { top: max(180px, calc(env(safe-area-inset-top) + 172px)); }
 }
+
+.town-camera-hud .demo-mode-toggle { min-height: 40px; padding: 6px 12px; font: 18px 'Pixelify Sans', monospace; border: 2px solid #69794e; background: #fff3d9e8; color: #455234; }
+.town-camera-hud .demo-mode-toggle[aria-pressed='true'] { background: #536746; color: #fffbea; border-style: double; border-width: 4px; }
+.demo-mode-label { padding: 4px 8px; background: #f7efd9e8; color: #455234; }

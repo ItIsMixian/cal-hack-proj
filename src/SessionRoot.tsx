@@ -88,7 +88,7 @@ export default function SessionRoot() {
 function GuestOnlyGateway(share: SharedSession) {
   const [guest, setGuest] = useState(() => initialMode() === 'guest');
   const [error, setError] = useState('');
-  if (guest) return <WorldSession {...share} mode="guest" onExit={() => { share.discardShare(); saveMode(null); setGuest(false); }} />;
+  if (guest) return <WorldSession {...share} mode="guest" onExit={() => { share.discardShare(); localStorage.removeItem(GUEST_TOKEN_KEY); saveMode(null); setGuest(false); }} />;
   return <LoginScreen error={error}
     onAccount={async () => setError('Account sign-in is not ready yet. You can explore as a guest for now.')}
     onGuest={() => { saveMode('guest'); setGuest(true); }} />;
@@ -118,7 +118,7 @@ function AccountGateway(share: SharedSession) {
   const chooseMode = (next: Mode) => { saveMode(next); setMode(next); };
   const leave = async () => {
     share.discardShare();
-    if (mode === 'guest') { chooseMode(null); return; }
+    if (mode === 'guest') { localStorage.removeItem(GUEST_TOKEN_KEY); chooseMode(null); return; }
     const idToken = auth.user?.id_token;
     chooseMode(null);
     await auth.removeUser();
