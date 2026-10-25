@@ -6,8 +6,9 @@
   require five real minutes after the last one ends.
 - The same pair waits fifteen real minutes. Each resident can start at most three
   conversations in a rolling thirty-minute window, including currently active ones.
-- Encounter attempt probability is reduced tenfold. At most two conversations may
-  be active in town; existing conversations finish normally.
+- Encounter attempt probability is reduced tenfold. There is no town-wide concurrent
+  conversation cap; unrelated residents do not queue behind each other. Each resident
+  still participates in only one conversation at a time.
 - No schema, stored conversations, diaries, resident identities or 0004 evidence
   checks are changed. The limits use real time, independently of the town clock.
 - Working-tree pacing/roaming/diary tests: 29 passed; server typecheck passed.

@@ -300,7 +300,6 @@ const PAIR_COOLDOWN = 15n * MINUTE;
 const SOCIAL_WINDOW = 30n * MINUTE;
 const MAX_CHATS_PER_WINDOW = 3;
 const SIGHTING_GAP = 3n * MINUTE;
-const MAX_ACTIVE_CONVERSATIONS = 2;
 const LINE_DELAY = 2_000_000n;
 const POSTCARDS_PER_DAY = 2;
 const MAX_MIRRORS_PER_OWNER = 3;
@@ -528,7 +527,6 @@ export const tick = spacetimedb.reducer({ onSchedule: tickTimer }, { timer: tick
 
   // Notice each other; sometimes start talking.
   const conversations = [...ctx.db.conversation.iter()];
-  let active = conversations.filter((c) => c.active).length;
   const recentChats = socialHistory(conversations, now);
   const free = [...ctx.db.mirror.iter()].filter(
     (m) => m.active !== false && m.conversationId === 0n
@@ -547,7 +545,6 @@ export const tick = spacetimedb.reducer({ onSchedule: tickTimer }, { timer: tick
       if (now - rel.lastSeenAt.microsSinceUnixEpoch > SIGHTING_GAP || rel.sightings === 0) {
         rel = ctx.db.relation.id.update({ ...rel, sightings: rel.sightings + 1, lastSeenAt: ctx.timestamp });
       }
-      if (active >= MAX_ACTIVE_CONVERSATIONS) continue;
       if (now - rel.lastTalkAt.microsSinceUnixEpoch < PAIR_COOLDOWN) continue;
 
       // Strangers mostly just notice each other the first time; people who
@@ -577,7 +574,6 @@ export const tick = spacetimedb.reducer({ onSchedule: tickTimer }, { timer: tick
       scheduleJob(ctx.db, conv.id, 'line', now);
       taken.add(a.id);
       taken.add(b.id);
-      active++;
       break;
     }
   }
