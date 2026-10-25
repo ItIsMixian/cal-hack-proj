@@ -1,6 +1,8 @@
 
 # Handoff / 必要交接
 
+Latest: Anthropic key configured in the active Maincloud database; direct Claude Opus 5.5 request passed. End-to-end cloud import/diary verification remains Pending. [Evidence](validation/2026-10-25-anthropic-config.md).
+
 Latest: temporary guest residency and a host-controlled Demo OFF/ON switch are implemented. Protected mixian #9 retained; duplicate #18 retired. [Checks](validation/2026-10-25-guests-and-demo-toggle.md).
 
 Latest integration (2026-10-25): yw web/desktop + yq independent worlds and room-first entry are combined. Maincloud migration preserves the original local database and resident ID 9. See [integration checks](./validation/2026-10-25-integrated-cloud-demo.md) for deployment state and Pending checks.
