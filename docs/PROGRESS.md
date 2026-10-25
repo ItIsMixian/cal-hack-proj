@@ -1,19 +1,18 @@
 # Current work
 
-Goal: a demo where a judge makes a mirror, watches it live in town, reads its diary, and shows
-interest in someone (see `core/principles.md`). Deadline: Devpost first submission Sun 2026-10-25 09:00 PT.
+Current integration: `yw/map-assets` combines the saved local source/desktop/iPhone/appearance work
+with `origin/yq` at `d85c3ed`. Both branches' room, resident-status, diary and input features are kept.
+Current integration evidence is in [merge validation](validation/2026-10-25-yw-yq-merge.md).
 
-## Where things are
+Earlier `yq` runtime and merge notes are historical; see
+[runtime validation](validation/2026-10-24-local-frontend-runtime.md) and
+[prior integration](validation/2026-10-24-update-yw-map-assets.md).
 
-- What exists: `state/project-structure.md`. What has been checked: `validation/`.
-- Why it is built this way: `decisions/` (0001-0008). Product thinking: `design/product-pipeline.md`.
+## Current implementation
 
-## Entry screen
+- Diary now shows only summaries created after the previous close, with persistent per-identity/per-mirror cutoffs and a matching new-content dot. Both Diary entrances share this behavior; first use shows existing notes. 37 diary tests, 3 Home tests and build passed. See [last-close behavior and browser-local limits](validation/2026-10-24-diary-comments.md#since-the-previous-close-2026-10-24).
 
-The team's Figma login screen is implemented with local exported assets. SpacetimeAuth accounts and
-explicit browser guests are integrated; see `validation/login-figma-and-auth.md` for user-assisted
-login, verified guest compatibility and Pending cross-browser/expiry checks. The auth project is
-configured on Maincloud, while the town simulation remains local.
+- Building resident tags now open Status cards with name, current activity/location and recent exchanges limited to the user's own mirrors and that resident. The default is the latest 5 exchanges active within 7 days, using source-content highlights with optional transcript expansion. Build, 7 tests and desktop/portrait actual tag-click fixture checks passed; see [Status card validation](validation/2026-10-24-resident-status-card.md).
 
 Guest-to-account transfer and reversible resident management are implemented; see
 `validation/guest-account-transfer.md`. Account-based cleanup retains Yiqiao Liu #12 and mixian #9
@@ -22,26 +21,40 @@ in town; guest/test data remains archived. Real email transfer acceptance is pen
 Phone entry layout, compressed production sharing and the current tunnel's exact auth callbacks
 were repaired after phone feedback; see `validation/mobile-login-and-share-performance.md`.
 
-## Next
+- Diary now displays one concise chat summary per merged visit, capped at two sentences / 50 words / 280 characters, filtering common actions, scene narration and AI decisions from old notes. Name/time/place grouping and interest/contact controls remain. Build, backend typecheck and 30 diary tests passed. The stricter generation prompt and model-failure fallback remain unpublished; see [current validation and heuristic limits](validation/2026-10-24-diary-comments.md#concise-chat-only-summary-2026-10-24).
 
-Teammate-authored town art and full-screen General/Follow cameras are integrated on
-`yw/map-assets`; see `validation/authored-town-and-camera.md`. Teammate's Home scene is also
-integrated; see `validation/authored-mirror-room.md`.
+- Mirror Room's four furniture names use the user's transparent scroll material. Names and frames are now enlarged together by 30% and shifted 32 CSS pixels upward. Desktop/portrait label clicks and long-name layout were checked; see [nameplate validation](validation/authored-mirror-room.md#larger-raised-nameplates-2026-10-24).
 
-Mirror fidelity Parts A/B are implemented and locally tested on `yw/fidelity`; see
-`validation/mirror-fidelity-a-b.md`. Owner judgment of the summary/cards and the rebase after diary
-merges into main remain Pending. Part C is not included.
+- Mirror Room fills the viewport with uniformly scaled artwork and bounded panning. The summary disclosure, privacy label and bottom shortcut buttons are removed. Four furniture objects remain clickable; the mirror panel now includes contact editing, replacing the independent Address book entry. Build, 16 diary/Home tests and desktop/portrait preview checks passed; see [merged mirror/contact validation](validation/authored-mirror-room.md#contact-editing-merged-into-the-mirror-2026-10-24). Earlier layout checks remain in that file.
 
-1. Diary, visible interest, contact unlock and Mirror Room contact field implemented (0008); see
-   `validation/0008-diary-and-mutual-interest.md` for acceptance results and remaining checks.
-2. Public deployment (0007): first check that a Maincloud procedure can call DeepSeek.
-3. Agree on the remaining drafts on branch `yw/proposals`: postcard privacy, CREAO team brief
-   (`npm run check-decisions` lists drafts on every branch).
-4. Anthropic key → validate the Claude judgment path (0002).
-5. Pitch: demo script, video backup, Devpost page; collect real usage at the venue.
+- Mirror Room no longer displays a standing character/name button. Its removal check predates merging the Address book into the mirror; see [historical room validation](validation/authored-mirror-room.md#remove-standing-room-character-2026-10-24).
 
-Ideas nobody has evaluated yet live in `backlog.md`. Branch and decision-numbering rules are in
-`decisions/README.md`.
+- Building resident portrait frames and portraits are 1.5× larger, with matching click bounds and wider row/column spacing. Production build and a live eight-resident layout/edge-click check passed; see [pin validation](validation/2026-10-24-building-resident-pins.md).
+
+- General now supports cursor-anchored mouse-wheel zoom and bounded dragging. Minimum zoom covers the entire viewport, including resizing and zoom easing. Build, 14 scene/camera tests and actual desktop/portrait browser interactions passed; see [zoom validation](validation/2026-10-24-general-wheel-zoom.md).
+
+- The update includes route-aware client movement, separate 5Hz movement/social timing, the accelerated town clock, calmer stays, indoor portrait pins, revised dock/clock controls and compressed/preloaded Home art. [Town timing](decisions/proposed-town-timing.md) remains Proposed; implemented preview defaults are not consensus ADRs.
+
+- Earlier local frontend guest preview connected to the user-supplied shared database; Live / 12 mirrors and authored map rendering were checked at that time. Fixed comma-containing map asset URLs for Vite. See [shared preview validation](validation/2026-10-24-shared-frontend-preview.md); current connectivity is described above.
+- Login email focus no longer draws a second inner frame; local desktop/mobile-width checks, build and auth tests passed. See [focus validation](validation/2026-10-24-login-focus.md).
+- The application includes the Figma entry screen, SpacetimeAuth accounts and separate guest sessions, conversation diaries, visible interest and mutually unlocked contacts.
+- The authored town and Home scenes are integrated into the web client, including General/Follow cameras and furniture hotspots. Original Godot scenes and assets remain available for editing.
+- Import fidelity Parts A/B and own-lines CSV extraction are included. Sources and remaining live checks are in [project structure](state/project-structure.md) and [teammate validation records](validation/README.md).
+- Existing teammate validation describes their machine and commit context. Checks executed on this machine for this merge are listed separately in [merge validation](validation/2026-10-24-merge-yw-map-assets.md).
+
+## Navigation
+
+- [Consensus ADRs](decisions/README.md#accepted) and [personal Proposed ideas](decisions/README.md#proposed) remain separate. Only Proposed describes ideas still being considered; implementation work does not change that distinction.
+- [Team principles](core/principles.md), [discussion context](core/discussion-context.md), [authored Godot town](../mirrorvile/Town%20map.tscn), [Home](../mirrorvile/Home.tscn).
+- [Original product requirements](design/mirrorville-product-workflow.md), [merge history](library/history/2026-10-24-before-code-merge.md), [handoff](HANDOFF.md).
+
+## Remaining work from the source branch
+
+- Email entry is duplicated between the app and hosted authentication; login_hint did not prefill the hosted field in the local read-only check. A single-entry send-link flow is requested but no replacement has been selected or implemented. See [investigation](validation/2026-10-24-email-login-investigation.md).
+- Public simulation deployment (0007) and Maincloud model-call verification remain outstanding.
+- The source branch lists Claude judgment-path validation, cross-browser/expiry and phone login checks, and subjective fidelity acceptance as remaining checks; see its individual validation records for exact scope.
+- The teammate's postcard-privacy and CREAO briefs remain on `yw/proposals`. The seven yq proposals remain Proposed. Newly imported unnumbered proposals are not converted into ADRs by this merge.
+- This operation downloads and merges code locally. No database publication, data migration, tunnel creation or public deployment is part of this operation.
 
 ## Teammate login/map repair
 

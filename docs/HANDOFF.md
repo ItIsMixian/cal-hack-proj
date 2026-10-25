@@ -1,4 +1,36 @@
+# Handoff / 必要交接
+
+- Diary now shows only records created strictly after its previous close, filtering before visit merging. Closing the town Diary advances all mirrors; closing a room Diary advances only that mirror. Cutoffs are identity-scoped browser storage, with session-memory fallback, frozen while open, and saved on unmount/pagehide (StrictMode replay excluded). First use shows existing records. The quiet dot follows the same cutoffs. 37 diary tests, 3 Home tests and production build passed; see [last-close validation](validation/2026-10-24-diary-comments.md#since-the-previous-close-2026-10-24).
+
+- Status card history is explicitly scoped by the user's choice to their own mirrors' exchanges with the selected resident, matched by participant IDs. Guest/empty history must not substitute other public conversations. Current client defaults are 7 real days / 5 exchanges with extractive source highlights; see [implementation and validation](validation/2026-10-24-resident-status-card.md).
+
+- Diary now shows a compact chat-only extract (up to two sentences / 50 words / 280 characters) per merged visit. Legacy filtering removes common English/Chinese simulation actions, scene clauses, stage directions and AI decisions; it remains heuristic. Name grouping, the 30-minute rule and interest/contact controls remain. Build, backend typecheck and 30 diary tests passed. The stricter generation prompt and non-narrative failure fallback remain unpublished. See [current behavior and limits](validation/2026-10-24-diary-comments.md#concise-chat-only-summary-2026-10-24).
+
+- Local preview recovery: the user supplied frequent-converter-stockings-place.trycloudflare.com; ignored .env.local now uses its wss origin for mirrorville and the documented public auth client. Local guest map / 7 mirrors / Residents and the hosted login entry were checked; real sign-in and writes were not exercised. See [runtime validation](validation/2026-10-24-local-frontend-runtime.md).
+
+- 当前检出个人分支 yq；本次从 origin/yw/map-assets（7509d4b）下载并合并应用代码，保留 Godot 工程、历史文档与个人 Proposed，不修改 main。
+- 用户明确：ADR 是双方已经形成共识的确定文件；只有 Proposed 是最近在考虑的想法。汇报两者必须分开，未实现的 ADR 也不是新的 Proposed。
+- 从 [PROGRESS](PROGRESS.md)、[团队原则](core/principles.md) 与 [决策索引](decisions/README.md) 开始；原对话背景在 [discussion-context](core/discussion-context.md)，不能据此覆盖共识。
+- 团队原则与 ADR 0001–0008 保留 main 原文。Proposed 接受前不编号、不改为 Accepted，也不改变既定原则。
+- 父目录整理已纳入本仓库 docs，相对代码路径以本仓库为根。父目录副本无自动同步；历史验证的旧目录与版本描述不代表本次状态。
+- 当前合并代码已包含 0008 日记／兴趣／联系方式、SpacetimeAuth 登录及地图／Home 网页集成；本机检查与源机器验证分别记录。个人 Proposed 的状态不因代码合并自动改变。
+- Activity Helper PRD 与赞助商资料保留独立参考副本；FigJam、赛事规则与外部 API 本次未重新核验。
+- 分支交付范围和检查见 [验证记录](validation/2026-10-24-yq-branch.md)。未运行应用、调用模型或部署服务。
+
+- Latest local update checks: [7509d4b merge](validation/2026-10-24-update-yw-map-assets.md). This operation updates files only; it does not publish the backend, run refresh_world_schedule, or activate/deactivate shared residents.
+
+## Source branch operation handoff
+
+以下保留队友分支交接内容；其中 Windows 数据路径、数据库和授权回调属于原开发机，不可直接当作本机配置。本次没有运行发布或迁移命令；检查见 [merge validation](validation/2026-10-24-merge-yw-map-assets.md)。
+
 # Handoff
+
+- **Combined branches (2026-10-25)**: local `yw/map-assets` integrates `origin/yq` at `d85c3ed`
+  with source/desktop/iPhone/authentication/appearance work saved at `69ad3f8`. Full-screen room,
+  contact-in-mirror, status cards, diary summaries/windowing, zoom and larger pins coexist with
+  learning journeys, four-source intake, sharing and appearance changes. Recovery branch:
+  `codex/pre-yq-merge-20261025`. See `validation/2026-10-25-yw-yq-merge.md` for conflict resolutions
+  and checks. This source merge does not publish the server or push remote branches.
 
 - **iPhone explicit sharing**: `mobileShare.ts` accepts validated standalone `#mirrorville-share=`
   base64url JSON or `#mirrorville-text=` URI-encoded Shortcuts text. `SessionRoot` retains a redacted

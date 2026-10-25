@@ -1,3 +1,9 @@
+> 合并与版本说明（2026-10-24）：下方保留源仓库设计原文。它混有早期设计和后续构想，不是当前实现清单：
+>
+> - “Off by default”已由 [0005](../decisions/0005-mirror-room-privacy.md) 的分 facet / personal / room 默认值细化；并非所有卡片隐藏。
+> - postcards → 不可见 wave → 私聊已由 [0008](../decisions/0008-diary-and-mutual-interest.md) 部分取代为日记 → 可见兴趣 → 联系方式，后者尚未实现。
+> - venue 之外的房间、世界生成器、扩展导入、Ollama 与赛道设想不因出现在本文就视为已实现或已核验；本周末边界见 [原则](../core/discussion-context.md)。
+
 # Mirrorville design
 
 **Your mirrors meet first. Then you do.**

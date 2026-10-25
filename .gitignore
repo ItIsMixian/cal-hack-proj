@@ -6,3 +6,7 @@ dist
 spacetime.local.json
 docs/_site/
 output/private-imports/
+/output/
+**/__pycache__/
+*.pyc
+*.tsbuildinfo

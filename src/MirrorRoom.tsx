@@ -51,19 +51,18 @@ export default function MirrorRoom(props: { mirrorId: bigint; onBack: () => void
 
   const titles: Record<RoomObject, string> = {
     mirror: 'Looking in the mirror', diary: 'Your diary', cards: 'Your card collection',
-    desk: 'At the writing desk', contacts: 'Your address book',
+    desk: 'At the writing desk',
   };
   return (
-    <section className="pixel-room" aria-label={`${mirror.name}'s Mirror Room`}>
+    <section className="pixel-room room-fullscreen" aria-label={`${mirror.name}'s Mirror Room`}>
       <div className="room-hud">
         <button className="room-exit" autoFocus onClick={props.onBack}>← Back to town</button>
         <div><p className="room-kicker">MIRRORVILLE / HOME</p><h1>{mirror.name}'s room</h1></div>
-        <span className="room-private">Just for you</span>
+        <button onClick={() => setChangingAppearance(true)}>Change appearance</button>
       </div>
-      <div className="room-appearance-entry"><button onClick={() => setChangingAppearance(true)}>Change appearance</button></div>
       {changingAppearance && <ChangeAppearanceDialog key={String(mirror.id)} mirrorId={mirror.id} name={mirror.name} savedLook={mirror.look} onClose={() => setChangingAppearance(false)} />}
       <PixelRoom name={mirror.name} look={mirror.look} onOpen={object => {
-        if (object === 'desk' || object === 'mirror') enterJourney(object); else setActiveObject(object); setMirrorBeat('hello'); setDeskStart('choose');
+        if (object === 'desk') enterJourney(object); else setActiveObject(object); setMirrorBeat('hello'); setDeskStart('choose');
         if (object === 'diary') props.onDiaryOpen?.();
       }} />
       <div className="room-invitations">
@@ -75,8 +74,9 @@ export default function MirrorRoom(props: { mirrorId: bigint; onBack: () => void
       {activeObject && <RoomDialog title={titles[activeObject]} onClose={() => setActiveObject(null)}>
         {activeObject === 'mirror' && <>
           <MirrorSpeaker name={mirror.name} look={mirror.look} />
+          <p className="room-self-card">{ownerWords(summaries.find(summary => summary.mirrorId === mirror.id)?.text || mirror.selfCard)}</p>
           {mirrorBeat === 'hello' && <div className="mirror-exchange"><p className="exchange-line">There you are.<br />What shall we try together?</p><div className="exchange-choices exchange-responses">
-            <button onClick={() => setMirrorBeat('voice')}>Let me hear your voice →</button>
+            <button onClick={() => enterJourney('mirror')}>Let me hear your voice →</button>
             <button onClick={() => setActiveObject('cards')}>Tell me what you know about me →</button>
             <button onClick={() => setMirrorBeat('today')}>Before you head out… →</button>
             <button className="exchange-back" onClick={() => setMirrorBeat('check')}>Let's do the little personality check</button>
@@ -84,9 +84,12 @@ export default function MirrorRoom(props: { mirrorId: bigint; onBack: () => void
           {mirrorBeat === 'voice' && <VoiceRehearsal mirrorId={mirror.id} onDone={() => setActiveObject(null)} />}
           {mirrorBeat === 'today' && <TodayTopic mirrorId={mirror.id} savedIntent={mirror.intent} savedTopic={learning?.topicDay === venueDay(BigInt(Date.now()) * 1000n) ? learning.topic : ''} onDone={() => setActiveObject(null)} />}
           {mirrorBeat === 'check' && <PersonalityConversation mirrorId={mirror.id} onDone={() => setActiveObject(null)} />}
+          <section className="room-contact-details" aria-labelledby="room-contact-heading">
+            <h3 id="room-contact-heading">Contact details</h3>
+            <ContactField key={String(mirror.id)} mirrorId={mirror.id} saved={mirror.contact} />
+          </section>
         </>}
         {activeObject === 'diary' && <Diary mirrorId={mirror.id} />}
-        {activeObject === 'contacts' && <ContactField key={String(mirror.id)} mirrorId={mirror.id} saved={mirror.contact} />}
         {activeObject === 'cards' && <>
           <MirrorSpeaker name={mirror.name} look={mirror.look} />
           <FactConversation mirrorId={mirror.id} cards={cards} onDone={() => setActiveObject(null)} onBringWords={() => { setDeskStart('choose'); enterJourney('desk'); }} />

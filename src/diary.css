@@ -1,0 +1,27 @@
+.diary-comments { color: #4d4839; }
+.diary-comments-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.room-dialog .diary-comments-heading h3 { margin: 0; font: 26px 'Pixelify Sans', monospace; }
+.diary-comments-heading > span { color: #79705b; font-size: 12px; white-space: nowrap; }
+.diary-person-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.diary-person { padding: 16px 18px 0; border: 1px solid #d8c8a4; border-left: 4px solid #8b9b72; background: #fff9e9; overflow-wrap: anywhere; }
+.diary-person-heading { display: flex; align-items: baseline; flex-wrap: wrap; justify-content: space-between; gap: 10px; }
+.room-dialog .diary-person-heading h3 { font: 24px/1.2 'Pixelify Sans', monospace; margin: 0; }
+.diary-person-heading > span { color: #79705b; font-size: 12px; }
+.diary-comment-list { list-style: none; margin: 0; padding: 0; }
+.diary-comment-list > li + li { border-top: 1px dashed #d8c8a4; }
+.diary-entry.diary-comment { padding: 12px 0 16px; border: 0; }
+.diary-summary { margin: 6px 0 10px; font-size: 16px; line-height: 1.65; }
+.diary-missing-topics { font-size: 14px; color: #7b725f; }
+.diary-comment .diary-comment-meta { margin: 12px 0; font-size: 12px; line-height: 1.6; color: #7b725f; }
+.diary-comment .diary-fit { margin: 12px 0; font-size: 13px; }
+.diary-fit summary { cursor: pointer; color: #61734b; }
+.diary-comment .diary-fit p { margin: 6px 0; }
+.diary-comment > button { font: 16px 'Pixelify Sans', monospace; min-height: 40px; }
+.diary-comment .diary-contact { background: #e8ecd9; padding: 10px 12px; border-radius: 0; }
+.diary-comment .diary-contact p { margin-bottom: 0; }
+.diary-empty { padding: 18px 0; }
+@media (max-width: 600px) {
+  .diary-comments-heading { align-items: flex-start; flex-direction: column; gap: 4px; }
+  .diary-person { padding: 14px 12px 0; }
+  .diary-summary { font-size: 15px; }
+}

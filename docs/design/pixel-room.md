@@ -10,3 +10,19 @@ Room composition uses a proportional reference scene, with larger objects and a 
 The initial static room described above now hands desk/mirror learning to the moving-character
 journey in `first-meeting.md`. This newer path adds client-side floor movement and contextual voice
 rehearsal, while the original diary, contact and detailed-card tools remain available.
+
+## Current mirror/contact entry — 2026-10-24
+
+In the later authored full-screen room, the mirror opens both the self-card and the existing
+contact editor. The independent Address book hotspot is removed; diary, card collection and
+writing desk keep their own furniture entries. Contact information is still shared only with
+mutual-interest connections. See [current validation](../validation/authored-mirror-room.md#contact-editing-merged-into-the-mirror-2026-10-24).
+
+The four furniture labels now use the user's supplied floral scroll material as a proportional
+transparent background, with centered live text. Wider names expand their plate; the mirror
+label sits above the bottom hint. Asset provenance is in [the UI asset notes](../../public/assets/ui/README.md).
+
+The combined branch retains the mirror's private summary and contact editor alongside its learning
+choices. Voice rehearsal enters the animated mirror journey; the writing desk opens the shared
+source paper. Change appearance stays in the full-screen HUD. The standalone standing-room actor
+and Address book are not restored. Integration checks: [merge validation](../validation/2026-10-25-yw-yq-merge.md).

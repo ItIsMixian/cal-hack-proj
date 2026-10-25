@@ -794,7 +794,7 @@ ${transcript}
    - shared_interest: a specific shared interest or project, not a generic one. "Both like AI/tech/coffee" does not count.
    Friendliness, curiosity, or politeness alone never count. Most conversations should have no connection.
    For evidence, copy a short exact phrase from each person's information above (not from the transcript).
-3. For EVERY conversation, write diaryForA and diaryForB, each from that mirror to its owner: 2-3 sentences in first person. Say where I was, what I was doing, who I talked to, and what actually came up. Be warm and low-key. Never invent facts, promise, make plans, or ask the human to act. Do this even when connection is null.
+3. For EVERY conversation, write diaryForA and diaryForB as a concise summary of ONLY THE SPOKEN CHAT CONTENT, in 1-2 short sentences, at most 40 words (or 100 Chinese characters). Select the main topic and one useful detail, question, answer or preference actually said in THIS transcript; combine repeats instead of listing every turn. Attribute who said what when useful. EXCLUDE all scene narration, simulated actions, gestures, movement, current activities, stage directions, the AI's decisions/thought process and personality/compatibility appraisals, even when they appear in the transcript. For example, "I smiled and nodded while we discussed balcony tomatoes, then walked back to coding" becomes "We discussed growing tomatoes on a balcony." An action is relevant only when it is the subject of an actual spoken discussion; summarize the discussion, never narrate the scene. Do not include generic impressions such as "friendly" or "I enjoyed the conversation". Never bring in profile/card facts that were not spoken. If it was only a greeting, say "We exchanged greetings." If there is no spoken content to summarize, use "Conversation summary unavailable." Name, time and venue are displayed separately. Never invent facts, promise, make plans on anyone's behalf, or ask the human to act. Do this even when connection is null.
 
 Reply with only JSON:
 {"noteForA": "...", "noteForB": "...", "diaryForA": "...", "diaryForB": "...", "connection": null}
@@ -843,8 +843,8 @@ or
       && ![s.a, s.b].some(side => !side.demo && goodFitsSince(tx.db, tx.db.mirrorProfile.mirrorId.find(side.id)!.owner, dayStart) >= POSTCARDS_PER_DAY);
     for (const [me, other, raw] of [[s.a, s.b, verdict?.diaryForA], [s.b, s.a, verdict?.diaryForB]] as const) {
       if ([...tx.db.diaryEntry.by_conversation_mirror.filter([s.conv.id, me.id])].length) continue;
-      // If the model fails, report only facts from the simulation, without inventing a verdict.
-      const fallback = `I was ${me.activity} at the ${findLandmark(s.conv.place).label}, where I talked with ${other.name}. I couldn't put together a fuller diary this time.`;
+      // Failed summarization must not substitute simulation activities for chat content.
+      const fallback = 'Conversation summary unavailable.';
       tx.db.diaryEntry.insert({
         id: 0n, conversationId: s.conv.id, mirrorId: me.id, owner: tx.db.mirrorProfile.mirrorId.find(me.id)!.owner,
         otherMirrorId: other.id, place: s.conv.place,

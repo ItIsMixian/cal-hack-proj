@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { useReducer, useSpacetimeDB, useTable } from 'spacetimedb/react';
 import { reducers, tables } from './module_bindings';
 import { clockLabel, currentEvent, findLandmark, townHour } from '../spacetimedb/src/world';
@@ -9,21 +9,15 @@ import MirrorRoom from './MirrorRoom';
 import RoomDialog from './RoomDialog';
 import CharacterAvatar from './CharacterAvatar';
 import { loadRoomArt } from './roomArt';
+import { diaryCutoff, readDiaryHistory } from './DiaryHistory';
+import { DIARY_CLOSED_EVENT } from './useDiaryWindow';
 import type { CameraMode } from './TownCamera';
 import MobileShareReview from './MobileShareReview';
 import type { MobileShareDraft } from './mobileShare';
 import './pixel-room.css';
 import './town-game.css';
 
-const SEEN_KEY = 'mirrorville-diary-seen';
-
-function readSeen(key: string): bigint {
-  try {
-    return BigInt(localStorage.getItem(key) ?? '0');
-  } catch {
-    return 0n;
-  }
-}
+const ResidentStatusCard = lazy(() => import('./ResidentStatusCard'));
 
 function useTownClock() {
   const [hour, setHour] = useState(() => townHour(BigInt(Date.now()) * 1000n));
@@ -39,7 +33,6 @@ export default function App({ sessionLabel, onExit, accountMode = false, onSignI
   mobileShare?: MobileShareDraft | null; onDiscardShare?: () => void;
 }) {
   const { isActive, identity } = useSpacetimeDB();
-  const seenKey = `${SEEN_KEY}/${identity?.toHexString() ?? 'connecting'}`;
   const [allMirrors] = useTable(tables.mirror);
   const mirrors = useMemo(() => allMirrors.filter(m => m.active !== false), [allMirrors]);
   const [conversations] = useTable(tables.conversation);
@@ -75,8 +68,16 @@ export default function App({ sessionLabel, onExit, accountMode = false, onSignI
   const [gamePanel, setGamePanel] = useState<'diary' | 'residents' | 'guide' | null>(null);
   const [cameraMode, setCameraMode] = useState<CameraMode>('general');
   const [followedId, setFollowedId] = useState<bigint | null>(null);
-  const [seen, setSeen] = useState(() => readSeen(seenKey));
-  useEffect(() => setSeen(readSeen(seenKey)), [seenKey]);
+  const [, refreshDiaryHistory] = useState(0);
+  useEffect(() => {
+    const refresh = () => refreshDiaryHistory(value => value + 1);
+    window.addEventListener(DIARY_CLOSED_EVENT, refresh);
+    window.addEventListener('storage', refresh);
+    return () => {
+      window.removeEventListener(DIARY_CLOSED_EVENT, refresh);
+      window.removeEventListener('storage', refresh);
+    };
+  }, []);
   const hour = useTownClock();
   const event = currentEvent(hour);
 
@@ -84,19 +85,8 @@ export default function App({ sessionLabel, onExit, accountMode = false, onSignI
   const followed = myMirrors.find(m => m.id === followedId) ?? [...myMirrors].sort((a, b) => a.id < b.id ? -1 : 1)[0];
   const followedMirror = followed ? mirrors.find(m => m.id === followed.id) : undefined;
   const byId = useMemo(() => new Map(mirrors.map((m) => [m.id, m])), [mirrors]);
-  const newestEntry = diary.reduce((max, p) => p.createdAt.microsSinceUnixEpoch > max ? p.createdAt.microsSinceUnixEpoch : max, 0n);
-  const hasNew = newestEntry > seen;
-
-  // A quiet dot, not a notification: mark diary as seen once the tab is open.
-  useEffect(() => {
-    if (gamePanel !== 'diary' || newestEntry <= seen) return;
-    setSeen(newestEntry);
-    try {
-      localStorage.setItem(seenKey, String(newestEntry));
-    } catch {
-      // Private mode: the dot comes back next visit, which is fine.
-    }
-  }, [gamePanel, newestEntry, seen, seenKey]);
+  const diaryHistory = readDiaryHistory(identity?.toHexString() ?? '');
+  const hasNew = gamePanel !== 'diary' && diary.some(entry => entry.createdAt.microsSinceUnixEpoch > diaryCutoff(diaryHistory, entry.mirrorId));
 
   // Latest line of each active conversation, shown above whoever said it.
   const bubbles = useMemo(() => {
@@ -113,23 +103,12 @@ export default function App({ sessionLabel, onExit, accountMode = false, onSignI
   }, [conversations, lines]);
 
   const focus = selected !== null ? byId.get(selected) : undefined;
-  const focusConversation = focus
-    ? [...conversations].filter((c) => c.a === focus.id || c.b === focus.id).sort((a, b) => Number(b.id - a.id))[0]
-    : undefined;
-  const focusLines = focusConversation
-    ? lines
-        .filter((l) => l.conversationId === focusConversation.id)
-        .sort((a, b) => (a.at.microsSinceUnixEpoch < b.at.microsSinceUnixEpoch ? -1 : 1))
-    : [];
   const myCard = focus ? myMirrors.find((m) => m.id === focus.id) : undefined;
 
   if (roomFor !== null) {
     return (
-      <div className="app">
-        <MirrorRoom mirrorId={roomFor} onBack={() => setRoomFor(null)} onDiaryOpen={() => {
-          setSeen(newestEntry);
-          try { localStorage.setItem(seenKey, String(newestEntry)); } catch { /* Private mode. */ }
-        }} />
+      <div className="app mirror-room-app">
+        <MirrorRoom mirrorId={roomFor} onBack={() => setRoomFor(null)} />
       </div>
     );
   }
@@ -158,7 +137,7 @@ export default function App({ sessionLabel, onExit, accountMode = false, onSignI
             {myMirrors.map(m => <option key={String(m.id)} value={String(m.id)}>{m.name}</option>)}
           </select> : <strong>Following {followedMirror.name}</strong>}
           <span>{followedMirror.conversationId !== 0n ? 'Talking' : followedMirror.activity} · {findLandmark(followedMirror.place).label}</span>
-        </> : <><strong>{mirrors.length} mirrors in town</strong><span>{followed ? 'Tap a mirror to listen in' : 'Make a mirror to follow its day'}</span></>}
+        </> : <><strong>{mirrors.length} mirrors in town</strong><span>{followed ? 'Tap a mirror for its status card' : 'Make a mirror to follow its day'}</span></>}
       </aside>
       <nav className="town-dock" aria-label="Town actions">
         {mobileShare && <button onClick={() => setReviewingShare(true)} disabled={!isActive}>Review shared item</button>}
@@ -190,14 +169,9 @@ export default function App({ sessionLabel, onExit, accountMode = false, onSignI
           <li>Visit your Mirror Room to add your own words and choose what your mirror shares.</li>
         </ol><p className="muted">Character art: Cup Nooble · Sprout Lands</p></div>}
       </RoomDialog>}
-      {focus && <RoomDialog title={focus.name} onClose={() => setSelected(null)}>
-        <div className="room-portrait"><CharacterAvatar look={focus.look} name={focus.name} /><div><h3>{focus.name}</h3><p>{mine.has(focus.id) ? 'Your mirror' : focus.demo ? 'Demo mirror' : 'A mirror in town'}</p></div></div>
-        {focus.intent && <p><b>Today:</b> {focus.intent}</p>}
-        <p className="muted">{focus.conversationId !== 0n ? 'Talking' : focus.activity} at the {findLandmark(focus.place).label}</p>
-        {myCard && <button onClick={() => { setSelected(null); setRoomFor(myCard.id); }}>Open Mirror Room</button>}
-        <h3>{focusConversation?.active ? 'Talking now' : 'Last conversation'}</h3>
-        {focusLines.length === 0 && <p className="muted">No conversations yet. A new day is just beginning.</p>}
-        <div className="town-transcript">{focusLines.map(line => <p key={String(line.id)}><b>{byId.get(line.speaker)?.name ?? '?'}:</b> {line.text}</p>)}</div>
+      {focus && <RoomDialog key={String(focus.id)} title="Status card" onClose={() => setSelected(null)}>
+        <Suspense fallback={<p className="muted">Loading status card…</p>}><ResidentStatusCard mirror={focus} mirrors={mirrors} mine={mine} conversations={conversations} lines={lines} isLive={isActive}
+          onOpenRoom={myCard ? () => { setSelected(null); setRoomFor(myCard.id); } : undefined} /></Suspense>
       </RoomDialog>}
       {reviewingShare && mobileShare && <RoomDialog title="Your shared item" onClose={() => setReviewingShare(false)}><MobileShareReview key={JSON.stringify(mobileShare)} draft={mobileShare} onClose={() => setReviewingShare(false)} onDone={() => { onDiscardShare(); setReviewingShare(false); setNotice('Your reviewed shared item is being read by your mirror.'); }} onCreate={() => { setReviewingShare(false); setCreating(true); }} /></RoomDialog>}
       {creating && <CreateMirror sharedDraft={mobileShare} onSharedConsumed={onDiscardShare} onClose={() => setCreating(false)} onCreated={name => {

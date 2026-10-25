@@ -1,3 +1,44 @@
+# Merged project structure
+
+Updated 2026-10-24. Latest source: `yw/map-assets` at `7509d4ba95dd383d6b0befee23c84d6246383b69`; local target: `yq`, previously `7c7f5e6`. This records downloaded code. Current local checks are in [update validation](../validation/2026-10-24-update-yw-map-assets.md); earlier merge evidence remains in [merge validation](../validation/2026-10-24-merge-yw-map-assets.md).
+
+## Authored project retained on yq
+
+- [mirrorvile/project.godot](../../mirrorvile/project.godot) is the original Godot 4.5 / Forward Plus project with Player1, Player2, Town map and Home scenes and their original assets.
+- [Town map](../../mirrorvile/Town%20map.tscn) includes House / Decoration tile layers; [Home](../../mirrorvile/Home.tscn) contains Bookshelf, Mirror, Diary and Carddesk sprites. The teammate converted these scenes for the web client; the original Godot project is preserved.
+- The earlier yq state and progress documents are preserved in [historical source text](../library/history/2026-10-24-before-code-merge.md). Their statements about missing diary/login implementations are superseded by the downloaded code below.
+- [Activity Helper](../library/originals/idea1_PRD_v0.1.md) remains an independent idea. [Discussion context](../core/discussion-context.md) and the seven personal Proposed ideas are retained; merging code does not accept them or change team principles.
+
+## Teammate's implementation inventory
+
+Local Diary read-window addition: `src/DiaryHistory.ts` stores close cutoffs per identity,
+with a town-wide timestamp and per-mirror timestamps. `src/useDiaryWindow.ts` snapshots
+the cutoff while open and saves on real unmount/pagehide, ignoring StrictMode replay.
+`Diary.tsx` excludes records at or before the applicable cutoff before grouping/summary;
+`App.tsx` uses the same boundaries for its quiet new-content dot. `MirrorRoom.tsx` no longer
+marks all diaries seen when one mirror's Diary opens. First use includes existing notes;
+no server schema or stored diary rows change. See [validation and limits](../validation/2026-10-24-diary-comments.md#since-the-previous-close-2026-10-24).
+
+Local Status card addition on `yq`: `src/ResidentStatusCard.tsx`, `src/ResidentConversations.ts` and `src/resident-status-card.css` replace the selected-resident raw conversation view through `App.tsx`. Cards show activity/location and recent owner-pair source-content highlights, matching exact participant IDs. No schema or model generation changes are needed; see [current validation](../validation/2026-10-24-resident-status-card.md).
+
+Local Diary addition on `yq`: `src/Diary.tsx`, `src/DiaryReview.ts` and `src/diary.css` render a concise chat summary with time/place metadata and preserved interest/contact controls. `diaryTopics`/`sessionTopics` filter and deduplicate legacy content; `sessionSummary` selects at most two sentences, bounded by 50 words and 280 characters. Common scene actions, stage directions and AI decisions are filtered by English/Chinese heuristics. `spacetimedb/src/index.ts` requests only spoken content in 1–2 sentences (40 words / 100 Chinese characters), with a summary-unavailable fallback on failure; these backend changes remain unpublished. See [current local validation and limits](../validation/2026-10-24-diary-comments.md#concise-chat-only-summary-2026-10-24).
+
+The Diary UI now groups those comments by `otherName` from the current view, retaining
+all conversations under a single displayed-name heading. Groups and their notes are ordered
+by recency; see [current grouping and API boundary](../validation/2026-10-24-diary-comments.md#grouping-by-person-2026-10-24).
+
+`src/DiarySessions.ts` now groups nearby same-venue exchanges into bounded 30-minute visits
+per own mirror/displayed person. Diary renders one comment per visit, retaining source rows
+and their interest/contact reducer IDs. See [current merging checks](../validation/2026-10-24-diary-comments.md#nearby-exchanges-in-one-comment-2026-10-24).
+
+Local room layout addition on `yq`: `App.tsx`, `MirrorRoom.tsx`, `PixelRoom.tsx` and `pixel-room.css` provide a full-viewport room with proportional cover scaling, bounded panning and clickable furniture. The summary disclosure, privacy label and bottom shortcut buttons have been removed. [Current local validation](../validation/authored-mirror-room.md#simplified-room-controls-2026-10-24) is separate from the source-branch inventory below.
+
+The mirror panel now includes the existing contact editor; the independent Address book hotspot and `contacts` room-object route are removed. Four furniture routes remain. See [mirror/contact validation](../validation/authored-mirror-room.md#contact-editing-merged-into-the-mirror-2026-10-24).
+
+Local addition on `yq`: `src/TownCamera.ts` and `src/WorldCanvas.tsx` now provide cursor-anchored General wheel zoom with viewport-cover scale and position bounds. Build, 14 scene/camera tests and desktop/portrait browser checks passed; see [zoom validation](../validation/2026-10-24-general-wheel-zoom.md).
+
+The following source text is retained from `yw/map-assets:docs/state/project-structure.md`. Its implementation and validation descriptions refer to the source branch's evidence; they are not a substitute for the local merge checks.
+
 # Project structure
 
 Facebook own-post source: `src/facebook.ts` and `src/FacebookOffering.tsx`, reached through the
