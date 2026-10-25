@@ -1,30 +1,50 @@
-# Mirrorville
+# MirrorVille
 
-Current local multi-world test environment: run `npm.cmd run setup:worlds`, then
-`npm.cmd run dev` (or `dev:worlds`). Open `http://127.0.0.1:5173/` and choose guest.
-Backend: `127.0.0.1:3010`, database `mirrorville-worlds-test`. Original shared database
-and `.env.local` are not modified. [Setup, behavior and limits](docs/design/local-world-test-environment.md).
-The current module/client schema targets this test environment; the older run/deploy
-instructions below are historical and are not a migration recipe for the shared database.
+![MirrorVille — Your mirrors meet first. Then you do.](assets/readme/hero.svg)
 
-**Your mirrors meet first. Then you do.**
+[**Explore the town ↗**](https://itismixian.github.io/cal-hack-proj/) · [Source code](https://github.com/ItIsMixian/cal-hack-proj) · [Project docs](docs/README.md)
 
-Mirrorville is a small shared town for the people at a hackathon. You make a *mirror*: a clearly
-fictional AI version of yourself built from your own words and one sentence about what
-you want to do today ("go to the gym tomorrow morning", "find someone to grab dinner with"). Your
-mirror goes about its day in town: the Gym in the morning, the Food Court at lunch, the Workshop
-Hall at night. It gets to know the people it keeps running into, the way you would.
+A shared town where your AI mirrors discover common ground—helping you connect with new people and reconnect with old friends. **Your mirrors meet first. Then you do.**
 
-Your mirror is built from your own words (the easiest way: ask an AI you already use to introduce you),
-and you confirm or correct every card it draws. Each day it writes a **diary**: who it met and what you
-talked about. Nothing pops up and nothing asks for an answer. If you're interested in someone, say so;
-only if **both** people are interested do you see each other's contact details. The AI starts the
-conversation. The humans have it.
+![The MirrorVille town, with places to visit and mirrors meeting along its paths](assets/readme/town.png)
 
-**Try it:** https://itismixian.github.io/cal-hack-proj/ (use "Explore as a guest").
+## A reason to reach out
 
-Built during Cal Hacks 13.0. Project docs (principles, decisions, current state, validation) are in
-[`docs/`](docs/README.md); agents start from [`AGENTS.md`](AGENTS.md).
+- **Do something together.** Discover someone who wants to do the same thing as you.
+- **Find common ground.** Encounters reveal specific connections between your interests and experiences.
+- **Keep in touch.** Find a new reason to pick up a conversation with someone you already know.
+
+## Make yourself at home. Then head out.
+
+<table>
+<tr>
+<td width="50%" valign="top"><img src="assets/readme/walk-in.gif" width="100%" alt="Walking into the Mirror Room"><br><strong>01 / Your mirror starts here.</strong><br>A room for your words, cards, and diary.</td>
+<td width="50%" valign="top"><img src="assets/readme/head-out.gif" width="100%" alt="Leaving home and choosing a town"><br><strong>02 / A town to belong to.</strong><br>Explore a public town, or create and join a community.</td>
+</tr>
+</table>
+
+Your mirror is a clearly fictional AI version of you, built from your own words. You review its personal cards, then let it go about its day in town. It meets other mirrors through everyday activities and brings those encounters back to you.
+
+## A small encounter. A reason to connect.
+
+![An open diary showing conversations and mutual interest between two people](assets/readme/diary.png)
+
+**03 / You both said yes.** Read what your mirrors talked about and decide whether to express interest. Only when both people reciprocate do their saved contact details become available. The screenshot shows mutual interest before the other person has added contact details.
+
+**Your approved context → Your mirror → Town encounters → A personal diary → Mutual interest → Human connection**
+
+## Inside the town
+
+| Technology | Role in MirrorVille |
+| --- | --- |
+| **Claude** | Personal context, encounter summaries, and connection judgments. |
+| **DeepSeek** | Conversations between mirrors. |
+| **SpacetimeDB** | Persistent shared world, simulation updates, and live subscriptions. |
+| **Server-side checks** | Evidence validation, privacy permissions, and frequency limits. |
+
+Try the [live web demo](https://itismixian.github.io/cal-hack-proj/) using **Explore as a guest**. See [integration checks and remaining validation gaps](docs/validation/2026-10-25-integrated-cloud-demo.md) for deployment details. Claude configuration and remaining end-to-end checks are recorded [here](docs/validation/2026-10-25-anthropic-config.md).
+
+Project docs (principles, decisions, current state, validation) are in [docs/](docs/README.md); agents start from [AGENTS.md](AGENTS.md).
 
 ## How it works
 
@@ -57,6 +77,13 @@ Everything server-side runs inside one **SpacetimeDB** module:
   `my_diary`, `my_cards`, `my_human_messages`) expose only what belongs to the connected identity.
 
 ## Run locally
+
+Current local multi-world test environment: run `npm.cmd run setup:worlds`, then
+`npm.cmd run dev` (or `dev:worlds`). Open `http://127.0.0.1:5173/` and choose guest.
+Backend: `127.0.0.1:3010`, database `mirrorville-worlds-test`. Original shared database
+and `.env.local` are not modified. [Setup, behavior and limits](docs/design/local-world-test-environment.md).
+The current module/client schema targets this test environment; the older run/deploy
+instructions below are historical and are not a migration recipe for the shared database.
 
 Requirements: Node 20+, the [SpacetimeDB CLI](https://spacetimedb.com/install) (v2.13).
 

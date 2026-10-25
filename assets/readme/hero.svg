@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="340" viewBox="0 0 1200 340" role="img" aria-labelledby="title desc">
+<title id="title">MirrorVille — Your mirrors meet first. Then you do.</title><desc id="desc">A shared town for new connections and old friends.</desc>
+<rect width="1200" height="340" fill="#f6f0de"/>
+<path d="M0 338H1200" stroke="#d7ceb5" stroke-width="4"/>
+<text x="58" y="57" font-family="monospace" font-size="18" letter-spacing="3" fill="#687552">A LITTLE TOWN FOR REAL CONNECTIONS</text>
+<text x="54" y="155" font-family="Georgia,serif" font-size="88" font-weight="bold" fill="#43573c">MirrorVille</text>
+<text x="58" y="222" font-family="Segoe UI,Arial,sans-serif" font-size="37" fill="#343a30">Your mirrors meet first. Then you do.</text>
+<text x="58" y="284" font-family="Segoe UI,Arial,sans-serif" font-size="23" fill="#67634f">Find common ground. Meet new people. Rediscover old friends.</text>
+</svg>
