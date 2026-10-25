@@ -15,25 +15,24 @@ export default function LoginScreen({ onAccount, onGuest, busy = false, error = 
   const [registering, setRegistering] = useState(false);
   return (
     <main className="login-screen">
-      <img className="login-landscape" src="/assets/login/village.png" alt="" />
+      <LoginArt className="login-landscape" name="village" mobile="village-mobile.webp" />
       <div className="login-stage">
-        <img className="login-signboard" src="/assets/login/signboard.png" alt="" />
-        <h1 className="login-brand"><img src="/assets/login/logo.png" alt="MirrorVille" /></h1>
+        <LoginArt className="login-signboard" name="signboard" />
+        <h1 className="login-brand"><LoginArt name="logo" mobile="logo-mobile.webp" alt="MirrorVille" /></h1>
         <form className="login-form" aria-label={registering ? 'Create your MirrorVille account' : 'Log in to MirrorVille'}
           onSubmit={event => { event.preventDefault(); void onAccount(email.trim()); }}>
           <div className="login-email login-field-art">
-            <img src="/assets/login/email.png" alt="" />
+            <LoginArt name="email" />
             <label className="login-sr-only" htmlFor="login-email">Email address (optional)</label>
             <input id="login-email" name="email" type="email" autoComplete="email" value={email}
               placeholder="Email address" disabled={busy} onChange={event => setEmail(event.target.value)}
               aria-describedby="login-secure-note" />
           </div>
-          <div className="login-secure login-field-art" id="login-secure-note">
-            <img src="/assets/login/password.png" alt="" />
+          <div className="login-secure" id="login-secure-note">
             <p>{registering ? 'Create your account with a secure email link' : 'Sign in with a secure link sent to your email'}</p>
           </div>
           <button className="login-submit" type="submit" disabled={busy}>
-            <img src="/assets/login/button.png" alt="" />
+            <LoginArt name="button" />
             <span>{busy ? 'Opening…' : registering ? 'Sign up' : 'Login'}</span>
           </button>
           <button className="login-switch" type="button" disabled={busy}
@@ -49,4 +48,9 @@ export default function LoginScreen({ onAccount, onGuest, busy = false, error = 
       </div>
     </main>
   );
+}
+
+function LoginArt({ name, className, mobile, alt = '' }: { name: string; className?: string; mobile?: string; alt?: string }) {
+  return <picture><source media="(max-width: 600px)" srcSet={mobile ? `/assets/login/${mobile}` : 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='} />
+    <img className={className} src={`/assets/login/${name}.webp`} alt={alt} fetchPriority={name === 'logo' ? 'high' : 'auto'} /></picture>;
 }

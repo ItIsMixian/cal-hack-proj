@@ -4,7 +4,7 @@ The entry screen implements [Cal Hack UI deisign](https://www.figma.com/design/M
 
 ## Entry flow
 
-- **Login / sign up:** optional email hint, then standard OIDC Authorization Code + PKCE through SpacetimeAuth. The configured email method uses magic links. First-time email verification creates the account; returning users sign into the same account. Passwords are not collected in MirrorVille. The original second input-frame asset holds an explanation of the email-link step.
+- **Login / sign up:** optional email hint, then standard OIDC Authorization Code + PKCE through SpacetimeAuth. The configured email method uses magic links. First-time email verification creates the account; returning users sign into the same account. Passwords are not collected in MirrorVille. The email-link explanation is plain text below the single email field.
 - **Explore as a guest:** reuses the existing browser's anonymous SpacetimeDB identity. The guest token stays under its original local-storage key, so existing guest mirrors remain available.
 - **Sign out / Leave town:** removes the current in-app session; account sign-out also invokes the provider's end-session flow. A failed account login never silently becomes a guest session.
 
@@ -20,6 +20,10 @@ User selected SpacetimeAuth on 2026-10-24. An empty Maincloud database anchors t
 - Authority: `https://auth.spacetimedb.com/oidc`.
 - Redirects: `http://localhost:5173/callback`, `http://127.0.0.1:5173/callback`.
 - Post-logout redirects: `http://localhost:5173`, `http://127.0.0.1:5173`.
+- Temporary preview added with owner confirmation on 2026-10-24: redirect
+  `https://avenue-beneath-advised-join.trycloudflare.com/callback`, post-logout
+  `https://avenue-beneath-advised-join.trycloudflare.com`. These are exact entries, not a wildcard;
+  replace/remove them when the temporary tunnel changes or stops.
 - Scopes: `openid profile email offline_access`.
 - Hosted email login enabled; hosted anonymous login disabled. Guest mode is a separate explicit app action.
 - Hosted branding: MirrorVille, cream/sage palette.

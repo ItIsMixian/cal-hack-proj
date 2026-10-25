@@ -1,10 +1,4 @@
-@font-face {
-  font-family: 'Pixelify Sans';
-  src: url('/fonts/PixelifySans.ttf') format('truetype');
-  font-style: normal;
-  font-weight: 400 700;
-  font-display: swap;
-}
+@import './pixel-font.css';
 
 .login-screen {
   --login-ink: #4e543c;
@@ -29,13 +23,14 @@
 .login-field-art { position: absolute; width: 32.8054%; height: 7.9729%; overflow: hidden; }
 .login-email { left: 33.5973%; top: 46.5649%; }
 .login-secure { left: 33.6538%; top: 55.8948%; }
-.login-field-art > img { position: absolute; width: 100%; height: 205.67%; top: -53.37%; left: 0; pointer-events: none; }
+.login-field-art img { position: absolute; width: 100%; height: 205.67%; top: -53.37%; left: 0; pointer-events: none; }
 .login-email input {
   position: absolute; inset: 12% 9%; width: 82%; height: 76%; padding: 0 2%; border: 0;
   background: transparent; border-radius: 5px; color: var(--login-ink); font: 500 clamp(16px, 1.55cqw, 27px) / 1.2 'Pixelify Sans', monospace;
 }
 .login-email input::placeholder { color: #6b6a50; opacity: 1; }
-.login-secure p { position: absolute; inset: 16% 9%; margin: 0; display: grid; place-items: center; text-align: center;
+.login-secure { position: absolute; width: 34%; height: auto; }
+.login-secure p { margin: 0; text-align: center;
   color: var(--login-ink); font: 500 clamp(12px, 1.12cqw, 20px) / 1.2 'Pixelify Sans', monospace; }
 .login-submit { position: absolute; left: 35.1244%; top: 62.6802%; width: 29.6946%; height: 14.8431%; padding: 0;
   border: 0; border-radius: 0; background: transparent; color: #fff; }
@@ -60,22 +55,29 @@
 .login-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 @media (max-width: 600px) {
-  .login-stage { width: 100%; height: max(640px, 100svh); aspect-ratio: auto; }
+  .login-stage { width: min(100%, 440px); height: auto; min-height: 100svh; aspect-ratio: auto;
+    display: flex; flex-direction: column; align-items: center; padding: max(24px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom)); }
   .login-landscape { object-position: 60% center; }
-  .login-signboard { left: -24%; top: calc(42% - 100px); width: 148%; height: auto; }
-  .login-brand { left: 0; top: calc(42% - 170px); width: 100%; height: auto; }
-  .login-field-art { left: 15%; width: 70%; height: 52px; }
-  .login-email { top: 42%; }
-  .login-secure { top: calc(42% + 64px); }
-  .login-email input { font-size: 20px; }
-  .login-secure p { font-size: 14px; }
-  .login-submit { left: 18%; top: calc(42% + 120px); width: 64%; height: 90px; }
-  .login-submit span { font-size: 28px; }
-  .login-switch { top: calc(42% + 184px); height: 34px; font-size: 22px; }
-  .login-feedback { left: 12%; top: calc(42% + 268px); width: 76%; padding: 6px 8px;
-    border-radius: 5px; background: #fff7e6ed; font-size: 13px; }
-  .login-guest { top: auto; bottom: 42px; left: 15%; width: 70%; font-size: 18px; }
-  .login-guest-note { top: auto; bottom: 16px; }
+  .login-signboard { display: none; }
+  .login-brand { position: relative; inset: auto; width: 100%; height: auto; margin: 24px 0 18px; }
+  .login-brand img { height: auto; }
+  .login-form { position: relative; inset: auto; width: 100%; display: flex; flex-direction: column; gap: 14px;
+    padding: 24px 20px; border: 3px solid #8e7049; background: #fff0d5f5;
+    box-shadow: inset 0 0 0 4px #e4c28d, 0 5px 0 #634d3540; }
+  .login-field-art { position: relative; inset: auto; width: 100%; height: auto; overflow: visible; }
+  .login-secure { position: relative; inset: auto; width: 100%; height: auto; }
+  .login-field-art picture { display: none; }
+  .login-email input { position: relative; inset: auto; width: 100%; height: 52px; padding: 10px 12px;
+    border: 2px solid #a18258; border-radius: 2px; background: #fff8e8; font-size: 20px; }
+  .login-secure p { position: relative; inset: auto; display: block; font-size: 15px; line-height: 1.45; }
+  .login-submit { position: relative; inset: auto; width: 100%; height: 54px; border: 3px solid #435335;
+    border-radius: 2px; background: #657b50; box-shadow: 0 3px 0 #3b4e2e; }
+  .login-submit img { display: none; }
+  .login-submit span { font-size: 28px; padding: 0; }
+  .login-switch { position: relative; inset: auto; width: 100%; height: 38px; font-size: 22px; }
+  .login-feedback { position: relative; inset: auto; width: 100%; padding: 0; background: transparent; font-size: 14px; }
+  .login-guest { position: relative; inset: auto; width: 100%; min-height: 52px; margin-top: 24px; font-size: 18px; }
+  .login-guest-note { position: relative; inset: auto; margin: 12px 0 0; font-size: 12px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
