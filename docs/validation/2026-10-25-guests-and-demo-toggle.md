@@ -19,7 +19,8 @@ cover multi-tab expiry, reconnect, account persistence, claim restoration, unkno
 owners, host-only toggle, automatic expiry, no teleport and one encounter per world.
 Live local two-owner switch replication and full multi-tab/60-second disconnect checks passed.
 Actual browser toggled OFF → ON → OFF with distinct labels and filled/outlined styling;
-left OFF. Production backend upgrade and assignment to #9 owner passed. Frontend release: Pending.
+left OFF. Production backend upgrade and assignment to #9 owner passed. Frontend release passed: GitHub Pages run 40201095845, commit 6b64220; fixed URL unchanged.
+Desktop cloud package rebuilt with the same toggle.
 
 Private history is archived, not erased. Real email login and live model-generated demo
 dialogue remain Pending. Model latency is not eliminated by the pacing switch.
