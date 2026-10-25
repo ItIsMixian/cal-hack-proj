@@ -65,6 +65,38 @@ function fixture(demo = false) {
 const diaryVerdict = connection => ({ noteForA: 'We talked about charts', noteForB: 'We met', diaryForA: 'I met Bob at the park. We talked about accessible charts.', diaryForB: 'I met Alice at the park. We talked about charts.', connection });
 const connection = { kind: 'same_intent', evidenceA: 'Build accessible charts together', evidenceB: 'Build accessible charts together', why: 'Both want to build accessible charts together' };
 
+test('owners can persist a new appearance without changing identity, position, conversation or private profile', () => {
+  const f = fixture();
+  const before = { ...f.db.mirror.id.find(10n), look: 1, x: 12, y: 14, targetX: 18, targetY: 16 };
+  f.db.mirror.id.update(before);
+  const profile = { ...f.db.mirrorProfile.mirrorId.find(10n) };
+  mod.setAppearance(f.ctx(A), { mirrorId: 10n, look: 4 });
+  assert.deepEqual(f.db.mirror.id.find(10n), { ...before, look: 4 });
+  assert.deepEqual(f.db.mirrorProfile.mirrorId.find(10n), profile);
+  assert.equal(mod.myMirrors(f.ctx(A)).find(row => row.id === 10n).look, 4);
+  assert.equal(mod.myMirrors(f.ctx(B)).some(row => row.id === 10n), false);
+  mod.setAppearance(f.ctx(A), { mirrorId: 10n, look: 4 });
+  assert.equal(f.db.mirror.id.find(10n).look, 4);
+});
+
+test('appearance changes deny other owners, unknown IDs and demo mirrors', () => {
+  const f = fixture(true);
+  assert.throws(() => mod.setAppearance(f.ctx(B), { mirrorId: 10n, look: 2 }), /Not your mirror/);
+  assert.throws(() => mod.setAppearance(f.ctx(A), { mirrorId: 999n, look: 2 }), /Not your mirror/);
+  assert.throws(() => mod.setAppearance(f.ctx(B), { mirrorId: 20n, look: 2 }), /Not your mirror/);
+  assert.equal(f.db.mirror.id.find(10n).look, undefined);
+});
+
+test('appearance changes reject unsupported looks without writing a row', () => {
+  const f = fixture();
+  for (const look of [-1, 5, 7, 256, 1.5, NaN]) {
+    assert.throws(() => mod.setAppearance(f.ctx(A), { mirrorId: 10n, look }), /valid appearance/);
+    assert.equal(f.db.mirror.id.find(10n).look, undefined);
+  }
+  for (const look of [0, 1, 2, 3, 4]) mod.setAppearance(f.ctx(A), { mirrorId: 10n, look });
+  assert.equal(f.db.mirror.id.find(10n).look, 4);
+});
+
 test('every conversation writes both diaries, with place/name and owner isolation; retry is idempotent', () => {
   const f = fixture(); verdict = diaryVerdict(null); f.wrap();
   assert.equal(f.db.diaryEntry.count(), 2n);

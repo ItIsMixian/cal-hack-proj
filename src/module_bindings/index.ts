@@ -41,6 +41,7 @@ import ImportTextReducer from "./import_text_reducer";
 import RefreshWorldScheduleReducer from "./refresh_world_schedule_reducer";
 import ResetWorldReducer from "./reset_world_reducer";
 import RewriteCardReducer from "./rewrite_card_reducer";
+import SetAppearanceReducer from "./set_appearance_reducer";
 import SetCardRoomReducer from "./set_card_room_reducer";
 import SetContactReducer from "./set_contact_reducer";
 import SetLlmConfigReducer from "./set_llm_config_reducer";
@@ -148,6 +149,7 @@ const reducersSchema = __reducers(
   __reducerSchema("refresh_world_schedule", RefreshWorldScheduleReducer),
   __reducerSchema("reset_world", ResetWorldReducer),
   __reducerSchema("rewrite_card", RewriteCardReducer),
+  __reducerSchema("set_appearance", SetAppearanceReducer),
   __reducerSchema("set_card_room", SetCardRoomReducer),
   __reducerSchema("set_contact", SetContactReducer),
   __reducerSchema("set_llm_config", SetLlmConfigReducer),

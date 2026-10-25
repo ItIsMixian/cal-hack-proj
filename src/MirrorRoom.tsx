@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import PixelRoom, { type RoomObject } from './PixelRoom';
 import RoomDialog from './RoomDialog';
+import ChangeAppearanceDialog from './ChangeAppearanceDialog';
 import Diary from './Diary';
 import './pixel-room.css';
 import { useReducer, useTable } from 'spacetimedb/react';
@@ -17,6 +18,7 @@ const MAX_UPLOAD = 30_000;
 
 export default function MirrorRoom(props: { mirrorId: bigint; onBack: () => void; onDiaryOpen?: () => void }) {
   const [activeObject, setActiveObject] = useState<RoomObject | null>(null);
+  const [changingAppearance, setChangingAppearance] = useState(false);
   const [myMirrors] = useTable(tables.myMirrors);
   const [allCards] = useTable(tables.myCards);
   const [summaries] = useTable(tables.mySummaries);
@@ -47,6 +49,8 @@ export default function MirrorRoom(props: { mirrorId: bigint; onBack: () => void
         <span className="room-private">Just for you</span>
       </div>
       <p className="room-summary">{ownerWords(summaries.find(summary => summary.mirrorId === mirror.id)?.text || mirror.selfCard)}</p>
+      <div className="room-appearance-entry"><button onClick={() => setChangingAppearance(true)}>Change appearance</button></div>
+      {changingAppearance && <ChangeAppearanceDialog key={String(mirror.id)} mirrorId={mirror.id} name={mirror.name} savedLook={mirror.look} onClose={() => setChangingAppearance(false)} />}
       <PixelRoom name={mirror.name} look={mirror.look} onOpen={object => {
         setActiveObject(object);
         if (object === 'diary') props.onDiaryOpen?.();

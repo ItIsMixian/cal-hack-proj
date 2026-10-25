@@ -1,0 +1,9 @@
+.appearance-preview { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }
+.appearance-preview h3 { margin: 0 0 6px; font: 24px 'Pixelify Sans', monospace; color: #4d4839; }
+.appearance-preview p, .appearance-note { font-size: 14px; line-height: 1.5; color: #6d654f; }
+.appearance-preview p { margin: 0; }
+.appearance-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 18px; }
+.room-dialog .appearance-actions button { min-height: 44px; padding: 8px 14px; font: 17px 'Pixelify Sans', monospace; }
+.room-dialog .appearance-actions button:last-child { background: #65774e; border-color: #465e3c; color: #fff9e7; }
+.room-appearance-entry { display: flex; justify-content: center; margin: 8px 0 16px; }
+.room-appearance-entry button { min-height: 44px; padding: 8px 14px; font: 17px 'Pixelify Sans', monospace; }

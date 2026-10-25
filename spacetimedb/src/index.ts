@@ -892,6 +892,12 @@ export const showInterest = spacetimedb.reducer({ diaryEntryId: t.u64() }, (ctx,
   if (other.demo) addInterest(ctx, other.id, entry.mirrorId, profile.owner, ctx.sender);
 });
 
+export const setAppearance = spacetimedb.reducer({ mirrorId: t.u64(), look: t.u8() }, (ctx, { mirrorId, look }) => {
+  const mirror = requireOwnMirror(ctx, mirrorId);
+  if (!Number.isInteger(look) || look < 0 || look > 4) throw new SenderError('Choose a valid appearance');
+  if (mirror.look !== look) ctx.db.mirror.id.update({ ...mirror, look });
+});
+
 export const setContact = spacetimedb.reducer({ mirrorId: t.u64(), contact: t.string() }, (ctx, { mirrorId, contact }) => {
   requireOwnMirror(ctx, mirrorId);
   if (contact.length > 120) throw new SenderError('Contact must be at most 120 characters');

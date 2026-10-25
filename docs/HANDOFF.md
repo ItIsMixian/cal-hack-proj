@@ -88,3 +88,5 @@ Things that are not obvious from the code.
   `validation/mirror-fidelity-a-b.md`. No Part C or 0004 changes.
 
 - **Published character scope**: original plus Rust/Sage/Honey/Coral are integrated with the existing online creation form. Four-direction full walk uses 5fps `[0,1,2,1]`; new looks reuse IDs 1–4, legacy 0/5–7 retain original. Character assets require no backend/schema/bindings changes. See `validation/character-release.md`; source/preparation is in `art/characters/README.md`. The local room-journey and other unfinished work are not included in this release.
+
+- **Change existing appearance**: Mirror Room -> Change appearance previews and saves one of five looks using owner-only `setAppearance`. Only mirror.look changes; existing data and table schema are retained. Maincloud was upgraded with --delete-data=never; bindings were regenerated. See validation/appearance-change.md for 88 tests, real cloud save/reconnect and denial checks.

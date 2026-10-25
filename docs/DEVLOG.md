@@ -72,3 +72,7 @@ is recorded but authentication behavior was not changed by this integration.
 ## 2026-10-24 — Selectable characters and frame animation
 
 Owner-authorized frontend publication adds four adopted looks beside the original, visual selection in the current online creation form, consistent room/roster portraits and town rendering, and original-cadence full-body walk poses. No backend or account-flow changes. Production build and 82 tests pass. See `validation/character-release.md`.
+
+## Existing-mirror appearance editor
+
+Added owner-only persistent appearance changes from Mirror Room, with preview/cancel/save and error retry. Production package passes 88 tests and live Maincloud save/reconnect/other-owner denial checks. No table migration or data clearing. See validation/appearance-change.md.
