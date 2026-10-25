@@ -6,6 +6,8 @@ import type { MotionPoint } from './TownMotion';
 import { BUILDING_PINS, enteredBuilding } from './TownBuildings';
 import { cameraTarget, screenToTown, type CameraMode, type CameraFrame } from './TownCamera';
 import type { Mirror } from './module_bindings/types';
+import { characterSheet, loadCharacterSheets, originalCharacterUrl } from './characterSprites';
+import { characterWalkFrame } from './characterAnimation';
 
 const TILE = 24;
 const WIDTH = WORLD_W * TILE;
@@ -13,7 +15,6 @@ const HEIGHT = WORLD_H * TILE;
 const CHARACTER_W = 24;
 const CHARACTER_H = 48;
 const FOOT_Y = 10;
-const WALK_ROWS = [0, 1, 2, 1];
 // Atlas coordinates from the teammate's Player1.tscn on origin/yq.
 const FACING_X = { up: 0, right: 32, down: 64, left: 96 };
 type Facing = keyof typeof FACING_X;
@@ -52,7 +53,8 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, cameraMo
     const sprite = new Image();
     sprite.onload = () => { canvas.dataset.characterRenderer = 'sprites'; };
     sprite.onerror = () => { canvas.dataset.characterRenderer = 'fallback'; };
-    sprite.src = 'assets/characters/cup-nooble-character.png';
+    sprite.src = originalCharacterUrl;
+    void loadCharacterSheets().catch(() => { /* Keep the original atlas fallback. */ });
     const town = document.createElement('canvas');
     town.width = WIDTH; town.height = HEIGHT;
     setArtStatus('loading');
@@ -249,10 +251,10 @@ function drawMirror(g: CanvasRenderingContext2D, m: Mirror, p: ShownMirror, isMi
     g.strokeStyle = LOOK_COLORS[m.look % LOOK_COLORS.length];
     g.lineWidth = isMine || isSelected ? 2.5 : 1.5;
     g.stroke();
-    const row = p.moving && !reducedMotion ? WALK_ROWS[Math.floor(p.walkTime * 8) % WALK_ROWS.length] : 1;
+    const row = characterWalkFrame(p.walkTime, p.moving, reducedMotion);
     g.save();
     g.imageSmoothingEnabled = false;
-    g.drawImage(sprite, FACING_X[p.facing], row * 32, 16, 32,
+    g.drawImage(characterSheet(m.look, sprite), FACING_X[p.facing], row * 32, 16, 32,
       x - CHARACTER_W / 2, y + FOOT_Y - CHARACTER_H, CHARACTER_W, CHARACTER_H);
     g.restore();
     return;
@@ -316,7 +318,7 @@ function drawBuildingPin(g: CanvasRenderingContext2D, x: number, y: number, mirr
     g.imageSmoothingEnabled = false;
     // A 32px frame starts with nine transparent rows; crop the actual head,
     // not the empty upper half of the frame.
-    g.drawImage(sprite, 64, 41, 16, 14, x - 10, y - 30, 20, 17.5);
+    g.drawImage(characterSheet(mirror.look, sprite), 64, 41, 16, 14, x - 10, y - 30, 20, 17.5);
   } else {
     g.fillStyle = '#4d5e41'; g.font = '14px "Pixelify Sans", monospace'; g.textAlign = 'center';
     g.fillText(mirror.name.slice(0, 1), x, y - 15);

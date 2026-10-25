@@ -68,3 +68,7 @@ email field/guidance and show focus on the existing artwork frame. Teammate devi
 is retained under validation/2026-10-24-*. Current branch timing/navigation/room delivery
 and data-preserving exit behavior remain in place. Email login_hint duplication investigation
 is recorded but authentication behavior was not changed by this integration.
+
+## 2026-10-24 — Selectable characters and frame animation
+
+Owner-authorized frontend publication adds four adopted looks beside the original, visual selection in the current online creation form, consistent room/roster portraits and town rendering, and original-cadence full-body walk poses. No backend or account-flow changes. Production build and 82 tests pass. See `validation/character-release.md`.

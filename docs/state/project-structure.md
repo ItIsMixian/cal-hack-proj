@@ -64,3 +64,7 @@ Per-visitor views: `my_mirrors`, `my_diary`, `my_cards`, `my_summaries`, `my_imp
 - No triadic referral, group conversations, or Messenger/36-questions import.
 - Simulation not deployed publicly; an empty Maincloud database anchors SpacetimeAuth only. Town runs on the dev machine (see HANDOFF; plan in decision 0007).
 - The contact column uses an appended migration default; new diary/interest tables are additive. Destructive publication still wipes keys and must be announced first.
+
+## Adopted character appearances
+
+`CharacterPicker.tsx` presents five appearances in the current creation form. `CharacterSprite.tsx`, `characterSprites.ts` and `characterAnimation.ts` share asset lookup, fallback, facing frames and 5fps timing across portraits and town rendering. Four optimized PNG atlases in `public/assets/characters/` are built from approved art in `art/characters/`. See `validation/character-release.md` for the exact published scope and checks.

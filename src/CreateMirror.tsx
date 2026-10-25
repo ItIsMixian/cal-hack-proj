@@ -2,9 +2,9 @@ import { useMemo, useState } from 'react';
 import { useReducer } from 'spacetimedb/react';
 import { reducers } from './module_bindings';
 import { TIPI_ITEMS, buildSelfCard } from '../spacetimedb/src/tipi';
-import { LOOK_COLORS, findLandmark, landmarkForIntent } from '../spacetimedb/src/world';
+import { findLandmark, landmarkForIntent } from '../spacetimedb/src/world';
 import Modal from './Modal';
-import CharacterAvatar from './CharacterAvatar';
+import CharacterPicker from './CharacterPicker';
 
 export default function CreateMirror(props: { onClose: () => void; onCreated: (name: string) => void }) {
   const createMirror = useReducer(reducers.createMirror);
@@ -47,22 +47,7 @@ export default function CreateMirror(props: { onClose: () => void; onCreated: (n
         <input maxLength={24} value={name} onChange={(e) => setName(e.target.value)} placeholder="What should your mirror be called?" />
       </label>
 
-      <div className="field">
-        <span>Your character & marker color</span>
-        <CharacterAvatar look={look} name={name || 'Your mirror'} />
-        <div className="looks">
-          {LOOK_COLORS.map((color, i) => (
-            <button
-              key={color}
-              type="button"
-              className={i === look ? 'look selected' : 'look'}
-              style={{ background: color }}
-              onClick={() => setLook(i)}
-              aria-label={`Color ${i + 1}`}
-            />
-          ))}
-        </div>
-      </div>
+      <CharacterPicker inline look={look} onChange={setLook} onClose={() => {}} disabled={submitting} />
 
       <div className="field">
         <span>I see myself as… (1 = disagree strongly, 7 = agree strongly)</span>

@@ -1,0 +1,17 @@
+.character-picker { position: absolute; z-index: 35; left: 16px; right: 16px; bottom: 16px; max-width: 470px; padding: 12px; border: 3px solid #927447; background: #f6edcf; box-shadow: 4px 4px 0 #57472e55; color: #51432e; }
+.character-picker fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.character-picker.character-picker-inline { position: static; max-width: none; margin: 8px 0; }
+.character-picker legend { font: 20px 'Pixelify Sans', monospace; margin-bottom: 10px; }
+.character-picker-options { display: flex; gap: 6px; overflow-x: auto; padding: 3px 3px 8px; }
+.character-picker-option { flex: 1 0 65px; position: relative; display: flex; flex-direction: column; gap: 6px; align-items: center; padding: 5px 3px; border: 2px solid transparent; cursor: pointer; }
+.character-picker-option > input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.character-picker-option:has(input:checked) { border-color: #65774e; background: #e0e5bf; }
+.character-picker-option:has(input:focus-visible) { outline: 3px solid #65774e; outline-offset: 1px; }
+.character-picker-option:has(input:disabled) { opacity: .5; cursor: wait; }
+.character-picker-option .character-avatar { width: 52px; height: 58px; background: #fff7e0; border: 0; border-radius: 0; }
+.character-picker-option > span { font: 15px 'Pixelify Sans', monospace; white-space: nowrap; }
+.character-picker-footer { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.character-picker-footer > span { flex: 1; font: 12px 'Pixelify Sans', monospace; }
+.room-dialog .character-picker-footer button { min-height: 44px; padding: 6px 12px; font: 16px 'Pixelify Sans', monospace; background: #dce0b7; border: 1px solid #8b7952; box-shadow: none; }
+.room-dialog .choose-character { position: absolute; bottom: 14px; left: 14px; z-index: 20; min-height: 44px; background: #f6edcfed; border: 2px solid #927447; font: 16px 'Pixelify Sans', monospace; padding: 6px 10px; }
+@media (max-width: 600px) { .character-picker { left: 10px; right: 10px; bottom: 10px; padding: 8px; } .character-picker-option { flex-basis: 64px; } }

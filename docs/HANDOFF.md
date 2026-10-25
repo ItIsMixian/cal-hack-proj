@@ -86,3 +86,5 @@ Things that are not obvious from the code.
   Local migration is additive and used `--delete-data=never`. Test mirrors are 10/11; do not use
   mixian id 9 for QA. Counts, Pending subjective acceptance and the delayed main rebase are in
   `validation/mirror-fidelity-a-b.md`. No Part C or 0004 changes.
+
+- **Published character scope**: original plus Rust/Sage/Honey/Coral are integrated with the existing online creation form. Four-direction full walk uses 5fps `[0,1,2,1]`; new looks reuse IDs 1–4, legacy 0/5–7 retain original. Character assets require no backend/schema/bindings changes. See `validation/character-release.md`; source/preparation is in `art/characters/README.md`. The local room-journey and other unfinished work are not included in this release.
