@@ -59,3 +59,12 @@ phone artwork now totals about 121KB, with inline WOFF2 and gzip production deli
 Retained localhost HMR. Saved exact share-domain auth callbacks after owner confirmation and verified
 the hosted email-login page opens. Build and 59 tests pass; actual phone speed and complete email
 magic-link return still need owner validation. See `validation/mobile-login-and-share-performance.md`.
+
+## Teammate login/map fixes integrated — 2026-10-24
+
+Integrated yq commit 7c7f5e6: retain literal commas in town asset URLs for Vite static
+serving, use literal filesystem paths in the corresponding regression, lower the desktop
+email field/guidance and show focus on the existing artwork frame. Teammate device evidence
+is retained under validation/2026-10-24-*. Current branch timing/navigation/room delivery
+and data-preserving exit behavior remain in place. Email login_hint duplication investigation
+is recorded but authentication behavior was not changed by this integration.

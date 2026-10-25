@@ -38,3 +38,11 @@ merges into main remain Pending. Part C is not included.
 
 Ideas nobody has evaluated yet live in `backlog.md`. Branch and decision-numbering rules are in
 `decisions/README.md`.
+
+## Teammate login/map repair
+
+Integrated yq 7c7f5e6 into yw/map-assets: comma-containing asset filenames now load correctly
+through local Vite, and desktop email placement/focus follow the teammate's repair. Their
+original evidence is in validation/2026-10-24-login-focus.md and
+validation/2026-10-24-shared-frontend-preview.md. Hosted login may still require a second
+email entry; see validation/2026-10-24-email-login-investigation.md.
