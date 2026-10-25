@@ -13,10 +13,10 @@ const dateFormat = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Ang
 const timeFormat = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', minute: '2-digit' });
 const dateOf = (entry: DiaryItem) => new Date(Number(entry.createdAt.microsSinceUnixEpoch / 1000n));
 
-export default function Diary({ mirrorId }: { mirrorId?: bigint } = {}) {
+export default function Diary({ mirrorId, historyScope = '' }: { mirrorId?: bigint; historyScope?: string } = {}) {
   const [entries] = useTable(tables.myDiary);
   const { identity } = useSpacetimeDB();
-  const history = useDiaryWindow(identity?.toHexString(), mirrorId);
+  const history = useDiaryWindow(identity ? identity.toHexString() + historyScope : undefined, mirrorId);
   const sorted = [...entries].filter(entry => (mirrorId === undefined || entry.mirrorId === mirrorId)
     && entry.createdAt.microsSinceUnixEpoch > diaryCutoff(history, entry.mirrorId)).sort((a, b) => a.createdAt.microsSinceUnixEpoch > b.createdAt.microsSinceUnixEpoch ? -1
     : a.createdAt.microsSinceUnixEpoch < b.createdAt.microsSinceUnixEpoch ? 1 : 0);

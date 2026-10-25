@@ -1,5 +1,94 @@
 # Handoff / 必要交接
 
+- Empty-world entry now also has Find a public town / Explore public towns. Both map
+  and journey entry forms open the existing PublicTowns list, now searchable by name
+  or introduction. Back returns to the originating form/slot with invitation text
+  preserved; map-origin discovery stays unanimated. [Checks](validation/2026-10-25-empty-world-public-search.md).
+
+- Latest entry rule: login/App mount and refresh start in Mirror Room, not the town
+  selector. Owned current-world mirrors open their room; no-mirror users see the same
+  authored room with Make your mirror, and creation/cancellation stays inside it.
+  Go to town starts the animated journey. Map arrows still switch directly.
+  [Browser checks and limits](validation/2026-10-25-room-first-entry.md).
+
+- Latest animation rule: only Mirror Room's Back to town calls beginJourney(true).
+  Login and map Menu travel use an immediate static town selector. Town controller
+  arrows call changeMapWorld directly; existing worlds use enterWorld and empty slots
+  show their entry forms, with no shuttle scene or departure delay.
+  [Checks and scope](validation/2026-10-25-room-only-departure.md).
+
+- Explore the public town now opens PublicTowns, not slot 0. discoverable_worlds returns
+  only unjoined towns that allow strangers and have member capacity, with five summary
+  fields and no invitations/resident data. Join chooses a free non-public slot and uses
+  joinOpenWorld plus committed-selection confirmation. All joined towns, including the
+  lobby, remain named destinations. Local upgrade preserved data; see
+  [checks and scope](validation/2026-10-25-public-town-discovery.md).
+
+- Empty-world create/join uses a centered, up-to-960px dialog, two columns above 680px and one below; Replay/Skip are hidden in this state. Scroll remains only as a height/accessibility fallback. [Checked layouts](validation/2026-10-25-centered-town-entry.md).
+
+- User explicitly confirmed this is an English app. Keep authored UI labels, navigation and error messages in English; user-created town names remain as entered. Journey labels are now Choose a town / Explore the public town / Create or join a town / Back to towns.
+
+- Journey destinations now show two fixed actions (public town; create/join new town),
+  followed by existing non-public town names. No empty placeholders in this selector.
+  Public means existing slot 0; new/join chooses the first free non-public slot or reports
+  the existing 5-slot capacity. [UI checks](validation/2026-10-25-town-destinations.md).
+
+- App now opens a departure journey before world entry, reusing only 1ec3221's standalone
+  art/path handoff. WorldJourney / DepartureScene render the scene; App uses real world
+  slots and waits for committed membership selection before departing. Map arrows and
+  Menu → Travel to a world reopen it. Skip/Replay never issue backend calls. Empty slots
+  keep invitation/create forms and gray background. No backend upgrade this delivery.
+  [Checks, screenshots and remaining coverage](validation/2026-10-25-departure-integration.md).
+
+- Menu's Guest session is sign-in mode, while World owner / World member uses my_worlds.isOwner.
+  For the current Local Test World, the 127.0.0.1 guest is owner and localhost guest is member.
+  These origins have separate guest tokens; use the creator's origin to keep that identity.
+  [Actual UI checks](validation/2026-10-25-world-role-label.md).
+
+- Latest addition (2026-10-25): an existing identity prototype automatically seeds one fresh
+  independent mirror when entering a world without an owned resident. New/create/join/enter
+  paths share the same transaction; repeated entries reuse existing residents. Private
+  mirror_prototype stores initial name/look/personality/intent only, with lazy legacy backfill
+  from the lowest owned non-demo ID. No contact, cards or history cloning; no prototype editor.
+  [Checks and exact scope](validation/2026-10-25-auto-world-mirrors.md).
+
+- Latest fix (2026-10-25): mirrors stay in their creation world; entering another world only
+  changes the view. New worlds receive independent mirrors/profiles/contacts/cards. All worlds
+  tick without viewers, with world-specific clocks, randomness and quotas. Added private
+  world_simulation through a non-destructive local upgrade; legacy world_runtime retained.
+  No copies of previously moved mirrors can be recovered automatically. Same-identity tabs
+  still share the selected view. [Evidence and limits](validation/2026-10-25-independent-world-mirrors.md).
+
+- Current default dev/build target is worldtest. Backend 127.0.0.1:3010 / mirrorville-worlds-test,
+  frontend 127.0.0.1:5173; use `npm.cmd run setup:worlds`, then `npm.cmd run dev` after restart.
+  Real server membership and creator identity replace fake role switching in this mode.
+  Schema/client bindings target this new test database and must not be published to the old
+  shared database without a migration plan. No real model keys or email login configured.
+  [Setup and behavior](design/local-world-test-environment.md), [checks/known failure](validation/2026-10-25-local-world-backend.md).
+
+- Earlier frontend-only iteration (superseded in worldtest): empty slots show Join a world (invitation input) and Create new world. Invitation
+  handling is format-only and explicitly unavailable for real joining; no input URL is
+  fetched or opened. Creation saves a local slot using the settings form. On reload,
+  valid saved extra-slot settings restore that world with empty map art, without shared
+  residents, diaries or mirror creation. Only slot 1 presents live shared town data.
+  [Actual checks](validation/2026-10-25-empty-world-entry.md).
+
+- Earlier frontend-only iteration (superseded in worldtest): Menu's Preview as selector defaults to
+  World owner; Visitor hides the editor, as do uncreated slots. Browser storage key
+  `mirrorville-world-settings-preview-v1/<worldId>` holds name/introduction, strangers
+  flag and maximum people. It is shared within this browser origin and does not prove
+  real ownership or enforce access/capacity. Defaults are 20 people / strangers off,
+  with UI range 1–100. [Checks and limits](validation/2026-10-25-world-settings.md).
+
+- Historical frontend-only iteration (superseded in worldtest): `WorldNavigator.tsx` defines one live Mirrorville
+  slot and four initially uncreated slots (now supporting local creation previews).
+  Empty slots unmount the canvas, hide clock/camera and
+  disable Diary, Residents and mirror creation. Mirror Room stays enabled when an owned
+  mirror is available, opens that same personal room from any slot, and returns to the
+  selected slot. The database connection continues; reload resets
+  the selected slot. Do not treat this as private-room isolation or invitation support.
+  See [checks and screenshots](validation/2026-10-25-world-navigation.md).
+
 - Diary now shows only records created strictly after its previous close, filtering before visit merging. Closing the town Diary advances all mirrors; closing a room Diary advances only that mirror. Cutoffs are identity-scoped browser storage, with session-memory fallback, frozen while open, and saved on unmount/pagehide (StrictMode replay excluded). First use shows existing records. The quiet dot follows the same cutoffs. 37 diary tests, 3 Home tests and production build passed; see [last-close validation](validation/2026-10-24-diary-comments.md#since-the-previous-close-2026-10-24).
 
 - Status card history is explicitly scoped by the user's choice to their own mirrors' exchanges with the selected resident, matched by participant IDs. Guest/empty history must not substitute other public conversations. Current client defaults are 7 real days / 5 exchanges with extractive source highlights; see [implementation and validation](validation/2026-10-24-resident-status-card.md).

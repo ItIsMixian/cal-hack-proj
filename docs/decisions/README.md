@@ -38,6 +38,8 @@ is implemented. Later decisions amend or supersede earlier ones instead of rewri
 
 ## Proposed
 
+- [独立本机多世界测试后端](proposed-local-world-test-backend.md)：用户已授权本机测试部署；单活动世界、私有底表与成员视图等实现选择仍为试验，不自动升级为双方共识 ADR。
+
 ### 当前对话整理的本地提案（2026-10-24）
 
 以下以本地 `main` 的 `8c6b381e08ee0b0b050b90d63a99113aac67053e` 为对照，最初整理于父目录 docs，本次纳入个人分支 yq。全部未编号、Status: Proposed；本次整理不表示项目协作者已接受，也不改变用户原始需求的来源。

@@ -23,7 +23,7 @@ const me = { id: 1n, intent: '', landmark: 'park', extraversion: 0.5, place: 'pa
 function context(rows, { hour = 14, roll = 0.5, pick = 0 } = {}) {
   const random = () => roll;
   random.integerInRange = (min, max) => Math.min(max, Math.max(min, pick));
-  return { random, db: { mirror: { iter: () => rows.values() } },
+  return { random, db: { mirrorStorage: { iter: () => rows.values() } },
     timestamp: { microsSinceUnixEpoch: exports.GAME_EPOCH_MICROS + BigInt(Math.round(((hour - 8 + 24) % 24) * exports.GAME_DAY_SECONDS / 24)) * 1_000_000n } };
 }
 test('empty intent leaves an isolated park for an occupied destination without inventing an intent', () => {

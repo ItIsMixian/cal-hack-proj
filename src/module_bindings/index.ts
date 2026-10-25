@@ -36,11 +36,16 @@ import {
 // Import all reducer arg schemas
 import AddCardReducer from "./add_card_reducer";
 import CreateMirrorReducer from "./create_mirror_reducer";
+import CreateWorldReducer from "./create_world_reducer";
 import DeleteCardReducer from "./delete_card_reducer";
+import EnterWorldReducer from "./enter_world_reducer";
 import ImportTextReducer from "./import_text_reducer";
+import JoinOpenWorldReducer from "./join_open_world_reducer";
+import JoinWorldReducer from "./join_world_reducer";
 import RefreshWorldScheduleReducer from "./refresh_world_schedule_reducer";
 import ResetWorldReducer from "./reset_world_reducer";
 import RewriteCardReducer from "./rewrite_card_reducer";
+import RotateWorldInviteReducer from "./rotate_world_invite_reducer";
 import SetCardRoomReducer from "./set_card_room_reducer";
 import SetContactReducer from "./set_contact_reducer";
 import SetLlmConfigReducer from "./set_llm_config_reducer";
@@ -49,59 +54,54 @@ import SetResidentActiveReducer from "./set_resident_active_reducer";
 import ShowInterestReducer from "./show_interest_reducer";
 import UndoCardEditReducer from "./undo_card_edit_reducer";
 import UpdateIntentReducer from "./update_intent_reducer";
+import UpdateWorldReducer from "./update_world_reducer";
 
 // Import all procedure arg schemas
 
 // Import all table schema definitions
-import ConversationRow from "./conversation_table";
-import LineRow from "./line_table";
-import MirrorRow from "./mirror_table";
+import DiscoverableWorldsRow from "./discoverable_worlds_table";
 import MyCardsRow from "./my_cards_table";
 import MyDiaryRow from "./my_diary_table";
 import MyImportsRow from "./my_imports_table";
 import MyMirrorsRow from "./my_mirrors_table";
 import MySummariesRow from "./my_summaries_table";
+import MyWorldsRow from "./my_worlds_table";
+import VisibleConversationsRow from "./visible_conversations_table";
+import VisibleLinesRow from "./visible_lines_table";
+import VisibleMirrorsRow from "./visible_mirrors_table";
 
 /** Type-only namespace exports for generated type groups. */
 
 /** The schema information for all tables in this module. This is defined the same was as the tables would have been defined in the server. */
 const tablesSchema = __schema({
-  conversation: __table({
+  visibleConversations: __table({
     name: 'conversation',
     indexes: [
-      { accessor: 'id', name: 'conversation_id_idx_btree', algorithm: 'btree', columns: [
-        'id',
-      ] },
     ],
     constraints: [
-      { name: 'conversation_id_key', constraint: 'unique', columns: ['id'] },
     ],
-  }, ConversationRow),
-  line: __table({
+  }, VisibleConversationsRow),
+  discoverableWorlds: __table({
+    name: 'discoverable_worlds',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, DiscoverableWorldsRow),
+  visibleLines: __table({
     name: 'line',
     indexes: [
-      { accessor: 'conversationId', name: 'line_conversation_id_idx_btree', algorithm: 'btree', columns: [
-        'conversationId',
-      ] },
-      { accessor: 'id', name: 'line_id_idx_btree', algorithm: 'btree', columns: [
-        'id',
-      ] },
     ],
     constraints: [
-      { name: 'line_id_key', constraint: 'unique', columns: ['id'] },
     ],
-  }, LineRow),
-  mirror: __table({
+  }, VisibleLinesRow),
+  visibleMirrors: __table({
     name: 'mirror',
     indexes: [
-      { accessor: 'id', name: 'mirror_id_idx_btree', algorithm: 'btree', columns: [
-        'id',
-      ] },
     ],
     constraints: [
-      { name: 'mirror_id_key', constraint: 'unique', columns: ['id'] },
     ],
-  }, MirrorRow),
+  }, VisibleMirrorsRow),
   myCards: __table({
     name: 'my_cards',
     indexes: [
@@ -137,17 +137,29 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MySummariesRow),
+  myWorlds: __table({
+    name: 'my_worlds',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyWorldsRow),
 });
 
 /** The schema information for all reducers in this module. This is defined the same way as the reducers would have been defined in the server, except the body of the reducer is omitted in code generation. */
 const reducersSchema = __reducers(
   __reducerSchema("add_card", AddCardReducer),
   __reducerSchema("create_mirror", CreateMirrorReducer),
+  __reducerSchema("create_world", CreateWorldReducer),
   __reducerSchema("delete_card", DeleteCardReducer),
+  __reducerSchema("enter_world", EnterWorldReducer),
   __reducerSchema("import_text", ImportTextReducer),
+  __reducerSchema("join_open_world", JoinOpenWorldReducer),
+  __reducerSchema("join_world", JoinWorldReducer),
   __reducerSchema("refresh_world_schedule", RefreshWorldScheduleReducer),
   __reducerSchema("reset_world", ResetWorldReducer),
   __reducerSchema("rewrite_card", RewriteCardReducer),
+  __reducerSchema("rotate_world_invite", RotateWorldInviteReducer),
   __reducerSchema("set_card_room", SetCardRoomReducer),
   __reducerSchema("set_contact", SetContactReducer),
   __reducerSchema("set_llm_config", SetLlmConfigReducer),
@@ -156,6 +168,7 @@ const reducersSchema = __reducers(
   __reducerSchema("show_interest", ShowInterestReducer),
   __reducerSchema("undo_card_edit", UndoCardEditReducer),
   __reducerSchema("update_intent", UpdateIntentReducer),
+  __reducerSchema("update_world", UpdateWorldReducer),
 );
 
 /** The schema information for all procedures in this module. This is defined the same way as the procedures would have been defined in the server. */

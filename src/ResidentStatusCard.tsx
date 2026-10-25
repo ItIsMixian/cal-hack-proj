@@ -4,7 +4,7 @@ import { BUILDING_PINS } from './TownBuildings';
 import { findLandmark } from '../spacetimedb/src/world';
 import { recentConversations } from './ResidentConversations';
 import { conversationTopics } from './ConversationTopics';
-import type { Conversation, Line, Mirror } from './module_bindings/types';
+import type { ConversationStorage as Conversation, LineStorage as Line, MirrorStorage as Mirror } from './module_bindings/types';
 import './resident-status-card.css';
 
 const format = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', dateStyle: 'medium', timeStyle: 'short' });

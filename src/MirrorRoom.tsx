@@ -15,7 +15,9 @@ import { decodeImportFile, looksLikeWeChatCsv, ownWords, parseWeChatCsv, parseWh
 
 const MAX_UPLOAD = 30_000;
 
-export default function MirrorRoom(props: { mirrorId: bigint; onBack: () => void }) {
+export default function MirrorRoom(props: {
+  mirrorId: bigint | null; onBack: () => void; onCreate: () => void; loading?: boolean; historyScope?: string;
+}) {
   const [activeObject, setActiveObject] = useState<RoomObject | null>(null);
   const [myMirrors] = useTable(tables.myMirrors);
   const [allCards] = useTable(tables.myCards);
@@ -29,7 +31,22 @@ export default function MirrorRoom(props: { mirrorId: bigint; onBack: () => void
     .filter((i) => i.mirrorId === props.mirrorId)
     .sort((a, b) => Number(b.id - a.id))[0];
 
-  if (!mirror) return null;
+  if (!mirror) return <section className="pixel-room room-fullscreen" aria-label="Your Mirror Room">
+    <div className="room-hud">
+      <button className="room-exit" autoFocus disabled={props.loading} onClick={props.onBack}>Go to town →</button>
+      <div><p className="room-kicker">MIRRORVILLE / HOME</p><h1>Your room</h1></div>
+    </div>
+    <PixelRoom onOpen={setActiveObject} />
+    <div className="room-entry-welcome">
+      <p role="status">{props.loading ? 'Opening your Mirror Room…' : 'Welcome home. Make your mirror whenever you are ready.'}</p>
+      <button disabled={props.loading} onClick={props.onCreate}>Make your mirror</button>
+    </div>
+    {activeObject && <RoomDialog title="Welcome to your room" onClose={() => setActiveObject(null)}>
+      <p>Make your mirror to keep your cards, words and diary here.</p>
+      <button disabled={props.loading} onClick={() => { setActiveObject(null); props.onCreate(); }}>Make your mirror</button>
+    </RoomDialog>}
+    <p className="room-art-credit">Character: Cup Nooble · Sprout Lands</p>
+  </section>;
   const everyday = cards.filter((c) => !c.personal);
   const personal = cards.filter((c) => c.personal);
   const sharedHere = cards.filter((c) => isVisibleIn(c, 'venue')).length;
@@ -41,7 +58,7 @@ export default function MirrorRoom(props: { mirrorId: bigint; onBack: () => void
   return (
     <section className="pixel-room room-fullscreen" aria-label={`${mirror.name}'s Mirror Room`}>
       <div className="room-hud">
-        <button className="room-exit" autoFocus onClick={props.onBack}>← Back to town</button>
+        <button className="room-exit" autoFocus disabled={props.loading} onClick={props.onBack}>Go to town →</button>
         <div><p className="room-kicker">MIRRORVILLE / HOME</p><h1>{mirror.name}'s room</h1></div>
       </div>
       <PixelRoom onOpen={setActiveObject} />
@@ -59,7 +76,7 @@ export default function MirrorRoom(props: { mirrorId: bigint; onBack: () => void
             <ContactField key={String(mirror.id)} mirrorId={mirror.id} saved={mirror.contact} />
           </section>
         </>}
-        {activeObject === 'diary' && <Diary mirrorId={mirror.id} />}
+        {activeObject === 'diary' && <Diary mirrorId={mirror.id} historyScope={props.historyScope} />}
         {activeObject === 'cards' && <>
           {cards.length === 0 && <div className="room-empty"><h3>A collection waiting to grow</h3>
             <p>Your personality check is already part of your mirror. Add your own writing at the desk to help it get to know you.</p>

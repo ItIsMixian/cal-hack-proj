@@ -9,16 +9,19 @@
 .town-clock span { font-size: 11px; color: #7b745e; }
 .town-account { display: flex; align-items: center; gap: 10px; font-size: 12px; background: #f7f0dde8; padding: 8px 10px; }
 .town-account .session-label { max-width: 120px; font-size: 12px; }
+.town-account .world-role-label { color: #405b35; font-weight: 600; }
 .town-game button { border: 2px solid #a49676; background: #f7efd9; color: #4d4839; border-radius: 2px; box-shadow: 0 3px 0 #c9bb9a; }
 .town-game button:focus-visible { outline: 3px solid #4d6840; outline-offset: 4px; }
 .town-stage, .town-map-shell, .town-map-frame { position: absolute; inset: 0; width: 100%; height: 100%; }
 .town-map-shell { max-width: none; margin: 0; }
 .town-map-frame { background: transparent; padding: 0; border: 0; box-shadow: none; }
+.town-empty-world, .town-empty-world .town-map-frame { background: #303236; }
 .town-map-frame canvas.world { width: 100%; height: 100%; background: transparent; border: 0; border-radius: 0; image-rendering: pixelated; }
 .town-map-caption { display: flex; justify-content: space-between; gap: 12px; font: 14px 'Pixelify Sans', monospace; margin: 9px 2px 0; color: #6e765d; }
 .town-dock { position: absolute; bottom: max(26px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); z-index: 5; width: max-content; max-width: calc(100% - 24px); display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 0; padding: 8px; background: #f7f0dde8; }
 .town-dock button { display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 6px 15px; font: 18px 'Pixelify Sans', monospace; }
 .town-dock button:hover { background: #e8ebd1; }
+.town-dock button:disabled { opacity: .45; cursor: default; }
 .dock-icon { font-size: 25px; color: #74845e; line-height: 1; }
 .town-credit { position: absolute; inset: auto 14px 5px; display: flex; gap: 16px; justify-content: space-between; margin: 0; font-size: 10px; color: #4f604d; pointer-events: none; text-shadow: 0 1px #fff; }
 .town-notice { position: absolute; top: 100px; left: 22px; z-index: 6; display: flex; justify-content: space-between; width: min(600px, calc(100% - 44px)); text-align: left; }
@@ -171,4 +174,34 @@
   .town-clock { top: 0; right: 10px; width: 156px; }
   .town-clock strong { font-size: 20px; }
   .town-camera-hud { top: max(90px, calc(env(safe-area-inset-top) + 82px)); }
+}
+
+/* Shared town plus four empty slots; the supplied pixels stay unchanged. */
+.world-navigator { position: absolute; top: max(8px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); z-index: 7; width: min(560px, calc(100% - 24px)); margin: 0; }
+.world-navigator-row { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; gap: 6px; }
+.world-nameplate { position: relative; width: 100%; aspect-ratio: 2172 / 460; overflow: hidden; pointer-events: none; }
+.world-nameplate img { position: absolute; width: 100%; height: auto; top: -27.174%; left: 0; image-rendering: pixelated; user-select: none; }
+.world-nameplate h1 { position: absolute; inset: 46% 15% 12%; display: flex; align-items: center; justify-content: center; margin: 0; overflow: hidden; white-space: nowrap; color: #62452e; font: 500 clamp(18px, 2.5vw, 28px)/1 'Pixelify Sans', monospace; text-shadow: 0 1px #fff5d8; }
+.world-name-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.town-game .world-direction { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 2px solid #836146; background: #f4dfaf; box-shadow: inset 0 0 0 2px #ffeaca, 0 3px 0 #72563e; }
+.town-game .world-direction:hover { background: #ffe8b7; }
+.town-game .world-direction:active { transform: translateY(2px); box-shadow: inset 0 0 0 2px #ffeaca, 0 1px 0 #72563e; }
+.world-direction span { width: 12px; height: 12px; border-top: 4px solid #725438; border-right: 4px solid #725438; transform: translateX(-2px) rotate(45deg); }
+.world-direction-previous span { transform: translateX(2px) rotate(-135deg); }
+.world-indicators { display: flex; justify-content: center; gap: 12px; list-style: none; padding: 0; margin: 6px 0 0; }
+.world-indicator { width: 11px; height: 11px; border-radius: 50%; background: #44474c; box-shadow: 0 0 0 2px #171b2066; }
+.world-indicator.is-existing { background: #fff; }
+.world-indicator.is-current { background: #79ca6a; }
+.world-screen-reader { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (max-width: 1100px) {
+  .world-navigator { width: min(480px, calc(100% - 24px)); }
+  .town-clock { top: max(104px, calc(env(safe-area-inset-top) + 96px)); width: 156px; right: 12px; }
+  .town-clock strong { font-size: 20px; }
+  .town-camera-hud { top: max(192px, calc(env(safe-area-inset-top) + 184px)); }
+}
+@media (max-width: 650px) {
+  .world-navigator-row { gap: 2px; }
+  .world-nameplate h1 { font-size: 18px; }
+  .town-clock { top: max(102px, calc(env(safe-area-inset-top) + 94px)); width: 138px; right: 10px; }
+  .town-camera-hud { top: max(180px, calc(env(safe-area-inset-top) + 172px)); }
 }

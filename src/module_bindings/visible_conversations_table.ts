@@ -19,4 +19,5 @@ export default __t.row({
   maxTurns: __t.u32().name("max_turns"),
   active: __t.bool(),
   startedAt: __t.timestamp().name("started_at"),
+  worldId: __t.u64().name("world_id"),
 });

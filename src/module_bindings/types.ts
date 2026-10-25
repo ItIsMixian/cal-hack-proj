@@ -20,7 +20,7 @@ export const Config = __t.object("Config", {
 });
 export type Config = __Infer<typeof Config>;
 
-export const Conversation = __t.object("Conversation", {
+export const ConversationStorage = __t.object("ConversationStorage", {
   id: __t.u64(),
   a: __t.u64(),
   b: __t.u64(),
@@ -29,8 +29,9 @@ export const Conversation = __t.object("Conversation", {
   maxTurns: __t.u32(),
   active: __t.bool(),
   startedAt: __t.timestamp(),
+  worldId: __t.u64(),
 });
-export type Conversation = __Infer<typeof Conversation>;
+export type ConversationStorage = __Infer<typeof ConversationStorage>;
 
 export const DiaryEntry = __t.object("DiaryEntry", {
   id: __t.u64(),
@@ -43,6 +44,7 @@ export const DiaryEntry = __t.object("DiaryEntry", {
   goodFit: __t.bool(),
   fitReason: __t.string(),
   createdAt: __t.timestamp(),
+  worldId: __t.u64(),
 });
 export type DiaryEntry = __Infer<typeof DiaryEntry>;
 
@@ -63,6 +65,18 @@ export const DiaryItem = __t.object("DiaryItem", {
   theirContact: __t.string(),
 });
 export type DiaryItem = __Infer<typeof DiaryItem>;
+
+export const DiscoverableWorld = __t.object("DiscoverableWorld", {
+  id: __t.u64(),
+  name: __t.string(),
+  description: __t.string(),
+  maxMembers: __t.u32(),
+  memberCount: __t.u32(),
+});
+export type DiscoverableWorld = __Infer<typeof DiscoverableWorld>;
+
+export const DiscoverableWorlds = __t.object("DiscoverableWorlds", {});
+export type DiscoverableWorlds = __Infer<typeof DiscoverableWorlds>;
 
 export const Encounter = __t.object("Encounter", {
   id: __t.u64(),
@@ -128,14 +142,14 @@ export const Interest = __t.object("Interest", {
 });
 export type Interest = __Infer<typeof Interest>;
 
-export const Line = __t.object("Line", {
+export const LineStorage = __t.object("LineStorage", {
   id: __t.u64(),
   conversationId: __t.u64(),
   speaker: __t.u64(),
   text: __t.string(),
   at: __t.timestamp(),
 });
-export type Line = __Infer<typeof Line>;
+export type LineStorage = __Infer<typeof LineStorage>;
 
 export const LlmJob = __t.object("LlmJob", {
   scheduledId: __t.u64(),
@@ -144,26 +158,6 @@ export const LlmJob = __t.object("LlmJob", {
   kind: __t.string(),
 });
 export type LlmJob = __Infer<typeof LlmJob>;
-
-export const Mirror = __t.object("Mirror", {
-  id: __t.u64(),
-  name: __t.string(),
-  look: __t.u8(),
-  intent: __t.string(),
-  landmark: __t.string(),
-  place: __t.string(),
-  activity: __t.string(),
-  x: __t.f32(),
-  y: __t.f32(),
-  targetX: __t.f32(),
-  targetY: __t.f32(),
-  extraversion: __t.f32(),
-  conversationId: __t.u64(),
-  demo: __t.bool(),
-  lastChatAt: __t.timestamp(),
-  active: __t.bool(),
-});
-export type Mirror = __Infer<typeof Mirror>;
 
 export const MirrorCard = __t.object("MirrorCard", {
   id: __t.u64(),
@@ -188,11 +182,42 @@ export const MirrorProfile = __t.object("MirrorProfile", {
 });
 export type MirrorProfile = __Infer<typeof MirrorProfile>;
 
+export const MirrorPrototype = __t.object("MirrorPrototype", {
+  owner: __t.identity(),
+  name: __t.string(),
+  look: __t.u8(),
+  intent: __t.string(),
+  selfCard: __t.string(),
+  extraversion: __t.f64(),
+});
+export type MirrorPrototype = __Infer<typeof MirrorPrototype>;
+
 export const MirrorRest = __t.object("MirrorRest", {
   mirrorId: __t.u64(),
   until: __t.u64(),
 });
 export type MirrorRest = __Infer<typeof MirrorRest>;
+
+export const MirrorStorage = __t.object("MirrorStorage", {
+  id: __t.u64(),
+  name: __t.string(),
+  look: __t.u8(),
+  intent: __t.string(),
+  landmark: __t.string(),
+  place: __t.string(),
+  activity: __t.string(),
+  x: __t.f32(),
+  y: __t.f32(),
+  targetX: __t.f32(),
+  targetY: __t.f32(),
+  extraversion: __t.f32(),
+  conversationId: __t.u64(),
+  demo: __t.bool(),
+  lastChatAt: __t.timestamp(),
+  active: __t.bool(),
+  worldId: __t.u64(),
+});
+export type MirrorStorage = __Infer<typeof MirrorStorage>;
 
 export const MirrorSummary = __t.object("MirrorSummary", {
   mirrorId: __t.u64(),
@@ -227,6 +252,9 @@ export type MyMirrors = __Infer<typeof MyMirrors>;
 export const MySummaries = __t.object("MySummaries", {});
 export type MySummaries = __Infer<typeof MySummaries>;
 
+export const MyWorlds = __t.object("MyWorlds", {});
+export type MyWorlds = __Infer<typeof MyWorlds>;
+
 export const Relation = __t.object("Relation", {
   id: __t.u64(),
   lo: __t.u64(),
@@ -237,6 +265,7 @@ export const Relation = __t.object("Relation", {
   noteByHi: __t.string(),
   lastSeenAt: __t.timestamp(),
   lastTalkAt: __t.timestamp(),
+  worldId: __t.u64(),
 });
 export type Relation = __Infer<typeof Relation>;
 
@@ -246,10 +275,66 @@ export const TickTimer = __t.object("TickTimer", {
 });
 export type TickTimer = __Infer<typeof TickTimer>;
 
+export const VisibleConversations = __t.object("VisibleConversations", {});
+export type VisibleConversations = __Infer<typeof VisibleConversations>;
+
+export const VisibleLines = __t.object("VisibleLines", {});
+export type VisibleLines = __Infer<typeof VisibleLines>;
+
+export const VisibleMirrors = __t.object("VisibleMirrors", {});
+export type VisibleMirrors = __Infer<typeof VisibleMirrors>;
+
+export const World = __t.object("World", {
+  id: __t.u64(),
+  owner: __t.identity(),
+  name: __t.string(),
+  description: __t.string(),
+  allowStrangers: __t.bool(),
+  maxMembers: __t.u32(),
+  inviteToken: __t.string(),
+  createdAt: __t.timestamp(),
+});
+export type World = __Infer<typeof World>;
+
+export const WorldInfo = __t.object("WorldInfo", {
+  id: __t.u64(),
+  slot: __t.u8(),
+  name: __t.string(),
+  description: __t.string(),
+  allowStrangers: __t.bool(),
+  maxMembers: __t.u32(),
+  memberCount: __t.u32(),
+  isOwner: __t.bool(),
+  isCurrent: __t.bool(),
+  inviteToken: __t.string(),
+});
+export type WorldInfo = __Infer<typeof WorldInfo>;
+
+export const WorldMember = __t.object("WorldMember", {
+  id: __t.u64(),
+  worldId: __t.u64(),
+  owner: __t.identity(),
+  slot: __t.u8(),
+});
+export type WorldMember = __Infer<typeof WorldMember>;
+
 export const WorldRuntime = __t.object("WorldRuntime", {
   id: __t.u8(),
   lastMoveAt: __t.u64(),
   lastSocialAt: __t.u64(),
 });
 export type WorldRuntime = __Infer<typeof WorldRuntime>;
+
+export const WorldSelection = __t.object("WorldSelection", {
+  owner: __t.identity(),
+  worldId: __t.u64(),
+});
+export type WorldSelection = __Infer<typeof WorldSelection>;
+
+export const WorldSimulation = __t.object("WorldSimulation", {
+  id: __t.u64(),
+  lastMoveAt: __t.u64(),
+  lastSocialAt: __t.u64(),
+});
+export type WorldSimulation = __Infer<typeof WorldSimulation>;
 

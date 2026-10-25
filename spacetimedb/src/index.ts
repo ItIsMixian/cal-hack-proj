@@ -30,7 +30,7 @@ const config = table(
 
 // What everyone watching the town can see.
 const mirror = table(
-  { name: 'mirror', public: true },
+  { name: 'mirror_storage' },
   {
     id: t.u64().primaryKey().autoInc(),
     name: t.string(),
@@ -52,6 +52,7 @@ const mirror = table(
     demo: t.bool(),
     lastChatAt: t.timestamp(),
     active: t.bool().default(true),
+    worldId: t.u64().index('btree').default(0n),
   },
 );
 
@@ -67,7 +68,7 @@ const mirrorProfile = table(
 );
 
 const conversation = table(
-  { name: 'conversation', public: true },
+  { name: 'conversation_storage' },
   {
     id: t.u64().primaryKey().autoInc(),
     a: t.u64(),
@@ -77,11 +78,12 @@ const conversation = table(
     maxTurns: t.u32(),
     active: t.bool(),
     startedAt: t.timestamp(),
+    worldId: t.u64().index('btree').default(0n),
   },
 );
 
 const line = table(
-  { name: 'line', public: true },
+  { name: 'line_storage' },
   {
     id: t.u64().primaryKey().autoInc(),
     conversationId: t.u64().index('btree'),
@@ -108,6 +110,7 @@ const relation = table(
     noteByHi: t.string(),
     lastSeenAt: t.timestamp(),
     lastTalkAt: t.timestamp(),
+    worldId: t.u64().default(0n),
   },
 );
 
@@ -162,6 +165,7 @@ const diaryEntry = table(
     goodFit: t.bool(),
     fitReason: t.string(),
     createdAt: t.timestamp(),
+    worldId: t.u64().default(0n),
   },
 );
 
@@ -245,6 +249,10 @@ const tickTimer = table(
 const worldRuntime = table({ name: 'world_runtime' }, {
   id: t.u8().primaryKey(), lastMoveAt: t.u64(), lastSocialAt: t.u64(),
 });
+// Keep world_runtime for data-preserving upgrades; new clocks belong to each world.
+const worldSimulation = table({ name: 'world_simulation' }, {
+  id: t.u64().primaryKey(), lastMoveAt: t.u64(), lastSocialAt: t.u64(),
+});
 const mirrorRest = table({ name: 'mirror_rest' }, {
   mirrorId: t.u64().primaryKey(), until: t.u64(),
 });
@@ -260,12 +268,32 @@ const llmJob = table(
   },
 );
 
+// Test-environment world records are private. Clients see only membership-scoped views.
+const world = table({ name: 'world' }, {
+  id: t.u64().primaryKey(), owner: t.identity(), name: t.string(), description: t.string(),
+  allowStrangers: t.bool(), maxMembers: t.u32(), inviteToken: t.string().unique(), createdAt: t.timestamp(),
+});
+const worldMember = table({ name: 'world_member', indexes: [
+  { accessor: 'by_world_user', algorithm: 'btree', columns: ['worldId', 'owner'] },
+] }, {
+  id: t.u64().primaryKey().autoInc(), worldId: t.u64().index('btree'), owner: t.identity().index('btree'), slot: t.u8(),
+});
+// Stable identity-level starting point; world residents never share mutable state.
+const mirrorPrototype = table({ name: 'mirror_prototype' }, {
+  owner: t.identity().primaryKey(), name: t.string(), look: t.u8(), intent: t.string(),
+  selfCard: t.string(), extraversion: t.f64(),
+});
+const worldSelection = table({ name: 'world_selection' }, {
+  owner: t.identity().primaryKey(), worldId: t.u64(),
+});
+
 const spacetimedb = schema({
+  world, worldMember, worldSelection, mirrorPrototype,
   config,
-  mirror,
+  mirrorStorage: mirror,
   mirrorProfile,
-  conversation,
-  line,
+  conversationStorage: conversation,
+  lineStorage: line,
   relation,
   encounter,
   humanMessage,
@@ -277,6 +305,7 @@ const spacetimedb = schema({
   importJob,
   tickTimer,
   worldRuntime,
+  worldSimulation,
   mirrorRest,
   llmJob,
 });
@@ -284,6 +313,9 @@ export default spacetimedb;
 
 type Ctx = ReducerCtx<InferSchema<typeof spacetimedb>>;
 type Db = Ctx['db'];
+type SimulationCtx = Pick<Ctx, 'db' | 'timestamp'> & {
+  random: (() => number) & { integerInRange(min: number, max: number): number };
+};
 type ProcCtx = ProcedureCtx<InferSchema<typeof spacetimedb>>;
 
 // ---------------------------------------------------------------------------
@@ -335,18 +367,18 @@ function micros(ctx: { timestamp: Timestamp }) {
   return ctx.timestamp.microsSinceUnixEpoch;
 }
 
-function pick<T>(ctx: Ctx, items: T[]): T {
+function pick<T>(ctx: SimulationCtx, items: T[]): T {
   return items[ctx.random.integerInRange(0, items.length - 1)];
 }
 
-function randomPointIn(ctx: Ctx, landmarkKey: string) {
+function randomPointIn(ctx: SimulationCtx, landmarkKey: string) {
   const l = findLandmark(landmarkKey);
   return { x: l.x + 0.7 + ctx.random() * (l.w - 1.4), y: l.y + 1.2 + ctx.random() * (l.h - 1.9) };
 }
 
 // Events pull people in. Without an intent, explore where others are spending
 // time instead of treating the initial Park spawn as a permanent preference.
-function choosePlace(ctx: Ctx, m: { id: bigint; intent: string; landmark: string; extraversion: number }) {
+function choosePlace(ctx: SimulationCtx, m: { id: bigint; intent: string; landmark: string; extraversion: number; worldId: bigint }) {
   const event = currentEvent(townHour(micros(ctx)));
   if (event) {
     if (event.landmark === m.landmark) return event.landmark;
@@ -354,7 +386,7 @@ function choosePlace(ctx: Ctx, m: { id: bigint; intent: string; landmark: string
     if (ctx.random() < pull) return event.landmark;
   }
   if (!m.intent.trim()) {
-    const others = [...ctx.db.mirror.iter()].filter(other => other.active !== false && other.id !== m.id && other.activity !== 'walking');
+    const others = [...ctx.db.mirrorStorage.iter()].filter(other => other.worldId === m.worldId && other.active !== false && other.id !== m.id && other.activity !== 'walking');
     return others.length ? pick(ctx, others).place : pick(ctx, LANDMARKS).key;
   }
   const roll = ctx.random();
@@ -366,10 +398,11 @@ function addMirror(
   ctx: Ctx,
   owner: Identity,
   fields: { name: string; look: number; intent: string; selfCard: string; extraversion: number; demo: boolean },
+  worldId = ctx.db.worldSelection.owner.find(owner)?.worldId ?? 0n,
 ) {
   const landmark = landmarkForIntent(fields.intent);
   const start = randomPointIn(ctx, landmark);
-  const row = ctx.db.mirror.insert({
+  const row = ctx.db.mirrorStorage.insert({
     id: 0n,
     name: fields.name,
     look: fields.look,
@@ -386,6 +419,7 @@ function addMirror(
     demo: fields.demo,
     lastChatAt: ctx.timestamp,
     active: true,
+    worldId,
   });
   ctx.db.mirrorProfile.insert({ mirrorId: row.id, owner, selfCard: fields.selfCard,
     contact: fields.demo ? `${fields.name} · demo contact (placeholder)` : '' });
@@ -423,17 +457,17 @@ function cleanIntent(text: string) {
   return value;
 }
 
-function findRelation(db: Db, a: bigint, b: bigint) {
+function findRelation(db: Db, a: bigint, b: bigint, worldId = 0n) {
   const [lo, hi] = a < b ? [a, b] : [b, a];
-  return [...db.relation.by_pair.filter([lo, hi])][0];
+  return [...db.relation.by_pair.filter([lo, hi])].find(row => (row.worldId ?? 0n) === worldId);
 }
 
-function getOrCreateRelation(db: Db, a: bigint, b: bigint, at: Timestamp) {
-  const existing = findRelation(db, a, b);
+function getOrCreateRelation(db: Db, a: bigint, b: bigint, at: Timestamp, worldId = 0n) {
+  const existing = findRelation(db, a, b, worldId);
   if (existing) return existing;
   const [lo, hi] = a < b ? [a, b] : [b, a];
   return db.relation.insert({
-    id: 0n, lo, hi, sightings: 0, talks: 0, noteByLo: '', noteByHi: '', lastSeenAt: at, lastTalkAt: new Timestamp(0n),
+    id: 0n, lo, hi, worldId, sightings: 0, talks: 0, noteByLo: '', noteByHi: '', lastSeenAt: at, lastTalkAt: new Timestamp(0n),
   });
 }
 
@@ -441,11 +475,177 @@ function sharedCardsFor(db: Db, mirrorId: bigint) {
   return [...db.mirrorCard.mirrorId.filter(mirrorId)].filter((c) => isVisibleIn(c, ACTIVE_ROOM)).map((c) => c.text);
 }
 
+type WorldReadCtx = Pick<ViewCtx<InferSchema<typeof spacetimedb>>, 'db' | 'sender'>;
+function selectedWorldId(ctx: WorldReadCtx): bigint {
+  return ctx.db.worldSelection.owner.find(ctx.sender)?.worldId ?? 0n;
+}
+function isWorldMember(ctx: WorldReadCtx, worldId: bigint): boolean {
+  return [...ctx.db.worldMember.by_world_user.filter([worldId, ctx.sender])].length > 0;
+}
+function requireWorldMember(ctx: Ctx, worldId: bigint) {
+  const row = ctx.db.world.id.find(worldId);
+  if (!row || !isWorldMember(ctx, worldId)) throw new SenderError('Join this world first');
+  return row;
+}
+function requireWorldOwner(ctx: Ctx, worldId: bigint) {
+  const row = requireWorldMember(ctx, worldId);
+  if (!row.owner.equals(ctx.sender)) throw new SenderError('Only the world creator can edit this world');
+  return row;
+}
+function checkWorldSettings(args: { name: string; description: string; maxMembers: number }) {
+  const name = cleanText(args.name, 40, 'World name');
+  if (args.description.length > 240) throw new SenderError('Description must be at most 240 characters');
+  if (!Number.isInteger(args.maxMembers) || args.maxMembers < 1 || args.maxMembers > 100) throw new SenderError('Maximum people must be between 1 and 100');
+  return { name, description: args.description.trim() };
+}
+function checkInviteToken(token: string) {
+  // The client uses crypto.getRandomValues; deterministic reducer RNG is not a secret generator.
+  if (!/^[a-f0-9]{64}$/.test(token)) throw new SenderError('Invalid invitation token');
+}
+function addWorldMember(ctx: Ctx, worldId: bigint, slot: number) {
+  const existing = [...ctx.db.worldMember.by_world_user.filter([worldId, ctx.sender])][0];
+  if (existing) return existing;
+  if (!Number.isInteger(slot) || slot < 0 || slot > 4 || (slot === 0 && worldId !== 0n)) throw new SenderError('Choose an empty world slot');
+  const own = [...ctx.db.worldMember.owner.filter(ctx.sender)];
+  if (own.some(row => row.slot === slot) || own.length >= 5) throw new SenderError('This world slot is occupied');
+  const target = ctx.db.world.id.find(worldId);
+  if (!target) throw new SenderError('World does not exist');
+  if ([...ctx.db.worldMember.worldId.filter(worldId)].length >= target.maxMembers) throw new SenderError('This world is full');
+  return ctx.db.worldMember.insert({ id: 0n, worldId, owner: ctx.sender, slot });
+}
+function getMirrorPrototype(ctx: Ctx) {
+  const saved = ctx.db.mirrorPrototype.owner.find(ctx.sender);
+  if (saved) return saved;
+  // Existing accounts are upgraded lazily. Choose a stable lowest owned non-demo ID,
+  // independent of which world was selected or how an index happens to iterate.
+  const candidates = [...ctx.db.mirrorProfile.owner.filter(ctx.sender)].flatMap(profile => {
+    const resident = ctx.db.mirrorStorage.id.find(profile.mirrorId);
+    return resident && !resident.demo ? [{ profile, resident }] : [];
+  }).sort((a, b) => a.resident.id < b.resident.id ? -1 : 1);
+  const source = candidates[0];
+  if (!source) return null;
+  const { profile, resident } = source;
+  return ctx.db.mirrorPrototype.insert({ owner: ctx.sender, name: resident.name, look: resident.look,
+    intent: resident.intent, selfCard: profile.selfCard, extraversion: resident.extraversion });
+}
+
+function ensureWorldMirror(ctx: Ctx, worldId: bigint) {
+  const alreadyHere = [...ctx.db.mirrorProfile.owner.filter(ctx.sender)].some(profile => {
+    const resident = ctx.db.mirrorStorage.id.find(profile.mirrorId);
+    return resident && !resident.demo && resident.worldId === worldId;
+  });
+  // Includes inactive residents: entering must not undo an admin's deactivation.
+  if (alreadyHere) return;
+  const prototype = getMirrorPrototype(ctx);
+  if (!prototype) return; // First-time users still complete the original onboarding.
+  if ([...ctx.db.mirrorStorage.worldId.filter(worldId)].filter(m => m.active !== false).length >= MAX_MIRRORS_TOTAL) {
+    throw new SenderError('This world is full right now');
+  }
+  addMirror(ctx, ctx.sender, { ...prototype, demo: false }, worldId);
+}
+
+function activateWorld(ctx: Ctx, worldId: bigint) {
+  requireWorldMember(ctx, worldId);
+  ensureWorldMirror(ctx, worldId);
+  const previous = ctx.db.worldSelection.owner.find(ctx.sender);
+  if (previous?.worldId === worldId) return;
+  if (previous) ctx.db.worldSelection.owner.update({ owner: ctx.sender, worldId });
+  else ctx.db.worldSelection.insert({ owner: ctx.sender, worldId });
+}
+
+export const enterWorld = spacetimedb.reducer({ worldId: t.u64() }, (ctx, { worldId }) => activateWorld(ctx, worldId));
+export const createWorld = spacetimedb.reducer({ slot: t.u8(), name: t.string(), description: t.string(),
+  allowStrangers: t.bool(), maxMembers: t.u32(), inviteToken: t.string() }, (ctx, args) => {
+  const fields = checkWorldSettings(args);
+  checkInviteToken(args.inviteToken);
+  if (ctx.db.world.inviteToken.find(args.inviteToken)) throw new SenderError('Generate a new invitation');
+  const worldId = [...ctx.db.world.iter()].reduce((max, row) => row.id > max ? row.id : max, 0n) + 1n;
+  ctx.db.world.insert({ id: worldId, owner: ctx.sender, ...fields, allowStrangers: args.allowStrangers,
+    maxMembers: args.maxMembers, inviteToken: args.inviteToken, createdAt: ctx.timestamp });
+  addWorldMember(ctx, worldId, args.slot);
+  activateWorld(ctx, worldId);
+});
+export const updateWorld = spacetimedb.reducer({ worldId: t.u64(), name: t.string(), description: t.string(),
+  allowStrangers: t.bool(), maxMembers: t.u32() }, (ctx, args) => {
+  const current = requireWorldOwner(ctx, args.worldId);
+  const fields = checkWorldSettings(args);
+  if ([...ctx.db.worldMember.worldId.filter(args.worldId)].length > args.maxMembers) throw new SenderError('Maximum people cannot be lower than the current member count');
+  ctx.db.world.id.update({ ...current, ...fields, allowStrangers: args.allowStrangers, maxMembers: args.maxMembers });
+});
+export const joinWorld = spacetimedb.reducer({ slot: t.u8(), inviteToken: t.string() }, (ctx, { slot, inviteToken }) => {
+  checkInviteToken(inviteToken);
+  const target = ctx.db.world.inviteToken.find(inviteToken);
+  if (!target) throw new SenderError('Invitation is invalid or has been replaced');
+  addWorldMember(ctx, target.id, slot);
+  activateWorld(ctx, target.id);
+});
+export const joinOpenWorld = spacetimedb.reducer({ slot: t.u8(), worldId: t.u64() }, (ctx, { slot, worldId }) => {
+  const target = ctx.db.world.id.find(worldId);
+  if (!target || !target.allowStrangers) throw new SenderError('This world requires an invitation');
+  addWorldMember(ctx, worldId, slot);
+  activateWorld(ctx, worldId);
+});
+export const rotateWorldInvite = spacetimedb.reducer({ worldId: t.u64(), inviteToken: t.string() }, (ctx, args) => {
+  const target = requireWorldOwner(ctx, args.worldId);
+  checkInviteToken(args.inviteToken);
+  if (ctx.db.world.inviteToken.find(args.inviteToken)) throw new SenderError('Generate a new invitation');
+  ctx.db.world.id.update({ ...target, inviteToken: args.inviteToken });
+});
+
+const WorldInfo = t.row('WorldInfo', { id: t.u64().primaryKey(), slot: t.u8(), name: t.string(), description: t.string(),
+  allowStrangers: t.bool(), maxMembers: t.u32(), memberCount: t.u32(), isOwner: t.bool(), isCurrent: t.bool(), inviteToken: t.string() });
+export const myWorlds = spacetimedb.view({ name: 'my_worlds', public: true }, t.array(WorldInfo), ctx => {
+  return [...ctx.db.worldMember.owner.filter(ctx.sender)].flatMap(member => {
+    const target = ctx.db.world.id.find(member.worldId);
+    if (!target) return [];
+    return [{ id: target.id, slot: member.slot, name: target.name, description: target.description,
+      allowStrangers: target.allowStrangers, maxMembers: target.maxMembers,
+      memberCount: [...ctx.db.worldMember.worldId.filter(target.id)].length, isOwner: target.owner.equals(ctx.sender),
+      isCurrent: selectedWorldId(ctx) === target.id, inviteToken: target.owner.equals(ctx.sender) ? target.inviteToken : '' }];
+  });
+});
+const DiscoverableWorld = t.row('DiscoverableWorld', {
+  id: t.u64().primaryKey(), name: t.string(), description: t.string(), maxMembers: t.u32(), memberCount: t.u32(),
+});
+export const discoverableWorlds = spacetimedb.view(
+  { name: 'discoverable_worlds', public: true }, t.array(DiscoverableWorld), ctx => {
+    const joined = new Set([...ctx.db.worldMember.owner.filter(ctx.sender)].map(member => member.worldId));
+    return [...ctx.db.world.iter()].filter(target => target.allowStrangers && !joined.has(target.id))
+      .map(target => ({ id: target.id, name: target.name, description: target.description,
+        maxMembers: target.maxMembers, memberCount: [...ctx.db.worldMember.worldId.filter(target.id)].length }))
+      .filter(target => target.memberCount < target.maxMembers)
+      .sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : a.id < b.id ? -1 : 1);
+  },
+);
+export const visibleMirrors = spacetimedb.view({ name: 'mirror', public: true }, t.array(mirror.rowType), ctx => {
+  const worldId = selectedWorldId(ctx);
+  return isWorldMember(ctx, worldId) ? [...ctx.db.mirrorStorage.worldId.filter(worldId)] : [];
+});
+export const visibleConversations = spacetimedb.view({ name: 'conversation', public: true }, t.array(conversation.rowType), ctx => {
+  const worldId = selectedWorldId(ctx);
+  return isWorldMember(ctx, worldId) ? [...ctx.db.conversationStorage.worldId.filter(worldId)] : [];
+});
+export const visibleLines = spacetimedb.view({ name: 'line', public: true }, t.array(line.rowType), ctx => {
+  const worldId = selectedWorldId(ctx);
+  if (!isWorldMember(ctx, worldId)) return [];
+  return [...ctx.db.conversationStorage.worldId.filter(worldId)].flatMap(conv => [...ctx.db.lineStorage.conversationId.filter(conv.id)]);
+});
+
+export const connectWorld = spacetimedb.clientConnected(ctx => {
+  if (isWorldMember(ctx, 0n)) return;
+  const lobby = ctx.db.world.id.find(0n);
+  if (!lobby || [...ctx.db.worldMember.worldId.filter(0n)].length >= lobby.maxMembers) return;
+  addWorldMember(ctx, 0n, 0);
+  if (!ctx.db.worldSelection.owner.find(ctx.sender)) activateWorld(ctx, 0n);
+});
+
 // ---------------------------------------------------------------------------
 // Lifecycle
 // ---------------------------------------------------------------------------
 
 export const init = spacetimedb.init((ctx) => {
+  ctx.db.world.insert({ id: 0n, owner: ctx.sender, name: 'Mirrorville Test', description: 'Isolated local test lobby',
+    allowStrangers: true, maxMembers: 100, inviteToken: 'lobby-no-invite', createdAt: ctx.timestamp });
   ctx.db.config.insert({
     id: 0,
     admin: ctx.sender,
@@ -471,27 +671,27 @@ export const refreshWorldSchedule = spacetimedb.reducer((ctx) => {
 // Reversible exit. Cards, ownership, diaries and identity are retained.
 export const setResidentActive = spacetimedb.reducer({ mirrorId: t.u64(), active: t.bool() }, (ctx, { mirrorId, active }) => {
   requireAdmin(ctx);
-  const resident = ctx.db.mirror.id.find(mirrorId);
+  const resident = ctx.db.mirrorStorage.id.find(mirrorId);
   if (!resident) throw new SenderError('Unknown resident');
   if (!active) {
-    for (const conv of [...ctx.db.conversation.iter()]) {
+    for (const conv of [...ctx.db.conversationStorage.iter()]) {
       if (conv.active && (conv.a === mirrorId || conv.b === mirrorId)) endConversation(ctx.db, conv.id, ctx.timestamp);
     }
     ctx.db.mirrorRest.mirrorId.delete(mirrorId);
   }
-  ctx.db.mirror.id.update({ ...ctx.db.mirror.id.find(mirrorId)!, active });
+  ctx.db.mirrorStorage.id.update({ ...ctx.db.mirrorStorage.id.find(mirrorId)!, active });
 });
 
-export const tick = spacetimedb.reducer({ onSchedule: tickTimer }, { timer: tickTimer.rowType }, (ctx) => {
+function tickWorld(ctx: SimulationCtx, worldId: bigint) {
   const now = micros(ctx);
-  const runtime = ctx.db.worldRuntime.id.find(0);
+  const runtime = ctx.db.worldSimulation.id.find(worldId);
   const dt = runtime ? Math.max(0, Math.min(1, Number(now - runtime.lastMoveAt) / 1_000_000)) : 0.2;
   const socialDue = !runtime || now - runtime.lastSocialAt >= 1_000_000n;
-  const updated = { id: 0, lastMoveAt: now, lastSocialAt: socialDue ? now : runtime.lastSocialAt };
-  if (runtime) ctx.db.worldRuntime.id.update(updated); else ctx.db.worldRuntime.insert(updated);
+  const updated = { id: worldId, lastMoveAt: now, lastSocialAt: socialDue ? now : runtime.lastSocialAt };
+  if (runtime) ctx.db.worldSimulation.id.update(updated); else ctx.db.worldSimulation.insert(updated);
 
   // Move, arrive, pick something to do.
-  for (const m of [...ctx.db.mirror.iter()]) {
+  for (const m of [...ctx.db.mirrorStorage.worldId.filter(worldId)]) {
     if (m.active === false) continue;
     if (m.conversationId !== 0n) continue;
     const dx = m.targetX - m.x;
@@ -501,18 +701,18 @@ export const tick = spacetimedb.reducer({ onSchedule: tickTimer }, { timer: tick
       const rest = ctx.db.mirrorRest.mirrorId.find(m.id);
       if (!rest) {
         ctx.db.mirrorRest.insert({ mirrorId: m.id, until: now + BigInt(ctx.random.integerInRange(90, 180)) * 1_000_000n });
-        if (m.activity === 'walking') ctx.db.mirror.id.update({ ...m, x: m.targetX, y: m.targetY, activity: pick(ctx, ACTIVITIES[m.place] ?? ACTIVITIES.park) });
+        if (m.activity === 'walking') ctx.db.mirrorStorage.id.update({ ...m, x: m.targetX, y: m.targetY, activity: pick(ctx, ACTIVITIES[m.place] ?? ACTIVITIES.park) });
       } else if (now >= rest.until) {
         const place = choosePlace(ctx, m);
         const target = randomPointIn(ctx, place);
-        ctx.db.mirror.id.update({ ...m, place, targetX: target.x, targetY: target.y, activity: 'walking' });
+        ctx.db.mirrorStorage.id.update({ ...m, place, targetX: target.x, targetY: target.y, activity: 'walking' });
         ctx.db.mirrorRest.mirrorId.delete(m.id);
       }
       continue;
     }
     const step = Math.min(SPEED * dt, dist);
     const arrived = step >= dist;
-    ctx.db.mirror.id.update({
+    ctx.db.mirrorStorage.id.update({
       ...m,
       x: m.x + (dx / dist) * step,
       y: m.y + (dy / dist) * step,
@@ -524,8 +724,8 @@ export const tick = spacetimedb.reducer({ onSchedule: tickTimer }, { timer: tick
   if (!socialDue) return;
 
   // Notice each other; sometimes start talking.
-  let active = [...ctx.db.conversation.iter()].filter((c) => c.active).length;
-  const free = [...ctx.db.mirror.iter()].filter(
+  let active = [...ctx.db.conversationStorage.worldId.filter(worldId)].filter((c) => c.active).length;
+  const free = [...ctx.db.mirrorStorage.worldId.filter(worldId)].filter(
     (m) => m.active !== false && m.conversationId === 0n && now - m.lastChatAt.microsSinceUnixEpoch > CHAT_COOLDOWN && m.activity !== 'walking',
   );
   const taken = new Set<bigint>();
@@ -534,10 +734,10 @@ export const tick = spacetimedb.reducer({ onSchedule: tickTimer }, { timer: tick
     if (taken.has(a.id)) continue;
     for (let j = i + 1; j < free.length; j++) {
       const b = free[j];
-      if (taken.has(b.id) || a.place !== b.place) continue;
+      if (taken.has(b.id) || a.place !== b.place || a.worldId !== b.worldId) continue;
       if (Math.hypot(a.x - b.x, a.y - b.y) > NEAR) continue;
 
-      let rel = getOrCreateRelation(ctx.db, a.id, b.id, ctx.timestamp);
+      let rel = getOrCreateRelation(ctx.db, a.id, b.id, ctx.timestamp, a.worldId);
       if (now - rel.lastSeenAt.microsSinceUnixEpoch > SIGHTING_GAP || rel.sightings === 0) {
         rel = ctx.db.relation.id.update({ ...rel, sightings: rel.sightings + 1, lastSeenAt: ctx.timestamp });
       }
@@ -554,7 +754,7 @@ export const tick = spacetimedb.reducer({ onSchedule: tickTimer }, { timer: tick
 
       // The more outgoing one usually speaks first.
       const [first, second] = ctx.random() < 0.5 + (a.extraversion - b.extraversion) ? [a, b] : [b, a];
-      const conv = ctx.db.conversation.insert({
+      const conv = ctx.db.conversationStorage.insert({
         id: 0n,
         a: first.id,
         b: second.id,
@@ -563,9 +763,10 @@ export const tick = spacetimedb.reducer({ onSchedule: tickTimer }, { timer: tick
         maxTurns: rel.talks === 0 ? 4 : rel.talks === 1 ? 6 : 8,
         active: true,
         startedAt: ctx.timestamp,
+        worldId: a.worldId,
       });
       for (const m of [first, second]) {
-        ctx.db.mirror.id.update({ ...ctx.db.mirror.id.find(m.id)!, conversationId: conv.id, targetX: m.x, targetY: m.y });
+        ctx.db.mirrorStorage.id.update({ ...ctx.db.mirrorStorage.id.find(m.id)!, conversationId: conv.id, targetX: m.x, targetY: m.y });
       }
       ctx.db.relation.id.update({ ...rel, lastTalkAt: ctx.timestamp });
       scheduleJob(ctx.db, conv.id, 'line', now);
@@ -575,21 +776,43 @@ export const tick = spacetimedb.reducer({ onSchedule: tickTimer }, { timer: tick
       break;
     }
   }
+}
+
+function worldRandom(now: bigint, worldId: bigint): SimulationCtx['random'] {
+  let seed = BigInt.asUintN(64, now ^ (worldId * 0x9e3779b97f4a7c15n));
+  seed = BigInt.asUintN(64, (seed ^ (seed >> 30n)) * 0xbf58476d1ce4e5b9n);
+  seed = BigInt.asUintN(64, (seed ^ (seed >> 27n)) * 0x94d049bb133111ebn);
+  let state = Number(BigInt.asUintN(32, seed ^ (seed >> 31n)));
+  const random = () => {
+    state = (state + 0x6d2b79f5) | 0;
+    let value = Math.imul(state ^ (state >>> 15), 1 | state);
+    value ^= value + Math.imul(value ^ (value >>> 7), 61 | value);
+    return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+  };
+  random.integerInRange = (min: number, max: number) => min + Math.floor(random() * (max - min + 1));
+  return random;
+}
+
+export const tick = spacetimedb.reducer({ onSchedule: tickTimer }, { timer: tickTimer.rowType }, (ctx) => {
+  // Selection is a view preference. Every world's simulation runs even without viewers.
+  for (const world of ctx.db.world.iter()) {
+    tickWorld({ db: ctx.db, timestamp: ctx.timestamp, random: worldRandom(micros(ctx), world.id) }, world.id);
+  }
 });
 
 function endConversation(db: Db, conversationId: bigint, at: Timestamp) {
-  const conv = db.conversation.id.find(conversationId);
+  const conv = db.conversationStorage.id.find(conversationId);
   if (!conv) return;
-  db.conversation.id.update({ ...conv, active: false });
+  db.conversationStorage.id.update({ ...conv, active: false });
   for (const id of [conv.a, conv.b]) {
-    const m = db.mirror.id.find(id);
-    if (m) db.mirror.id.update({ ...m, conversationId: 0n, lastChatAt: at });
+    const m = db.mirrorStorage.id.find(id);
+    if (m && m.conversationId === conversationId) db.mirrorStorage.id.update({ ...m, conversationId: 0n, lastChatAt: at });
   }
 }
 
 type Side = { id: bigint; name: string; intent: string; activity: string; demo: boolean; selfCard: string; owner: Identity; cards: string[] };
 type Snapshot = {
-  conv: { id: bigint; a: bigint; b: bigint; turns: number; maxTurns: number; place: string };
+  conv: { id: bigint; a: bigint; b: bigint; turns: number; maxTurns: number; place: string; worldId: bigint };
   a: Side;
   b: Side;
   lines: { speaker: bigint; text: string }[];
@@ -607,11 +830,11 @@ export const runLlmJob = spacetimedb.procedure(
   t.unit(),
   (ctx, { job }) => {
     const snapshot = ctx.withTx((tx): Snapshot | null => {
-      const conv = tx.db.conversation.id.find(job.conversationId);
+      const conv = tx.db.conversationStorage.id.find(job.conversationId);
       const cfg = tx.db.config.id.find(0);
       if (!conv || !conv.active || !cfg) return null;
       const side = (id: bigint): Side | null => {
-        const m = tx.db.mirror.id.find(id);
+        const m = tx.db.mirrorStorage.id.find(id);
         const p = tx.db.mirrorProfile.mirrorId.find(id);
         if (!m || !p) return null;
         return {
@@ -622,9 +845,9 @@ export const runLlmJob = spacetimedb.procedure(
       const a = side(conv.a);
       const b = side(conv.b);
       if (!a || !b) return null;
-      const rel = findRelation(tx.db, a.id, b.id);
+      const rel = findRelation(tx.db, a.id, b.id, conv.worldId);
       const aIsLo = a.id < b.id;
-      const lines = [...tx.db.line.conversationId.filter(conv.id)].sort((x, y) =>
+      const lines = [...tx.db.lineStorage.conversationId.filter(conv.id)].sort((x, y) =>
         x.at.microsSinceUnixEpoch < y.at.microsSinceUnixEpoch ? -1 : 1,
       );
       return {
@@ -697,11 +920,11 @@ function writeLine(ctx: ProcCtx, s: Snapshot) {
   const clean = text.replace(/\[END\]/gi, '').trim().slice(0, 600);
 
   ctx.withTx((tx) => {
-    const conv = tx.db.conversation.id.find(s.conv.id);
+    const conv = tx.db.conversationStorage.id.find(s.conv.id);
     if (!conv || !conv.active) return;
-    if (clean) tx.db.line.insert({ id: 0n, conversationId: conv.id, speaker: me.id, text: clean, at: tx.timestamp });
+    if (clean) tx.db.lineStorage.insert({ id: 0n, conversationId: conv.id, speaker: me.id, text: clean, at: tx.timestamp });
     const turns = conv.turns + 1;
-    tx.db.conversation.id.update({ ...conv, turns });
+    tx.db.conversationStorage.id.update({ ...conv, turns });
     const done = ended || turns >= conv.maxTurns;
     scheduleJob(tx.db, conv.id, done ? 'wrap' : 'line', tx.timestamp.microsSinceUnixEpoch + LINE_DELAY);
   });
@@ -766,10 +989,10 @@ or
 
   ctx.withTx((tx) => {
     // A scheduled retry must not write the same conversation twice.
-    const current = tx.db.conversation.id.find(s.conv.id);
+    const current = tx.db.conversationStorage.id.find(s.conv.id);
     if (!current?.active) return;
     const now = tx.timestamp;
-    const rel = getOrCreateRelation(tx.db, s.a.id, s.b.id, now);
+    const rel = getOrCreateRelation(tx.db, s.a.id, s.b.id, now, s.conv.worldId);
     const aIsLo = s.a.id < s.b.id;
     const noteA = typeof verdict?.noteForA === 'string' ? verdict.noteForA.slice(0, 400) : '';
     const noteB = typeof verdict?.noteForB === 'string' ? verdict.noteForB.slice(0, 400) : '';
@@ -784,13 +1007,14 @@ or
     // Keep the existing pair and daily limits on good-fit marks, not on diary writing.
     const dayStart = now.microsSinceUnixEpoch - 24n * 60n * MINUTE;
     const goodFit = valid && !(s.a.demo && s.b.demo) && !hasGoodFit(tx.db, s.a.id, s.b.id)
-      && ![s.a, s.b].some(side => !side.demo && goodFitsSince(tx.db, side.owner, dayStart) >= POSTCARDS_PER_DAY);
+      && ![s.a, s.b].some(side => !side.demo && goodFitsSince(tx.db, side.owner, dayStart, s.conv.worldId ?? 0n) >= POSTCARDS_PER_DAY);
     for (const [me, other, raw] of [[s.a, s.b, verdict?.diaryForA], [s.b, s.a, verdict?.diaryForB]] as const) {
       if ([...tx.db.diaryEntry.by_conversation_mirror.filter([s.conv.id, me.id])].length) continue;
       // Failed summarization must not substitute simulation activities for chat content.
       const fallback = 'Conversation summary unavailable.';
       tx.db.diaryEntry.insert({
         id: 0n, conversationId: s.conv.id, mirrorId: me.id, owner: me.owner,
+        worldId: s.conv.worldId,
         otherMirrorId: other.id, place: s.conv.place,
         text: typeof raw === 'string' && raw.trim() ? raw.trim().slice(0, 1000) : fallback,
         goodFit, fitReason: goodFit ? String(c!.why ?? '').slice(0, 300) : '', createdAt: now,
@@ -808,12 +1032,12 @@ function hasGoodFit(db: Db, a: bigint, b: bigint) {
   return [...db.encounter.iter()].some(e => (e.a === a && e.b === b) || (e.a === b && e.b === a));
 }
 
-function goodFitsSince(db: Db, owner: Identity, sinceMicros: bigint) {
+function goodFitsSince(db: Db, owner: Identity, sinceMicros: bigint, worldId: bigint) {
   const conversations = new Set([...db.diaryEntry.owner.filter(owner)]
-    .filter(e => e.goodFit && e.createdAt.microsSinceUnixEpoch >= sinceMicros && !db.mirror.id.find(e.mirrorId)?.demo)
+    .filter(e => (e.worldId ?? 0n) === worldId && e.goodFit && e.createdAt.microsSinceUnixEpoch >= sinceMicros && !db.mirrorStorage.id.find(e.mirrorId)?.demo)
     .map(e => e.conversationId));
   return conversations.size
-    + [...db.encounter.iter()].filter(e => e.createdAt.microsSinceUnixEpoch >= sinceMicros
+    + [...db.encounter.iter()].filter(e => (db.mirrorStorage.id.find(e.a)?.worldId ?? 0n) === worldId && e.createdAt.microsSinceUnixEpoch >= sinceMicros
       && ((!e.aDemo && e.aOwner.equals(owner)) || (!e.bDemo && e.bOwner.equals(owner)))).length;
 }
 
@@ -824,23 +1048,28 @@ function goodFitsSince(db: Db, owner: Identity, sinceMicros: bigint) {
 export const createMirror = spacetimedb.reducer(
   { name: t.string(), look: t.u8(), tipi: t.array(t.u8()), onMind: t.string(), intent: t.string() },
   (ctx, args) => {
+    const worldId = selectedWorldId(ctx);
+    requireWorldMember(ctx, worldId);
     const name = cleanText(args.name, MAX_NAME, 'Name');
     const intent = cleanIntent(args.intent);
     if (args.onMind.length > MAX_TEXT) throw new SenderError(`Keep it under ${MAX_TEXT} characters`);
     if (args.look > 7) throw new SenderError('Unknown look');
     if (!isValidTipi(args.tipi)) throw new SenderError('Answer all ten items from 1 to 7');
 
-    const owned = [...ctx.db.mirrorProfile.owner.filter(ctx.sender)];
+    const owned = [...ctx.db.mirrorProfile.owner.filter(ctx.sender)]
+      .filter(p => (ctx.db.mirrorStorage.id.find(p.mirrorId)?.worldId ?? 0n) === worldId);
     if (owned.length >= MAX_MIRRORS_PER_OWNER) {
-      throw new SenderError(`You already have ${MAX_MIRRORS_PER_OWNER} mirrors in Mirrorville`);
+      throw new SenderError(`You already have ${MAX_MIRRORS_PER_OWNER} mirrors in this world`);
     }
-    if ([...ctx.db.mirror.iter()].filter(m => m.active !== false).length >= MAX_MIRRORS_TOTAL) throw new SenderError('Mirrorville is full right now');
+    if ([...ctx.db.mirrorStorage.worldId.filter(worldId)].filter(m => m.active !== false).length >= MAX_MIRRORS_TOTAL) throw new SenderError('This world is full right now');
 
     // TIPI extraversion: item 1 plus reversed item 6, on a 1-7 scale.
     const extraversion = ((args.tipi[0] + 8 - args.tipi[5]) / 2 - 1) / 6;
+    getMirrorPrototype(ctx); // Preserve an existing legacy basis before adding another mirror.
     addMirror(ctx, ctx.sender, {
       name, look: args.look, intent, selfCard: buildSelfCard(args.tipi, args.onMind), extraversion, demo: false,
     });
+    getMirrorPrototype(ctx);
   },
 );
 
@@ -850,7 +1079,7 @@ export const updateIntent = spacetimedb.reducer({ mirrorId: t.u64(), intent: t.s
   const landmark = landmarkForIntent(intent);
   const target = randomPointIn(ctx, landmark);
   ctx.db.mirrorRest.mirrorId.delete(m.id);
-  ctx.db.mirror.id.update({ ...m, intent, landmark, place: landmark, targetX: target.x, targetY: target.y });
+  ctx.db.mirrorStorage.id.update({ ...m, intent, landmark, place: landmark, targetX: target.x, targetY: target.y });
 });
 
 function findInterest(db: ViewCtx<InferSchema<typeof spacetimedb>>['db'], from: bigint, to: bigint) {
@@ -867,7 +1096,7 @@ export const showInterest = spacetimedb.reducer({ diaryEntryId: t.u64() }, (ctx,
   const entry = ctx.db.diaryEntry.id.find(diaryEntryId);
   if (!entry || !entry.owner.equals(ctx.sender)) throw new SenderError('Not your diary entry');
   requireOwnMirror(ctx, entry.mirrorId);
-  const other = ctx.db.mirror.id.find(entry.otherMirrorId);
+  const other = ctx.db.mirrorStorage.id.find(entry.otherMirrorId);
   const profile = ctx.db.mirrorProfile.mirrorId.find(entry.otherMirrorId);
   if (!other || !profile) throw new SenderError('Mirror is no longer here');
   addInterest(ctx, entry.mirrorId, other.id, ctx.sender, profile.owner);
@@ -895,10 +1124,12 @@ const MyMirror = t.row('MyMirror', {
 });
 
 export const myMirrors = spacetimedb.view({ name: 'my_mirrors', public: true }, t.array(MyMirror), (ctx) => {
+  const worldId = selectedWorldId(ctx);
+  if (!isWorldMember(ctx, worldId)) return [];
   const rows: { id: bigint; name: string; look: number; intent: string; selfCard: string; contact: string }[] = [];
   for (const p of ctx.db.mirrorProfile.owner.filter(ctx.sender)) {
-    const m = ctx.db.mirror.id.find(p.mirrorId);
-    if (m && m.active !== false && !m.demo) rows.push({ id: m.id, name: m.name, look: m.look, intent: m.intent, selfCard: p.selfCard, contact: p.contact });
+    const m = ctx.db.mirrorStorage.id.find(p.mirrorId);
+    if (m && (m.worldId ?? 0n) === worldId && m.active !== false && !m.demo) rows.push({ id: m.id, name: m.name, look: m.look, intent: m.intent, selfCard: p.selfCard, contact: p.contact });
   }
   return rows;
 });
@@ -910,9 +1141,11 @@ const DiaryItem = t.row('DiaryItem', {
 });
 
 export const myDiary = spacetimedb.view({ name: 'my_diary', public: true }, t.array(DiaryItem), (ctx) => {
-  return [...ctx.db.diaryEntry.owner.filter(ctx.sender)].map(entry => {
-    const mine = ctx.db.mirror.id.find(entry.mirrorId);
-    const other = ctx.db.mirror.id.find(entry.otherMirrorId);
+  const worldId = selectedWorldId(ctx);
+  if (!isWorldMember(ctx, worldId)) return [];
+  return [...ctx.db.diaryEntry.owner.filter(ctx.sender)].filter(entry => (entry.worldId ?? 0n) === worldId).map(entry => {
+    const mine = ctx.db.mirrorStorage.id.find(entry.mirrorId);
+    const other = ctx.db.mirrorStorage.id.find(entry.otherMirrorId);
     const iAmInterested = !!findInterest(ctx.db, entry.mirrorId, entry.otherMirrorId);
     const theyAreInterested = !!findInterest(ctx.db, entry.otherMirrorId, entry.mirrorId);
     const mutual = iAmInterested && theyAreInterested;
@@ -934,14 +1167,17 @@ export const myDiary = spacetimedb.view({ name: 'my_diary', public: true }, t.ar
 
 function requireOwnMirror(ctx: Ctx, mirrorId: bigint) {
   const profile = ctx.db.mirrorProfile.mirrorId.find(mirrorId);
-  const m = ctx.db.mirror.id.find(mirrorId);
+  const m = ctx.db.mirrorStorage.id.find(mirrorId);
   if (!profile || !m || m.demo || !profile.owner.equals(ctx.sender)) throw new SenderError('Not your mirror');
+  requireWorldMember(ctx, selectedWorldId(ctx));
+  if ((m.worldId ?? 0n) !== selectedWorldId(ctx)) throw new SenderError('This mirror belongs to another world');
   return m;
 }
 
 function requireOwnCard(ctx: Ctx, cardId: bigint) {
   const card = ctx.db.mirrorCard.id.find(cardId);
   if (!card || !card.owner.equals(ctx.sender)) throw new SenderError('Not your card');
+  requireOwnMirror(ctx, card.mirrorId);
   return card;
 }
 
@@ -956,7 +1192,8 @@ export const importText = spacetimedb.reducer(
     if (text.length < 40) throw new SenderError('Not enough text to learn from');
     if (text.length > MAX_IMPORT_CHARS) throw new SenderError(`Keep imports under ${MAX_IMPORT_CHARS} characters`);
     for (const s of ctx.db.importStatus.owner.filter(ctx.sender)) {
-      if (s.status === 'processing') throw new SenderError('Another import is still being read');
+      if ((ctx.db.mirrorStorage.id.find(s.mirrorId)?.worldId ?? 0n) === selectedWorldId(ctx)
+        && s.status === 'processing') throw new SenderError('Another import is still being read');
     }
     const status = ctx.db.importStatus.insert({
       id: 0n, mirrorId: args.mirrorId, owner: ctx.sender, source: args.source.slice(0, 80),
@@ -1083,18 +1320,21 @@ export const addCard = spacetimedb.reducer(
 export const myCards = spacetimedb.view(
   { name: 'my_cards', public: true },
   t.array(mirrorCard.rowType),
-  (ctx) => [...ctx.db.mirrorCard.owner.filter(ctx.sender)],
+  (ctx) => [...ctx.db.mirrorCard.owner.filter(ctx.sender)].filter(row => isWorldMember(ctx, selectedWorldId(ctx))
+    && (ctx.db.mirrorStorage.id.find(row.mirrorId)?.worldId ?? 0n) === selectedWorldId(ctx)),
 );
 
 export const mySummaries = spacetimedb.view(
   { name: 'my_summaries', public: true }, t.array(mirrorSummary.rowType),
-  ctx => [...ctx.db.mirrorSummary.owner.filter(ctx.sender)],
+  ctx => [...ctx.db.mirrorSummary.owner.filter(ctx.sender)].filter(row => isWorldMember(ctx, selectedWorldId(ctx))
+    && (ctx.db.mirrorStorage.id.find(row.mirrorId)?.worldId ?? 0n) === selectedWorldId(ctx)),
 );
 
 export const myImports = spacetimedb.view(
   { name: 'my_imports', public: true },
   t.array(importStatus.rowType),
-  (ctx) => [...ctx.db.importStatus.owner.filter(ctx.sender)],
+  (ctx) => [...ctx.db.importStatus.owner.filter(ctx.sender)].filter(row => isWorldMember(ctx, selectedWorldId(ctx))
+    && (ctx.db.mirrorStorage.id.find(row.mirrorId)?.worldId ?? 0n) === selectedWorldId(ctx)),
 );
 
 // ---------------------------------------------------------------------------
@@ -1119,7 +1359,9 @@ export const setModels = spacetimedb.reducer(
 
 export const resetWorld = spacetimedb.reducer((ctx) => {
   const c = requireAdmin(ctx);
+  for (const row of [...ctx.db.mirrorPrototype.iter()]) ctx.db.mirrorPrototype.owner.delete(row.owner);
   for (const row of [...ctx.db.mirrorRest.iter()]) ctx.db.mirrorRest.mirrorId.delete(row.mirrorId);
+  for (const row of [...ctx.db.worldSimulation.iter()]) ctx.db.worldSimulation.id.delete(row.id);
   for (const row of [...ctx.db.worldRuntime.iter()]) ctx.db.worldRuntime.id.delete(row.id);
   for (const row of [...ctx.db.mirrorSummary.iter()]) ctx.db.mirrorSummary.mirrorId.delete(row.mirrorId);
   for (const row of [...ctx.db.mirrorCard.iter()]) ctx.db.mirrorCard.id.delete(row.id);
@@ -1129,9 +1371,9 @@ export const resetWorld = spacetimedb.reducer((ctx) => {
   for (const row of [...ctx.db.humanMessage.iter()]) ctx.db.humanMessage.id.delete(row.id);
   for (const row of [...ctx.db.encounter.iter()]) ctx.db.encounter.id.delete(row.id);
   for (const row of [...ctx.db.relation.iter()]) ctx.db.relation.id.delete(row.id);
-  for (const row of [...ctx.db.line.iter()]) ctx.db.line.id.delete(row.id);
-  for (const row of [...ctx.db.conversation.iter()]) ctx.db.conversation.id.delete(row.id);
+  for (const row of [...ctx.db.lineStorage.iter()]) ctx.db.lineStorage.id.delete(row.id);
+  for (const row of [...ctx.db.conversationStorage.iter()]) ctx.db.conversationStorage.id.delete(row.id);
   for (const row of [...ctx.db.llmJob.iter()]) ctx.db.llmJob.scheduledId.delete(row.scheduledId);
   for (const row of [...ctx.db.mirrorProfile.iter()]) ctx.db.mirrorProfile.mirrorId.delete(row.mirrorId);
-  for (const row of [...ctx.db.mirror.iter()]) ctx.db.mirror.id.delete(row.id);
+  for (const row of [...ctx.db.mirrorStorage.iter()]) ctx.db.mirrorStorage.id.delete(row.id);
 });

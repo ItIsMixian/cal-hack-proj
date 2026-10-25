@@ -1,5 +1,72 @@
 # Merged project structure
 
+Latest 2026-10-25 entry: App initializes roomOpen=true and journeyOpen=false.
+MirrorRoom supports an authored no-mirror/loading room with an in-room CreateMirror
+entry; the selected owned mirror is used once subscribed. Go to town opens the journey;
+invitations are deferred until that departure. This supersedes initial static selection.
+[Checks](../validation/2026-10-25-room-first-entry.md).
+
+Latest 2026-10-25 animation scope: App.tsx enables WorldJourney's animated mode only
+from MirrorRoom.onBack. Initial/menu selectors render without a canvas/scene; map
+WorldNavigator arrows use changeMapWorld directly and retain transactional enterWorld
+for existing slots. This supersedes the earlier login/map-arrow animation behavior.
+[Checks](../validation/2026-10-25-room-only-departure.md).
+
+Latest 2026-10-25 public discovery: App.tsx opens a separate PublicTowns.tsx view;
+the component subscribes to discoverable_worlds only while mounted. The sender-scoped
+view filters membership, allowStrangers and member capacity, exposing only id/name/
+description/maxMembers/memberCount. Existing joinOpenWorld enforces admission and
+creates a world-local mirror before committed selection permits departure. All joined
+world slots now appear by name in the main list, including the default lobby.
+[Actual checks](../validation/2026-10-25-public-town-discovery.md).
+
+Latest 2026-10-25 journey integration: App.tsx gates world entry behind WorldJourney.tsx,
+with the handed-off route/art drawn by DepartureScene.ts and world-journey.css. Actual
+world slots, invitations and creation call existing reducers; committed selection gates
+visual departure. The standalone prototypes/departure/ remains unchanged, with runtime
+assets under public/assets/departure/. No other yw/map-assets work was imported.
+[Checks](../validation/2026-10-25-departure-integration.md).
+
+Latest 2026-10-25 addition: private mirror_prototype records hold identity-level starting
+name/look/selfCard/extraversion/intent. getMirrorPrototype lazily backfills existing users;
+activateWorld ensures one independent owned resident before switching the view. Creating,
+invitation joining and open joining share this path. No world history/contact/card copying.
+[Evidence and limits](../validation/2026-10-25-auto-world-mirrors.md).
+
+Current local test runtime (2026-10-25): `spacetimedb/src/index.ts` now has private worlds,
+memberships/selections, invite/update/join/enter reducers and member-scoped mirror/conversation/
+line views. Mirrors and personal profiles belong to their creation world; switching only changes views.
+World-local simulation clocks/randomness/quotas keep all worlds running without viewers.
+Cards, imports, contacts, diaries and relation memories stay world-scoped. `scripts/start-local-worlds.ps1` deploys the isolated local
+database on port 3010; `App.tsx` uses the generated world API in default worldtest mode.
+Original .env.local/shared data remain unchanged. Earlier browser-only slot storage is not
+imported. [Runtime and limits](../design/local-world-test-environment.md),
+[initial checks](../validation/2026-10-25-local-world-backend.md),
+[independent-mirror fix](../validation/2026-10-25-independent-world-mirrors.md).
+
+Latest 2026-10-25 empty-slot UI: `EmptyWorld.tsx` / `empty-world.css` present invitation
+input and a create-world entry on the dark background. `WorldSettings.tsx` also supports
+creation; `WorldPreview.ts` restores valid extra-slot settings as device-local worlds.
+Those worlds use the authored map with no residents and no shared Diary/Residents/mirror
+creation access. Slot 1 alone receives live resident presentation. Browser-local world
+creation is implemented; server creation/invitation joining is not. [Checks](../validation/2026-10-25-empty-world-entry.md).
+
+Local 2026-10-25 owner-settings preview: `WorldSettings.tsx` supplies the editable
+name/introduction, strangers switch and maximum-people form; `WorldPreview.ts` validates
+and stores preview settings in browser storage per world ID. `App.tsx` has a Preview as
+role selector and conditionally shows Edit world for existing worlds in owner view.
+`WorldNavigator.tsx` receives the saved display name. This has no real owner identity,
+server persistence or admission/capacity enforcement. [Checks](../validation/2026-10-25-world-settings.md).
+
+Local 2026-10-25 addition: `src/WorldNavigator.tsx` provides a five-slot, wrapping world
+selector using the user's unchanged `public/assets/ui/world-nameplate.png`. `App.tsx`
+renders the live shared town only for slot 1; uncreated slots unmount the canvas and show a
+solid dark-gray background plus the entry window. Slots 2–5 can now hold local preview maps;
+Diary, Residents and mirror creation stay disabled outside slot 1. Mirror Room
+remains enabled for an available owned mirror in every slot and opens the same personal
+room, preserving the selected slot on return. No backend world model
+or isolation has been added. See [validation](../validation/2026-10-25-world-navigation.md).
+
 Updated 2026-10-24. Latest source: `yw/map-assets` at `7509d4ba95dd383d6b0befee23c84d6246383b69`; local target: `yq`, previously `7c7f5e6`. This records downloaded code. Current local checks are in [update validation](../validation/2026-10-24-update-yw-map-assets.md); earlier merge evidence remains in [merge validation](../validation/2026-10-24-merge-yw-map-assets.md).
 
 ## Authored project retained on yq
