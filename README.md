@@ -10,7 +10,7 @@ instructions below are historical and are not a migration recipe for the shared 
 **Your mirrors meet first. Then you do.**
 
 Mirrorville is a small shared town for the people at a hackathon. You make a *mirror*: a clearly
-fictional AI version of yourself built from a short personality check and one sentence about what
+fictional AI version of yourself built from your own words and one sentence about what
 you want to do today ("go to the gym tomorrow morning", "find someone to grab dinner with"). Your
 mirror goes about its day in town: the Gym in the morning, the Food Court at lunch, the Workshop
 Hall at night. It gets to know the people it keeps running into, the way you would.
