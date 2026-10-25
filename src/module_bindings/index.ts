@@ -38,6 +38,7 @@ import AddCardReducer from "./add_card_reducer";
 import CreateMirrorReducer from "./create_mirror_reducer";
 import DeleteCardReducer from "./delete_card_reducer";
 import ImportTextReducer from "./import_text_reducer";
+import RefreshWorldScheduleReducer from "./refresh_world_schedule_reducer";
 import ResetWorldReducer from "./reset_world_reducer";
 import RewriteCardReducer from "./rewrite_card_reducer";
 import SetCardRoomReducer from "./set_card_room_reducer";
@@ -143,6 +144,7 @@ const reducersSchema = __reducers(
   __reducerSchema("create_mirror", CreateMirrorReducer),
   __reducerSchema("delete_card", DeleteCardReducer),
   __reducerSchema("import_text", ImportTextReducer),
+  __reducerSchema("refresh_world_schedule", RefreshWorldScheduleReducer),
   __reducerSchema("reset_world", ResetWorldReducer),
   __reducerSchema("rewrite_card", RewriteCardReducer),
   __reducerSchema("set_card_room", SetCardRoomReducer),

@@ -187,6 +187,12 @@ export const MirrorProfile = __t.object("MirrorProfile", {
 });
 export type MirrorProfile = __Infer<typeof MirrorProfile>;
 
+export const MirrorRest = __t.object("MirrorRest", {
+  mirrorId: __t.u64(),
+  until: __t.u64(),
+});
+export type MirrorRest = __Infer<typeof MirrorRest>;
+
 export const MirrorSummary = __t.object("MirrorSummary", {
   mirrorId: __t.u64(),
   owner: __t.identity(),
@@ -238,4 +244,11 @@ export const TickTimer = __t.object("TickTimer", {
   scheduledAt: __t.scheduleAt(),
 });
 export type TickTimer = __Infer<typeof TickTimer>;
+
+export const WorldRuntime = __t.object("WorldRuntime", {
+  id: __t.u8(),
+  lastMoveAt: __t.u64(),
+  lastSocialAt: __t.u64(),
+});
+export type WorldRuntime = __Infer<typeof WorldRuntime>;
 

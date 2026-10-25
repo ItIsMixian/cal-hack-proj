@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSpacetimeDB, useTable } from 'spacetimedb/react';
 import { tables } from './module_bindings';
-import { clockLabel, currentEvent, findLandmark, venueHour } from '../spacetimedb/src/world';
+import { clockLabel, currentEvent, findLandmark, townHour } from '../spacetimedb/src/world';
 import WorldCanvas from './WorldCanvas';
 import CreateMirror from './CreateMirror';
 import Diary from './Diary';
@@ -22,10 +22,10 @@ function readSeen(key: string): bigint {
   }
 }
 
-function useVenueClock() {
-  const [hour, setHour] = useState(() => venueHour(BigInt(Date.now()) * 1000n));
+function useTownClock() {
+  const [hour, setHour] = useState(() => townHour(BigInt(Date.now()) * 1000n));
   useEffect(() => {
-    const id = setInterval(() => setHour(venueHour(BigInt(Date.now()) * 1000n)), 30_000);
+    const id = setInterval(() => setHour(townHour(BigInt(Date.now()) * 1000n)), 1000);
     return () => clearInterval(id);
   }, []);
   return hour;
@@ -50,7 +50,7 @@ export default function App({ sessionLabel, onExit, accountMode = false }: {
   const [followedId, setFollowedId] = useState<bigint | null>(null);
   const [seen, setSeen] = useState(() => readSeen(seenKey));
   useEffect(() => setSeen(readSeen(seenKey)), [seenKey]);
-  const hour = useVenueClock();
+  const hour = useTownClock();
   const event = currentEvent(hour);
 
   const mine = useMemo(() => new Set(myMirrors.map((m) => m.id)), [myMirrors]);

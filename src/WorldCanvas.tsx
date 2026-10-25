@@ -41,7 +41,7 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, cameraMo
   const pan = useRef({ x: 0, y: 0 });
   const drag = useRef({ x: 0, y: 0, active: false, moved: false });
   const pinHits = useRef<Array<{ id: bigint; x: number; y: number }>>([]);
-  // Smoothed on-screen positions; the server only moves mirrors once a second.
+  // Server movement runs at 5Hz; rendered characters follow destination routes each frame.
   const shown = useRef(new Map<bigint, ShownMirror>());
 
   useEffect(() => {

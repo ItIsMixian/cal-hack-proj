@@ -78,6 +78,15 @@ export const EVENTS: TownEvent[] = [
 ];
 
 export const VENUE_UTC_OFFSET_HOURS = -7;
+export const GAME_DAY_SECONDS = 45 * 60;
+export const GAME_EPOCH_MICROS = 1_792_800_000_000_000n; // 2026-10-24 00:00 UTC
+
+// All visitors share one accelerated clock. Real dates still govern diaries,
+// evidence caps, import recency and authentication; only town routines use this.
+export function townHour(micros: bigint): number {
+  const elapsed = Number((micros - GAME_EPOCH_MICROS) / 1_000_000n);
+  return ((8 + elapsed * 24 / GAME_DAY_SECONDS) % 24 + 24) % 24;
+}
 
 // Hour of day at the venue as a fraction (e.g. 13.5 = 1:30pm).
 export function venueHour(micros: bigint): number {

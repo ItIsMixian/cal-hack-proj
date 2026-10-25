@@ -2,6 +2,13 @@
 
 Things that are not obvious from the code.
 
+- **Town timing/navigation**: movement timer is 200ms; social decisions stay at most once/second.
+  `refresh_world_schedule` is admin-only and retimes existing databases without resetting data.
+  Arrivals rest 90–180 real seconds. Shared town day lasts 45 real minutes; real dates still govern
+  diaries/import recency/evidence caps. Rebuild navigation with `python scripts/build-town-navigation.py`
+  after scene/art edits. Collision and fixed-speed route playback are client presentation; server
+  social proximity retains abstract coordinates. See `validation/town-navigation-and-timing.md`.
+
 - **Shared preview performance / login**: public `*.trycloudflare.com` requests now serve the
   production `dist/` build through `scripts/share-preview.ts`, gzip-compressed, with no dev module
   graph. Localhost keeps HMR. Run `npm.cmd run build` after changes to update the share URL.
