@@ -54,3 +54,8 @@ A loader regression checks every shipped WebP, all 231 draws, and no partial pai
 Build and 60 tests: Pass. Phone retry/appearance and production guest connection: Pending.
 Local ports 5173/3000 were not listening after restart; no new public tunnel was started for this
 GitHub checkpoint. The previous temporary URL and its callback registration require a new session.
+
+Owner requested removal of the legacy map source: deleted `src/TownArt.ts` and made the
+artwork-loading status a full-screen page with retry. Production build: Pass. Per owner request,
+phone/teammate runtime checks are delegated to them (Pending). Restarted the existing local
+database data directory and Vite, and started a replacement temporary tunnel. No DB publish/reset.

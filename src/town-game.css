@@ -79,3 +79,5 @@
   .book-pages button { padding: 8px; }
 }
 .town-art-status { position: fixed; z-index: 4; left: 50%; top: 45%; transform: translate(-50%, -50%); width: min(320px, 80vw); padding: 20px; text-align: center; background: #faf3df; color: #404b33; border: 3px solid #8c8d6d; box-shadow: 4px 4px #343c3040; }
+
+.town-art-status { inset: 0; transform: none; width: auto; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; background: #dce8cf; border: 0; box-shadow: none; font-family: "Pixelify Sans", monospace; font-size: 24px; }
