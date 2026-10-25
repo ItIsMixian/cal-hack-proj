@@ -77,3 +77,8 @@ accumulates every pointer delta and updates camera translation directly, removin
 lag from chasing an eased camera. Map bounds remain clamped. Build: Pass. Town suite: Pass
 (9 tests), including indoor entry/catch-up/departure/outdoor guards. Phone dragging, desktop
 visual sizing, pin crowding/picking and entry/exit appearance: Pending (owner validation).
+
+Pin portrait correction: owner screenshot showed only the top of the hair because the 32px
+sprite frame starts with nine transparent rows. Crop now starts at atlas y=41 (actual head);
+the marker outline uses stepped rounded shoulders and a tapered point. Build: Pass. Updated
+phone appearance: Pending (owner validation).

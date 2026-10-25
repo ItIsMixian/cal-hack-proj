@@ -291,13 +291,17 @@ function drawBuildingPin(g: CanvasRenderingContext2D, x: number, y: number, mirr
   x = Math.round(x); y = Math.round(y);
   g.fillStyle = selected ? '#fff9e9' : '#4d5e41';
   // Stepped silhouette rather than an antialiased web map marker.
-  g.fillRect(x - 10, y - 34, 20, 3); g.fillRect(x - 13, y - 31, 26, 22);
-  g.fillRect(x - 10, y - 9, 20, 3); g.fillRect(x - 5, y - 6, 10, 3); g.fillRect(x - 2, y - 3, 4, 3);
-  g.fillStyle = own ? '#f4d383' : '#fff3d6'; g.fillRect(x - 10, y - 30, 20, 21);
-  g.fillStyle = LOOK_COLORS[mirror.look % LOOK_COLORS.length]; g.fillRect(x - 9, y - 11, 18, 2);
+  g.fillRect(x - 7, y - 35, 14, 3); g.fillRect(x - 11, y - 32, 22, 3);
+  g.fillRect(x - 13, y - 29, 26, 14); g.fillRect(x - 11, y - 15, 22, 3);
+  g.fillRect(x - 7, y - 12, 14, 3); g.fillRect(x - 4, y - 9, 8, 4); g.fillRect(x - 1, y - 5, 2, 5);
+  g.fillStyle = own ? '#f4d383' : '#fff3d6';
+  g.fillRect(x - 7, y - 32, 14, 3); g.fillRect(x - 10, y - 29, 20, 14); g.fillRect(x - 7, y - 15, 14, 3);
+  g.fillStyle = LOOK_COLORS[mirror.look % LOOK_COLORS.length]; g.fillRect(x - 5, y - 12, 10, 2);
   if (sprite.complete && sprite.naturalWidth === 128) {
     g.imageSmoothingEnabled = false;
-    g.drawImage(sprite, 64, 32, 16, 16, x - 10, y - 29, 20, 20);
+    // A 32px frame starts with nine transparent rows; crop the actual head,
+    // not the empty upper half of the frame.
+    g.drawImage(sprite, 64, 41, 16, 14, x - 10, y - 30, 20, 17.5);
   } else {
     g.fillStyle = '#4d5e41'; g.font = '14px "Pixelify Sans", monospace'; g.textAlign = 'center';
     g.fillText(mirror.name.slice(0, 1), x, y - 15);
