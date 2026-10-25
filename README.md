@@ -15,10 +15,13 @@ you want to do today ("go to the gym tomorrow morning", "find someone to grab di
 mirror goes about its day in town: the Gym in the morning, the Food Court at lunch, the Workshop
 Hall at night. It gets to know the people it keeps running into, the way you would.
 
-Now and then it sends you a **postcard** about someone worth meeting, with the evidence from both of
-you. Nothing pops up and nothing asks for an answer. If you feel like it, you wave; nobody sees a
-wave unless **both** people wave, and only then does a private human-to-human chat open. The AI
-starts the conversation. The humans have it.
+Your mirror is built from your own words (the easiest way: ask an AI you already use to introduce you),
+and you confirm or correct every card it draws. Each day it writes a **diary**: who it met and what you
+talked about. Nothing pops up and nothing asks for an answer. If you're interested in someone, say so;
+only if **both** people are interested do you see each other's contact details. The AI starts the
+conversation. The humans have it.
+
+**Try it:** https://itismixian.github.io/cal-hack-proj/ (use "Explore as a guest").
 
 Built during Cal Hacks 13.0. Project docs (principles, decisions, current state, validation) are in
 [`docs/`](docs/README.md); agents start from [`AGENTS.md`](AGENTS.md).
@@ -30,10 +33,10 @@ Built during Cal Hacks 13.0. Project docs (principles, decisions, current state,
 | Town layout, places, activities, daily schedule | [`spacetimedb/src/world.ts`](spacetimedb/src/world.ts) |
 | Personality check (TIPI) → self-card | [`spacetimedb/src/tipi.ts`](spacetimedb/src/tipi.ts) |
 | Redaction, facets, rooms and their default visibility | [`spacetimedb/src/redact.ts`](spacetimedb/src/redact.ts) |
-| World, relationships, conversations, postcards, Mirror Room | [`spacetimedb/src/index.ts`](spacetimedb/src/index.ts) |
+| World, relationships, conversations, diaries, interest and contacts, Mirror Room | [`spacetimedb/src/index.ts`](spacetimedb/src/index.ts) |
 | Model calls (DeepSeek for chatter, Claude for judgments) | [`spacetimedb/src/llm.ts`](spacetimedb/src/llm.ts) |
 | Town renderer | [`src/WorldCanvas.tsx`](src/WorldCanvas.tsx) |
-| Mirror Room, postcards, private chat | [`src/`](src) |
+| Mirror Room, diary, importers | [`src/`](src) |
 
 Everything server-side runs inside one **SpacetimeDB** module:
 
@@ -44,12 +47,14 @@ Everything server-side runs inside one **SpacetimeDB** module:
 - A scheduled `run_llm_job` procedure writes each line from the moment (time, place, what both are
   doing, what they remember about each other). Mirrors may not promise anything or make plans for
   their humans, and end a conversation when it has run its course.
-- After each talk, the relationship (`relation`) is updated, and a postcard is written only if there
-  is a real reason to meet: the same intent today, a need one person has that the other can meet, or
-  a specific shared interest, backed by an exact phrase from **each** person's own information. The
-  server checks the phrases; at most two postcards per person per day.
+- After each talk, the relationship (`relation`) is updated and each mirror writes a diary entry that
+  summarizes what was actually said. Whether two people have a concrete reason to meet is judged by
+  Claude and checked by the server; personality adjectives never count (decisions 0004 and 0010).
+- An optional Windows desktop companion (`desktop/`) is a collection layer: it reads only the
+  foreground app name, window title and idle time (no screenshots, no keystrokes), starts paused,
+  pairs with a code, and hands an update to your mirror only after you confirm it.
 - Private tables hold owners, self-cards and Mirror Room cards; per-visitor views (`my_mirrors`,
-  `my_postcards`, `my_cards`, `my_human_messages`) expose only what belongs to the connected identity.
+  `my_diary`, `my_cards`, `my_human_messages`) expose only what belongs to the connected identity.
 
 ## Run locally
 
