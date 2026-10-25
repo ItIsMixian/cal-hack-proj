@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mirrorville · A little journey</title>
+<style>
+@font-face{font-family:Pixel;src:url(assets/font.woff2)}*{box-sizing:border-box}body{margin:0;background:#263c35;color:#f6edcf;font-family:Pixel,monospace;min-height:100svh;display:grid;place-items:center}main{width:min(1240px,100%,calc((100svh - 160px)*16/9));padding:28px}header{display:flex;justify-content:space-between;align-items:center;gap:16px;margin:0 0 16px}h1{font-size:28px;font-weight:400;margin:0}header span{font-size:16px;color:#c1d0ae}.stage{position:relative;aspect-ratio:16/9;isolation:isolate;overflow:hidden;background:#b7cfa2;box-shadow:0 12px 0 #182e28,0 0 0 3px #62745c}canvas{width:100%;height:100%;display:block;image-rendering:pixelated}.caption{position:absolute;left:5%;top:7%;height:fit-content;font-size:clamp(14px,2vw,23px);color:#364a36;background:#fff1d2ed;padding:10px 18px;box-shadow:3px 3px #6d7756;pointer-events:none;transition:opacity .2s}.caption:empty{opacity:0}.destinations{position:absolute;right:5%;top:8%;width:38%;color:#4e5139;background:#fff0cf;border:4px solid #8d6949;padding:20px;box-shadow:5px 6px #454c3680;transform-origin:50% 100%;animation:unfold .28s ease-out}.destinations[hidden]{display:none}h2{font-size:30px;font-weight:400;margin:0 0 5px}.destinations p{margin:0 0 16px;color:#7c7759;font-size:16px}button{font:inherit;cursor:pointer;border:2px solid #879068;background:#f7edcf;color:#4e573b;padding:10px 16px;box-shadow:0 3px #697456;min-height:42px}button:hover{background:#e1e6b7}button:focus-visible{outline:3px solid #e6ae55;outline-offset:4px}button:active{transform:translateY(2px);box-shadow:none}.destinations button{display:flex;width:100%;align-items:center;justify-content:space-between;text-align:left;margin:10px 0;padding:12px;font-size:20px}.destinations small{display:block;font-size:14px;color:#77795c;margin-top:4px}.destinations b{font-weight:400;font-size:25px}.toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:25px}.toolbar p{margin:0;color:#bed1b5;font-size:16px}.actions{display:flex;gap:12px}.actions button{background:transparent;color:#efedcf;border-color:#728b70;box-shadow:none}.arrival{position:absolute;inset:0;background:#e7ecc6;display:grid;place-content:center;text-align:center;color:#465c42;animation:unfold .35s}.arrival[hidden]{display:none}.arrival h2{font-size:42px}.arrival p{font-size:18px}.arrival button{justify-self:center;margin-top:20px}@keyframes unfold{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}@media(max-width:600px){main{width:100%;padding:16px 10px}header span{display:none}h1{font-size:23px}.stage{aspect-ratio:4/5}canvas{position:absolute;bottom:0;width:100%;height:auto;object-fit:contain}.destinations{top:5%;right:5%;width:90%;padding:16px}h2{font-size:26px}.destinations p{font-size:15px}.destinations button{padding:10px;margin:8px 0;font-size:18px}.toolbar{align-items:flex-start;flex-direction:column}.caption{top:5%;font-size:17px;max-width:90%}}@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+<main><header><h1>Mirrorville</h1><span>A little journey, from home to somewhere new.</span></header>
+<div class="stage"><canvas width="480" height="270" aria-label="Your mirror leaves home and boards a village shuttle"></canvas><div class="caption" aria-live="polite"></div>
+<section class="destinations" hidden aria-label="Choose a destination"><h2>Where to?</h2><p>A new place. A few new faces.</p><button data-world="Sunflower Town"><span>Sunflower Town<small>A quiet afternoon in good company</small></span><b>→</b></button><button data-world="A friend's world"><span>Visit a friend<small>A seat saved, somewhere familiar</small></span><b>→</b></button><button data-world="Somewhere new"><span>Surprise me<small>Let the road choose</small></span><b>✧</b></button></section>
+<section class="arrival" hidden><h2>See you in town.</h2><p></p><button id="again">Back home ↺</button></section></div>
+<div class="toolbar"><p id="status">Local motion study · no account or server needed</p><div class="actions"><button id="replay">↺ Replay</button><button id="skip">Skip →</button></div></div></main>
+<script>
+const c=document.querySelector('canvas'),g=c.getContext('2d');g.imageSmoothingEnabled=false;
+const caption=document.querySelector('.caption'),menu=document.querySelector('.destinations'),arrival=document.querySelector('.arrival');
+const files={house:'houses.png',person:'character.png',bus:'shuttle.png'},art={};
+let start=0,phase='boarding',departAt=0,destination='',menuShown=false;
+const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const ease=t=>1-Math.pow(1-Math.max(0,Math.min(1,t)),3),mix=(a,b,t)=>a+(b-a)*Math.max(0,Math.min(1,t));
+function rect(x,y,w,h,color){g.fillStyle=color;g.fillRect(Math.round(x),Math.round(y),w,h)}
+function text(t,x,y,size=8,col='#536247'){g.fillStyle=col;g.font=`${size}px Pixel,monospace`;g.textAlign='center';g.fillText(t,x,y)}
+function tree(x,y,s=1){g.save();g.translate(x,y);g.scale(s,s);rect(-3,0,6,23,'#8c7952');rect(-6,20,13,3,'#9fac77');rect(-17,-19,34,25,'#6c8b5b');rect(-22,-13,44,17,'#6c8b5b');rect(-17,-23,29,23,'#8ba674');rect(-11,-27,22,29,'#8ba674');rect(-15,-19,17,14,'#9fba84');rect(6,-9,12,10,'#789760');rect(-8,-22,6,3,'#b6c993');g.restore()}
+function flower(x,y){rect(x,y,1,4,'#7a9b66');rect(x-1,y-2,3,3,'#fff2cb');rect(x,y-1,1,1,'#d9a75e')}
+function scene(t){rect(0,0,480,270,'#b6c995');rect(0,0,480,61,'#afc58c');
+for(let i=0;i<190;i++){let x=(i*137+31)%480,y=(i*67+19)%270;if(y<197)rect(x,y,1+(i%2),i%3?1:2,['#cad7a6','#a2bb81','#d8dfb5'][i%3]);}
+rect(0,200,480,70,'#d9bd8e');rect(0,202,480,3,'#f1d8ab');rect(0,264,480,6,'#c7ae7c');for(let i=0;i<50;i++)rect((i*83)%480,214+(i*17)%43,3,1,'#c9ad7e');
+rect(132,141,27,60,'#e9d2a5');for(let i=0;i<18;i++)rect(135+(i*7)%22,146+(i*13)%52,3,1,'#cfbc92');
+for(let x=0;x<480;x+=19){if(x>117&&x<169)continue;rect(x,174,5,22,'#a2875e');rect(x-1,174,7,3,'#ccb382');}rect(0,181,124,3,'#b69b6c');rect(170,181,310,3,'#b69b6c');
+tree(41,107,1.5);tree(451,100,1.6);tree(338,78,1.25);tree(383,108,.85);tree(20,178,.8);
+g.drawImage(art.house,0,0,64,64,76,55,128,128);
+// Door opens into a dark, warm interior.
+if(t<.8){rect(153,145,14,27,'#66543e');rect(155,147,9,24,'#423f31');rect(166,146,3,25,'#9e8257');}
+rect(297,160,41,5,'#9c8156');rect(299,165,3,11,'#846d4b');rect(331,165,3,11,'#846d4b');rect(297,151,41,6,'#c2a16c');rect(299,158,37,2,'#977d53');
+rect(451,136,3,63,'#8b7551');rect(433,116,40,25,'#826a48');rect(435,118,36,21,'#f5e7ba');text('BUS',453,133,11);rect(446,195,13,3,'#9da979');
+for(let i=0;i<27;i++)flower(13+(i*61)%460,124+(i*31)%49);
+// A small personal sign beside the house.
+rect(83,166,28,14,'#eadab2');rect(86,180,2,9,'#957e55');rect(105,180,2,9,'#957e55');text('HOME',97,175,7);
+}
+function drawBus(x,t,door,boarded){const y=155+(t>3.4&&t<3.7?Math.round(Math.sin((t-3.4)*24)):0);rect(x+17,y+101,193,3,'#b39f74');g.drawImage(art.bus,Math.round(x),y,222,111);
+if(door){rect(x+152,y+40,26,51,'#715b42');rect(x+156,y+43,18,46,'#394a40');rect(x+153,y+91,25,4,'#d8b17c');rect(x+151,y+96,29,3,'#a68c5c');}
+text(phase==='departing'?destination:'MIRRORVILLE',x+139,y+18,6,'#785a39');
+if(boarded){g.save();g.beginPath();g.rect(Math.round(x+90),y+40,52,23);g.clip();g.drawImage(art.person,64,41,16,14,Math.round(x+117),y+52,12,10);g.restore();}}
+function person(x,y,t,walking=true,facing=32){const frame=walking?Math.floor(t*7)%3:1;g.drawImage(art.person,walking?facing:64,frame*32,16,32,Math.round(x-8),Math.round(y-29),16,32)}
+function boardingPose(t){
+  if(t<.4)return {x:159,y:mix(168,190,t/.4),walking:true,facing:64};
+  if(t<1.8)return {x:mix(159,450,(t-.4)/1.4),y:190,walking:true,facing:32};
+  if(t<3.8)return {x:450,y:190,walking:false,facing:64};
+  if(t<4.65)return {x:450,y:mix(190,264,(t-3.8)/.85),walking:true,facing:64};
+  if(t<5.6)return {x:mix(450,375,(t-4.65)/.95),y:264,walking:true,facing:96};
+  return {x:375,y:mix(264,243,(t-5.6)/.4),walking:true,facing:0};
+}
+function showMenu(){if(menuShown)return;menuShown=true;menu.hidden=false;caption.textContent='';document.querySelector('#status').textContent='Choose a destination to watch the bus leave.';document.querySelector('#skip').hidden=true;}
+function reset(){start=performance.now();phase='boarding';menuShown=false;menu.hidden=true;arrival.hidden=true;document.querySelector('#skip').hidden=false;document.querySelector('#status').textContent='Local motion study · no account or server needed';}
+function render(now){let t=(now-start)/1000;if(reduced&&phase==='boarding')t=6.5;g.clearRect(0,0,480,270);scene(t);
+if(phase==='departing'){const d=(now-departAt)/1000;const x=210+Math.min(1,d/1.9)**2*540;drawBus(x,t,false,true);caption.textContent=d<1.8?'Next stop: '+destination:'';if(d>2.1){arrival.hidden=false;arrival.querySelector('p').textContent=destination+' · animation preview only';} }
+else{const busX=mix(-240,210,ease((t-2)/1.4)),door=t>3.65&&t<6;drawBus(busX,t,door,t>=6);
+if(t<6){const p=boardingPose(t);g.save();if(t>=5.6){g.beginPath();g.rect(0,245,480,25);g.rect(busX+153,195,25,50);g.clip();}person(p.x,p.y,t,p.walking,p.facing);g.restore();}
+if(t<1.8)caption.textContent='A little adventure awaits.';else if(t<3.65)caption.textContent='Waiting for the shuttle.';else if(t<6.4)caption.textContent='All aboard.';if(t>=6.4)showMenu();}
+requestAnimationFrame(render);}
+for(const b of document.querySelectorAll('[data-world]'))b.onclick=()=>{destination=b.dataset.world;menu.hidden=true;phase='departing';departAt=performance.now();document.querySelector('#status').textContent='A gentle departure. The real world connection comes later.';};
+document.querySelector('#replay').onclick=reset;document.querySelector('#again').onclick=reset;document.querySelector('#skip').onclick=()=>{start=performance.now()-6500;showMenu()};
+Promise.all(Object.entries(files).map(([key,file])=>new Promise((ok,no)=>{const im=new Image();im.onload=()=>{art[key]=im;ok()};im.onerror=no;im.src='assets/'+file}))).then(()=>document.fonts.ready).then(()=>{reset();requestAnimationFrame(render)}).catch(()=>{caption.textContent='Artwork could not load. Keep the assets folder beside this file.'});
+</script></html>
