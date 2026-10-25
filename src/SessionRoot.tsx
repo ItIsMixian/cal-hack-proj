@@ -1,10 +1,11 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AuthProvider, useAuth } from 'react-oidc-context';
 import { WebStorageStateStore } from 'oidc-client-ts';
 import { SpacetimeDBProvider } from 'spacetimedb/react';
 import { DbConnection } from './module_bindings';
 import App from './App';
 import LoginScreen from './LoginScreen';
+import { migrateOidcUser, readSessionMode, writeSessionMode } from './sessionPersistence';
 
 const configuredHost = new URL(import.meta.env.VITE_SPACETIMEDB_HOST ?? 'ws://localhost:3000');
 // A teammate opening the LAN URL must connect to this machine, not their own localhost.
@@ -24,19 +25,21 @@ const MODE_KEY = `${HOST}/${DB_NAME}/session_mode`;
 const CLIENT_ID = import.meta.env.VITE_SPACETIMEAUTH_CLIENT_ID?.trim();
 const APP_BASE = import.meta.env.BASE_URL ?? '/';
 const AUTHORITY = import.meta.env.VITE_SPACETIMEAUTH_AUTHORITY ?? 'https://auth.spacetimedb.com/oidc';
+if (CLIENT_ID) migrateOidcUser(localStorage, sessionStorage, AUTHORITY, CLIENT_ID);
+const accountUserStore = new WebStorageStateStore({ store: localStorage });
+
 type Mode = 'guest' | 'account' | null;
 
 function readStorage(storage: Storage, key: string) {
   try { return storage.getItem(key) ?? undefined; } catch { return undefined; }
 }
 function saveMode(mode: Mode) {
-  try { if (mode) sessionStorage.setItem(MODE_KEY, mode); else sessionStorage.removeItem(MODE_KEY); } catch { /* tab-only mode */ }
+  writeSessionMode(localStorage, sessionStorage, MODE_KEY, mode);
 }
 function initialMode(): Mode {
   // Magic links can open a fresh tab, without the initiating tab's sessionStorage.
   if (window.location.pathname === `${APP_BASE}callback` && new URLSearchParams(window.location.search).has('state')) return 'account';
-  const value = readStorage(sessionStorage, MODE_KEY);
-  return value === 'guest' || value === 'account' ? value : null;
+  return readSessionMode(localStorage, sessionStorage, MODE_KEY);
 }
 
 export default function SessionRoot() {
@@ -44,7 +47,7 @@ export default function SessionRoot() {
   return <AuthProvider authority={AUTHORITY} client_id={CLIENT_ID}
     redirect_uri={import.meta.env.VITE_SPACETIMEAUTH_REDIRECT_URI ?? `${window.location.origin}${APP_BASE}callback`}
     post_logout_redirect_uri={`${window.location.origin}${APP_BASE}`} response_type="code" scope="openid profile email offline_access"
-    automaticSilentRenew userStore={new WebStorageStateStore({ store: sessionStorage })}
+    automaticSilentRenew userStore={accountUserStore}
     onSigninCallback={() => { saveMode('account'); window.history.replaceState({}, document.title, APP_BASE); }}>
     <AccountGateway />
   </AuthProvider>;
@@ -64,6 +67,17 @@ function AccountGateway() {
   const [mode, setMode] = useState<Mode>(initialMode);
   const [error, setError] = useState('');
   const [redirecting, setRedirecting] = useState(false);
+  const [restoring, setRestoring] = useState(false);
+  const restoreAttempted = useRef(false);
+  useEffect(() => {
+    if (mode !== 'account' || auth.isLoading || auth.activeNavigator || auth.isAuthenticated
+      || !auth.user || restoreAttempted.current) return;
+    restoreAttempted.current = true;
+    setRestoring(true);
+    void auth.signinSilent().catch(() => {
+      setError('Your saved session could not be renewed. Please sign in again.');
+    }).finally(() => setRestoring(false));
+  }, [mode, auth.isLoading, auth.activeNavigator, auth.isAuthenticated, auth.user, auth.signinSilent]);
   const refresh = useCallback(async () => {
     const user = await auth.signinSilent();
     if (!user?.id_token) throw new Error('Account session expired');
@@ -82,13 +96,17 @@ function AccountGateway() {
     setError(''); setRedirecting(true);
     try {
       chooseMode('account');
-      await auth.signinRedirect({ prompt: 'login' });
+      await auth.signinRedirect();
     } catch { setError('Could not open secure sign-in. Please try again.'); }
     finally { setRedirecting(false); }
   };
   if (mode === 'guest') return <WorldSession mode="guest" onExit={() => void leave()} />;
+  if (mode === 'account' && (auth.isLoading || restoring || auth.activeNavigator === 'signinSilent'
+    || (!!auth.user && !auth.isAuthenticated && !restoreAttempted.current))) {
+    return <section className="connection-error" role="status"><h1>Returning to Mirrorville</h1><p>Restoring your signed-in session…</p></section>;
+  }
   if (mode === 'account' && auth.isAuthenticated && auth.user?.id_token) {
-    if (!auth.user.profile.email || auth.user.profile.email_verified === false) {
+    if (!auth.user.profile.email || auth.user.profile.email_verified !== true) {
       return <LoginScreen error="Use a verified email account to sign in, or choose guest mode."
         onAccount={signIn} onGuest={() => chooseMode('guest')} />;
     }
