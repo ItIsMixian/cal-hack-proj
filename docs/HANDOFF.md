@@ -1,5 +1,32 @@
 # Handoff
 
+- **iPhone explicit sharing**: `mobileShare.ts` accepts validated standalone `#mirrorville-share=`
+  base64url JSON or `#mirrorville-text=` URI-encoded Shortcuts text. `SessionRoot` retains a redacted
+  memory draft, clears its own fragment after mount, and shows a nonblocking pending banner.
+  Town -> Review shared item requires owner-mirror choice; new creation can review the waiting
+  item on its source paper. References require an owner meaning note; quoted text stays local.
+  Facts only, no voice, receipt is not event date. Email sign-in caches only a redacted draft in
+  sessionStorage for fifteen minutes; discard/signout/success clears it. See
+  `design/iphone-web-receiver.md` and `validation/iphone-web-receiver.md`. No device-install claim.
+
+- **Four-source letters**: the physical desk's Bring a letter opens Observe my computer / GitHub /
+  AI introduction / own update in one paper flow (`SourceOffering.tsx`). The independent Windows
+  helper `python desktop/observer.py --origin http://localhost:5173` starts paused; use the actual
+  configured browser origin. Pair, explicitly enable, then review live clues before cloud handoff.
+  Browser page topics have a separate opt-in. Closing UI leaves enabled capture running; pause or
+  quit helper to stop. Loopback stays private; no tunnel proxy. Legacy Marglo package is secondary.
+  GitHub uses public API reads with no app/token setup; ownership is declared, not verified.
+  Adapters use existing facts imports, so no backend publication is required. Photos/audio and
+  automatic cloud sharing are not implemented. See `design/four-source-learning.md` and validation.
+
+- **Facebook own-post import**: My words -> Bring Facebook posts now opens the configurable
+  browser-only source. No App ID is configured yet, so it shows an honest unavailable state.
+  Set public `VITE_FACEBOOK_APP_ID` (local build env / GitHub Actions repository variable), configure
+  Meta Web Login and `user_posts` access, then test a real account before claiming connected.
+  `VITE_FACEBOOK_GRAPH_VERSION` defaults to `v23.0`. No secret/token in Vite settings. No server
+  migration, publication or auto-sync. Setup and limits: `design/facebook-import.md`; mock/live
+  acceptance distinction: `validation/facebook-import.md`.
+
 Things that are not obvious from the code.
 
 - **Permanent hosting**: `.github/workflows/deploy-pages.yml` publishes `yw/map-assets`
@@ -79,7 +106,13 @@ Things that are not obvious from the code.
   magic links; guests keep their original local token. This machine's `.env.local` has the public
   `VITE_SPACETIMEAUTH_CLIENT_ID`. For setup, exact callbacks, cloud ownership and limitations see
   `design/login-and-auth.md`; acceptance is in `validation/login-figma-and-auth.md`. No client secret
-  goes in the browser. Existing guest mirrors are not migrated into account ownership.
+  goes in the browser. Guest-to-account transfer is now implemented using a short-lived capability
+  prepared with the saved browser guest token; see `validation/guest-account-transfer.md`. Menu has
+  `Sign in & keep my mirror`; account entry with a saved guest credential claims before town opens.
+  Residents shows IDs and owner-only Move out / Bring back. Existing same-name residents are not
+  automatically merged; real email transfer acceptance remains pending.
+  Account-based cleanup kept `Yiqiao Liu #12` and `mixian #9` active after checking the provider's
+  user identities. Guest/test residents #6–8, #10–11, #13–15 were reversibly moved out; all rows remain.
 
 - **Fidelity A/B** (`yw/fidelity`): imports now require `latestAt` (empty string for unknown), merge a
   complete card set and update the private summary. Regenerate client bindings after publication.
@@ -87,4 +120,35 @@ Things that are not obvious from the code.
   mixian id 9 for QA. Counts, Pending subjective acceptance and the delayed main rebase are in
   `validation/mirror-fidelity-a-b.md`. No Part C or 0004 changes.
 
-- **Published character scope**: original plus Rust/Sage/Honey/Coral are integrated with the existing online creation form. Four-direction full walk uses 5fps `[0,1,2,1]`; new looks reuse IDs 1–4, legacy 0/5–7 retain original. Character assets require no backend/schema/bindings changes. See `validation/character-release.md`; source/preparation is in `art/characters/README.md`. The local room-journey and other unfinished work are not included in this release.
+- **Import-first onboarding / voice**: new clients call `createMirrorOnboarding`; the old creation
+  reducer stays compatible. `importWriting.inputKind` distinguishes AI summaries, own messages,
+  AI chats and unclassified facts. Only own messages of at least 120 characters infer style (shorter
+  daily answers still merge facts). Two new owner-only views are `my_learning` and `my_style`.
+  Copy/paste permission failures have manual fallbacks. Owner style corrections and marked examples
+  survive later imports. Today's room question and optional conversation topic follow venue dates,
+  not town days. Local migration is additive, with `--delete-data=never`; regenerate bindings after
+  backend changes. See `validation/import-onboarding-and-voice.md` for tests and Pending owner QA.
+
+- **Scene-first meeting revision**: current creation UI lives in `CreateMirror.tsx` plus
+  `first-meeting.css`. Keep it one visual room: anchored reflection speech, letters and responses;
+  do not restore an illustration/form split. `WordOffering.tsx` is shared with `WritingDesk.tsx`.
+  `MirrorExchanges.tsx` handles one-card/one-line exchanges. `createMirrorOnboarding` accepts an
+  empty words list with no import: this is an honest thin mirror, neutral extraversion, no invented
+  biography. No schema change/reset is required for this revision. See
+  `validation/interactive-first-meeting.md` and `design/first-meeting.md`.
+
+- **Adopted character wardrobe**: the owner approved four simple color-block designs. `look` 1–4 now map to Rust/Sage/Honey/Coral; 0 and legacy 5–7 keep the original. `CharacterSprite` is shared by portraits, room actors and town. Creation selection is locked once saved. Run `node scripts/build-character-atlases.mjs` with `pngjs` available to rebuild the 34KB atlases from `art/characters/`. No backend/schema/bindings publication is needed. See `validation/character-wardrobe.md` for browser evidence and unverified public/device checks.
+
+- **Room actions / real voice rehearsal**: desk/mirror entrances now use `RoomJourney.tsx` and
+  `roomJourneyMath.ts` for floor routes, actor facing/walking frames, camera and arrival-gated
+  material interaction. Keep foot anchors when changing character scale. Name is on a tag;
+  writing is on desk paper. New mirrors are temporarily inactive until the door (or Close) releases
+  them. If a page refresh interrupts this, Residents -> Bring back restores the saved mirror.
+  `tryMirrorVoice` is an owner-authenticated procedure returning a live contextual reply;
+  `correctVoiceTrial` saves only an explicitly confirmed, redacted owner-authored wording example.
+  Both use existing private style storage; regenerate bindings, publish with `--delete-data=never`.
+  Current evidence: `validation/room-actions-and-rehearsal.md`.
+
+- **Character full-walk follow-up**: foot-only animation is replaced by distinct full-body stride poses in `art/characters/walk/`. The builder locks approved heads and idle frames. `characterAnimation.ts` supplies original 5fps `[0,1,2,1]` cadence to room and town; movement speed is unchanged. The runtime-atlas comparison GIF and checks are in `validation/character-wardrobe.md`.
+
+- **Character release live**: `15e9756` deployed successfully via Actions `40169358901` to the existing Pages URL. Production retains its earlier creation/account/backend flows, with five real character choices and full town animation. Local room-journey/voice/import work was deliberately excluded. Hosted assets hash-match the release. See `validation/character-release.md`. Remaining uncommitted work is preserved against this new release base.

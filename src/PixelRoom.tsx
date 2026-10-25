@@ -20,7 +20,7 @@ function placement(node: typeof scene.nodes[number]) {
     width: `${width / BOUNDS.width * 100}%`, height: `${height / BOUNDS.height * 100}%` };
 }
 
-export default function PixelRoom({ name, look, onOpen }: { name: string; look: number; onOpen: (object: RoomObject) => void }) {
+export default function PixelRoom({ name, look, onOpen, welcome = false }: { name: string; look: number; welcome?: boolean; onOpen: (object: RoomObject) => void }) {
   const [hover, setHover] = useState<RoomObject | null>(null);
   const [art, setArt] = useState<'loading' | 'ready' | 'error'>('loading');
   const [attempt, setAttempt] = useState(0);
@@ -41,25 +41,26 @@ export default function PixelRoom({ name, look, onOpen }: { name: string; look: 
       <img className="home-background" style={placement(background)} src={roomArtUrl(background.file)} alt="" draggable={false} />
       {interactive.map(node => {
         const object = objects.find(object => object.node === node.name)!;
+        if (welcome && object.id !== 'mirror' && object.id !== 'desk') return <img key={object.id} className="welcome-furniture" style={placement(node)} src={roomArtUrl(node.file)} alt="" draggable={false} />;
         return <button key={object.id} className={`room-object home-object home-object-${object.id}`} style={placement(node)}
           aria-label={`Open ${object.id === 'desk' ? 'Writing desk' : object.label}`} onClick={() => onOpen(object.id)}
           onMouseEnter={() => setHover(object.id)} onMouseLeave={() => setHover(null)}
           onFocus={() => setHover(object.id)} onBlur={() => setHover(null)}>
-          <img src={roomArtUrl(node.file)} alt="" draggable={false} /><span>{object.label}</span>
+          <img src={roomArtUrl(node.file)} alt="" draggable={false} /><span>{welcome ? object.id === 'desk' ? 'Your letters' : 'Your reflection' : object.label}</span>
         </button>;
       })}
-      <button className="room-object home-contacts" aria-label="Open Address book" onClick={() => onOpen('contacts')}
+      {!welcome && <button className="room-object home-contacts" aria-label="Open Address book" onClick={() => onOpen('contacts')}
         onMouseEnter={() => setHover('contacts')} onMouseLeave={() => setHover(null)}
-        onFocus={() => setHover('contacts')} onBlur={() => setHover(null)}><span>✉ Address book</span></button>
+        onFocus={() => setHover('contacts')} onBlur={() => setHover(null)}><span>✉ Address book</span></button>}
       <button className="room-resident home-resident" aria-label={`Talk to ${name}'s mirror`} onClick={() => onOpen('mirror')}
         onFocus={() => setHover('mirror')} onBlur={() => setHover(null)}>
         <CharacterAvatar name={name} look={look} /><span>{name}</span>
       </button>
     </div>
-    <div className="room-dialogue"><span className="room-dialogue-mark" aria-hidden="true">✦</span>
+    {!welcome && <div className="room-dialogue"><span className="room-dialogue-mark" aria-hidden="true">✦</span>
       <div><strong>{hover ? objects.find(object => object.id === hover)?.label : 'A little place to be yourself.'}</strong>
         <p>{hover ? objects.find(object => object.id === hover)?.hint : 'Make yourself at home. Click an object to take a closer look.'}</p></div>
       <span className="room-key-hint">Tab · Enter</span>
-    </div>
+    </div>}
   </div>;
 }

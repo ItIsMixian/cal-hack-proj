@@ -185,3 +185,7 @@
   .town-clock strong { font-size: 20px; }
   .town-camera-hud { top: max(90px, calc(env(safe-area-inset-top) + 82px)); }
 }
+
+.resident-row { display: flex; align-items: center; gap: 8px; }
+.resident-row > button:first-child { flex: 1; min-width: 0; }
+.resident-row > button:last-child:not(:first-child) { flex: 0 0 auto; }

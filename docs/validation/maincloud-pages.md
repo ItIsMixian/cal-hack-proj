@@ -28,3 +28,7 @@
 
 The Maincloud free allowance is metered; 5 Hz simulation and model APIs still consume
 resources. No claim of unlimited free runtime. Keep the local preview as a fallback.
+
+## Approved characters publication
+
+Owner-authorized character/animation frontend update deployed at `15e9756` through successful Actions run `40169358901`. Public HTML and all four character atlases match the verified release; hosted guest entry and five-choice creation preview pass. Existing online creation/account/backend flows are retained; unrelated local room-journey/voice/import work was excluded. See `character-release.md` for exact scope and the screenshot. No database publication/reset was performed.

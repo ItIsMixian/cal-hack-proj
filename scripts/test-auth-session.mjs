@@ -15,19 +15,23 @@ function storage(values = {}) {
   const valuesMap = new Map(Object.entries(values));
   return { getItem: key => valuesMap.get(key) ?? null, setItem: (key, value) => valuesMap.set(key, value), removeItem: key => valuesMap.delete(key) };
 }
-function render({ mode = null, user = null, authenticated = !!user, callback = false, configured = true, hostname = 'localhost', protocol = 'http:', appBase = '/' } = {}) {
+function render({ mode = null, user = null, authenticated = !!user, callback = false, configured = true, hostname = 'localhost', protocol = 'http:', appBase = '/', pending = false } = {}) {
   const base = `${protocol === 'https:' ? 'wss' : 'ws'}://${hostname}${protocol === 'https:' ? '' : ':3000'}/mirrorville`;
   const local = storage({ [`${base}/auth_token`]: 'existing-guest-token' });
+  if (pending) local.setItem(`${base}/guest_transfer`, 'test-transfer');
   const session = storage(mode ? { [`${base}/session_mode`]: mode } : {});
   const connections = [];
   const auth = { user, isAuthenticated: authenticated, isLoading: false, signinSilent: async () => user };
   const mockRequire = name => {
+    if (name === './mobileShare') return { parseMobileShareFragment: () => null, consumeMobileShare: () => null, restoreMobileShare: () => null, forgetMobileShare() {}, rememberMobileShare() {} };
+    if (name.endsWith('.css')) return {};
     if (name === 'react-oidc-context') return { AuthProvider: props => props.children, useAuth: () => auth };
     if (name === 'oidc-client-ts') return { WebStorageStateStore: class {} };
-    if (name === 'spacetimedb/react') return { SpacetimeDBProvider: props => props.children };
+    if (name === 'spacetimedb/react') return { SpacetimeDBProvider: props => props.children, useSpacetimeDB: () => ({ isActive: true }), useReducer: () => async () => {} };
+    if (name === './guestTransfer') return { prepareGuestTransfer: async () => {} };
     if (name === './LoginScreen') return { __esModule: true, default: () => React.createElement('p', null, 'login screen') };
     if (name === './App') return { __esModule: true, default: props => React.createElement('p', null, `${props.accountMode ? 'account' : 'guest'}:${props.sessionLabel}`) };
-    if (name === './module_bindings') return { DbConnection: { builder() {
+    if (name === './module_bindings') return { reducers: { claimGuestMirrors: {} }, DbConnection: { builder() {
       const state = { onConnect: [] }; connections.push(state);
       const builder = {
         withUri(uri) { state.uri = uri; return builder; }, withDatabaseName() { return builder; },
@@ -86,7 +90,7 @@ test('failed or expired account sign-in never opens an anonymous connection', ()
   }
 });
 test('an authenticated anonymous or unverified provider user cannot masquerade as an email account', () => {
-  for (const profile of [{ sub: 'anonymous' }, { ...account.profile, email_verified: false }]) {
+  for (const profile of [{ sub: 'anonymous' }, { ...account.profile, email_verified: false }, { ...account.profile, email_verified: undefined }]) {
     const result = render({ mode: 'account', user: { ...account, profile } });
     assert.equal(result.connections.length, 0);
     assert.match(result.html, /login screen/);
@@ -116,4 +120,11 @@ test('an unconfigured development build still preserves explicitly selected gues
   const result = render({ mode: 'guest', configured: false });
   assert.equal(result.connections[0].token, 'existing-guest-token');
   assert.match(result.html, /guest:Guest/);
+});
+
+test('a pending transfer blocks account creation UI but never blocks guest access', () => {
+  const result = render({ mode: 'account', user: account, pending: true });
+  assert.match(result.html, /Bringing your guest mirror with you/);
+  assert.doesNotMatch(result.html, /account:account@example.test/);
+  assert.match(render({ mode: 'guest', pending: true }).html, /guest:Guest/);
 });

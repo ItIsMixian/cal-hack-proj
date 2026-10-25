@@ -17,4 +17,8 @@ The production creation screen remains its existing form, with actual character 
 
 ## Publication
 
-Target: https://itismixian.github.io/cal-hack-proj/ . Uses the existing GitHub Pages Actions workflow. Workflow result and hosted checks are recorded after deployment in the local validation record.
+Target: https://itismixian.github.io/cal-hack-proj/ . Uses the existing GitHub Pages Actions workflow. Release commit: `15e9756933b1c770c182f417e02baa59ea72541b`. GitHub Actions run `40169358901`: build and deploy both succeeded.
+
+Hosted checks: HTML HTTP 200 and references expected `index-DymirAuJ.js`; all four PNGs HTTP 200 and SHA256-equal to the approved release files. Actual public guest entry reaches Maincloud, creation displays all five choices, selecting Coral updates checked state, and each portrait reports character-ready=true with the `/cal-hack-proj/` hosted path. No browser console errors were observed during these checks. [Published screenshot](character-wardrobe/published.png).
+
+Public verification did not create a resident, import personal data or exercise email magic-link login. Those were not needed for this frontend-only publication. The local room-journey and other ongoing features remain outside this release.

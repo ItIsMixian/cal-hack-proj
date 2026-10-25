@@ -123,3 +123,15 @@
 
 .room-world-authored { position: relative; }
 .room-art-loading { position: absolute; z-index: 2; top: 30%; left: 50%; transform: translateX(-50%); width: min(90%, 360px); text-align: center; padding: 20px; background: #fff5dc; border: 2px solid #9b805a; color: #5c4f38; font: 20px "Pixelify Sans", monospace; }
+
+/* Feet stay anchored in the room while the character reads at a human scale. */
+.pixel-room .home-resident { top: calc(68% - 110px); }
+.pixel-room .home-resident .character-avatar { width: 88px; height: 110px; }
+.pixel-room .home-resident .character-avatar-sprite { transform: scale(4); transform-origin: center bottom; bottom: 0; }
+.pixel-room .home-resident .character-avatar::before { left: 18px; right: 18px; bottom: 0; height: 10px; }
+.pixel-room .home-resident > span { margin-top: 5px; }
+@media (max-width: 600px) {
+  .pixel-room .home-resident { left: 47%; top: calc(69% - 96px); }
+  .pixel-room .home-resident .character-avatar { width: 76px; height: 96px; }
+  .pixel-room .home-resident .character-avatar-sprite { transform: scale(3.4); }
+}

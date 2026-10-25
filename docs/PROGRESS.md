@@ -15,6 +15,10 @@ explicit browser guests are integrated; see `validation/login-figma-and-auth.md`
 login, verified guest compatibility and Pending cross-browser/expiry checks. The auth project is
 configured on Maincloud, while the town simulation remains local.
 
+Guest-to-account transfer and reversible resident management are implemented; see
+`validation/guest-account-transfer.md`. Account-based cleanup retains Yiqiao Liu #12 and mixian #9
+in town; guest/test data remains archived. Real email transfer acceptance is pending.
+
 Phone entry layout, compressed production sharing and the current tunnel's exact auth callbacks
 were repaired after phone feedback; see `validation/mobile-login-and-share-performance.md`.
 
@@ -46,3 +50,41 @@ through local Vite, and desktop email placement/focus follow the teammate's repa
 original evidence is in validation/2026-10-24-login-focus.md and
 validation/2026-10-24-shared-frontend-preview.md. Hosted login may still require a second
 email entry; see validation/2026-10-24-email-login-investigation.md.
+
+## Import-first onboarding and voice
+
+Import/voice data flow is implemented, and its UI has been revised under the owner's direction:
+first onboarding now happens in one continuous room with an anchored character speech bubble,
+letters and current response. Name-only entry can go straight to town without tags or a questionnaire.
+The desk, fact cards, voice rehearsal, daily question and optional check use individual exchanges.
+See `decisions/proposed-scene-first-meeting.md`, `design/first-meeting.md` and
+`validation/interactive-first-meeting.md` for current interface evidence. The original import/privacy
+checks remain in `validation/import-onboarding-and-voice.md`. Human voice acceptance and actual
+ChatGPT/Claude phone timing remain Pending; Part C is not included.
+
+## Room actions and contextual voice rehearsal
+
+The owner's follow-up replaces static scene overlays with an actual character journey: tag ->
+walk to desk -> receive/read material -> walk to mirror -> contextual reply and owner rewrite -> door.
+Characters are larger with grounded feet. Desk/mirror furniture in existing rooms enters the same
+journey. See `decisions/proposed-room-actions-and-rehearsal.md` and
+`validation/room-actions-and-rehearsal.md` for the current implementation and visual evidence.
+Factual-card correctness and voice fidelity are separate; small-sample corrections provide initial
+expression guidance, while owner/friend voice acceptance remains Pending.
+
+## Four-source background and recent life
+
+The desk now has one letter entrance with direct desktop observation, public GitHub projects/activity,
+AI introductions and deliberate updates/writing. Sources share local review and existing import
+handoff. An independent optional Windows helper adapts Marglo's observation idea, starts paused,
+and exposes local tentative clues after pairing/enable. Legacy Marglo packages are secondary.
+See `design/four-source-learning.md` and `validation/four-source-learning.md` for implemented limits
+and evidence. Photos/audio and automatic cloud sharing are not implemented.
+
+## iPhone deliberate sharing
+
+Text/link fragments from the native source or a manual Shortcut now reach a private local draft,
+not an automatic import. Login/town stay usable; owner selection or new-mirror paper review is
+explicit. Reference quotes remain local and require the owner's own meaning note. Parser, ownership,
+StrictMode and authentication regressions pass; actual device/native install acceptance remains
+Pending. See `design/iphone-web-receiver.md` and `validation/iphone-web-receiver.md`.

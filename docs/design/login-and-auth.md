@@ -7,6 +7,12 @@ The entry screen implements [Cal Hack UI deisign](https://www.figma.com/design/M
 - **Continue with email:** starts standard OIDC Authorization Code + PKCE through SpacetimeAuth. Email is entered once on the hosted authentication page. There is no local email field, email hint or separate Sign up action: first-time verification creates the account and returning users sign in through the same flow. The main panel contains a short introduction, account entry and guest entry. Passwords are not collected in MirrorVille.
 - **Explore as a guest:** reuses the existing browser's anonymous SpacetimeDB identity. The guest token stays under its original local-storage key, so existing guest mirrors remain available.
 - **Sign out / Leave town:** removes the current in-app session; account sign-out also invokes the provider's end-session flow. A failed account login never silently becomes a guest session.
+- **Sign in & keep my mirror:** guest Menu offers account sign-in. Signing in from this browser
+  prepares a private, one-use guest capability and transfers the captured guest mirrors to the
+  verified email account before opening the town. Cards, diaries, contacts, imports and IDs stay
+  together. Failure blocks creation and offers retry. A same-origin fresh callback tab can use the
+  saved capability; it expires after 24 hours. Existing same-name mirrors are retained separately
+  and can be moved out/restored by their owner in Residents. See `validation/guest-account-transfer.md`.
 
 OIDC tokens are handled by `oidc-client-ts` / `react-oidc-context`, stored in sessionStorage, and passed as the account credential to the SpacetimeDB SDK. The existing anonymous token is never overwritten by an account token. Mode is scoped by database/host and stored per tab. Callback handling also works when a magic link opens a fresh tab; OIDC's state/PKCE store can validate the pending flow across same-origin tabs. Account sessions require an email claim and reject an explicitly unverified email. Refresh uses the provider's silent-renew support and the SDK token provider; connection errors show a retry screen.
 
@@ -32,4 +38,7 @@ Set `VITE_SPACETIMEAUTH_CLIENT_ID` in `.env.local` (already set on this machine)
 
 ## Boundary
 
-This is an entry screen and session integration. It does not migrate existing guest mirrors to account ownership, redesign the town, collect birth dates or implement social imports. Owners of existing guest mirrors can continue in guest mode. Cross-browser account identity and refresh/logout behavior must be validated against real email sign-in, not inferred from the presence of a Login button; see the validation record.
+This entry flow includes guest-to-account transfer using the saved browser guest credential.
+Owners can also continue in guest mode. Guest exit alone does not pause a mirror. Lost guest
+credentials cannot be recovered by a matching name. Cross-browser account identity, real email
+transfer and refresh/logout behavior still require live acceptance; see the validation records.

@@ -650,3 +650,25 @@ select {
   padding: 0;
   margin: 10px 0;
 }
+
+/* Onboarding uses the existing room palette and controls. */
+.onboarding-step, .style-calibration { border-top: 1px solid var(--line); padding-top: 16px; margin-top: 16px; }
+.onboarding-options, .starter-words { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.onboarding-options button, .starter-words button, .style-example button { min-height: 44px; }
+.onboarding-options button[aria-pressed="true"], .starter-words button[aria-pressed="true"], .style-example button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.starter-words button[aria-pressed="true"]::before { content: '✓ '; }
+.ai-prompt, .room-onboarding-note, .daily-question { padding: 12px; border: 1px solid var(--line); border-radius: 8px; margin: 12px 0; background: var(--card); }
+.ai-prompt p { margin-top: 0; }
+.importer textarea, .style-calibration textarea, .daily-question textarea { width: 100%; min-width: 0; box-sizing: border-box; }
+.importer details { margin: 12px 0; }
+.importer input[type="file"] { width: 100%; min-width: 0; }
+.style-example { border-bottom: 1px solid var(--line); padding: 12px 0; }
+.style-example .actions { flex-wrap: wrap; }
+.room-onboarding-note { max-width: 720px; }
+.town-learning-status { position: fixed; top: 96px; left: 16px; z-index: 12; max-width: min(340px, calc(100vw - 32px)); text-align: left; }
+@media (max-width: 480px) {
+  .modal { padding: 16px; }
+  .onboarding-options button { flex: 1 1 120px; }
+  .town-learning-status { top: 106px; font-size: 12px; }
+  .room-onboarding-note, .daily-question { margin-left: 12px; margin-right: 12px; }
+}
