@@ -78,3 +78,16 @@ sign-up mode and local email collection/login_hint. The email is entered only on
 SpacetimeAuth page; this does not implement direct magic-link sending from the app.
 Build/typecheck: Pass. Existing auth session regression: Pass (10 tests). Desktop/phone
 composition and complete owner-operated email login: Pending. Database unchanged.
+
+## Pixel button correction
+
+Owner rejected the stretched primary button, outlined guest control and excess copy. Removed
+extra subheading/explanation/divider. Both choices now use the existing pixel button asset at
+a matched, narrower aspect ratio. CSS crops the original transparent padding without editing
+the art. Replaced accumulated obsolete input/sign-up styles with one responsive layout.
+Desktop 1280x720 screenshot inspected: Pass (centered board, matching buttons, no overlap).
+Build and 10 auth session tests: Pass. Updated mobile layout: Pending.
+
+Reviewed SpacetimeAuth public OpenAPI and official authentication docs: the public API lists
+management endpoints; no documented headless magic-link sending endpoint was identified.
+Custom OIDC providers remain supported. No authentication service was changed.

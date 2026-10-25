@@ -19,15 +19,15 @@ export default function LoginScreen({ onAccount, onGuest, busy = false, error = 
         <section className="login-form" aria-label="Enter MirrorVille">
           <div className="login-intro">
             <h2>Your mirrors meet first.<br />Then you do.</h2>
-            <p>A little town. A few conversations. Someone worth meeting.</p>
           </div>
-          <button className="login-submit" type="button" disabled={busy} onClick={() => void onAccount()}>
-            <LoginArt name="button" />
+          <button className="login-submit login-option" type="button" disabled={busy} onClick={() => void onAccount()}>
+            <img src="/assets/login/button.webp" alt="" draggable={false} />
             <span>{busy ? 'Opening…' : 'Continue with email'}</span>
           </button>
-          <p className="login-email-note">Sign in or join with a secure email link. No password.</p>
-          <div className="login-divider" aria-hidden="true"><span>or</span></div>
-          <button className="login-guest" type="button" disabled={busy} onClick={onGuest}>Explore as a guest <span aria-hidden="true">→</span></button>
+          <button className="login-guest login-option" type="button" disabled={busy} onClick={onGuest}>
+            <img src="/assets/login/button.webp" alt="" draggable={false} />
+            <span>Explore as a guest</span>
+          </button>
           <p className="login-guest-note">Guest mirrors stay with this browser.</p>
           <div className="login-feedback" aria-live="polite">{error && <p role="alert">{error}</p>}</div>
         </section>
