@@ -1,5 +1,21 @@
 # 变更记录
 
+## 2026-10-24：邮箱重复输入调查
+
+- 静态检查和携带虚构邮箱 login_hint 的托管页面检查确认，第二页仍显示空邮箱框；没有发送邮件或修改认证实现。
+- 单次输入后直接发信仍为待确定方案，未选定或接入替代服务。见[调查记录](validation/2026-10-24-email-login-investigation.md)。
+
+## 2026-10-24：本地前端连接共享数据库并修复地图预览
+
+- 按用户提供的地址配置被 Git 忽略的 `.env.local`，启动本地前端；访客预览已连接共享小镇并收到 12 个分身。
+- 修复地图素材逗号文件名的 URL 编码，补强现有测试以复现静态路径解码问题；修复后地图正常显示、6 项地图测试及构建通过。见[验证记录](validation/2026-10-24-shared-frontend-preview.md)。
+
+## 2026-10-24：修复登录邮箱框聚焦时的双框外观
+
+- 将桌面邮箱 input 的独立焦点轮廓改为既有美术边框高亮；手机沿用原边框显示焦点，保留按钮的键盘焦点提示。
+- 本机浏览器验证桌面输入、Tab 切换及 390px 手机布局；构建和 10 项登录测试通过。见[验证记录](validation/2026-10-24-login-focus.md)。
+- 后续按用户要求将桌面邮箱框和提示整体下移约 29px（1280 × 720），检查桌面间距与手机布局，并重新构建通过；截图与结果追加在同一验证记录。
+
 ## 2026-10-24: merge teammate application code into local yq
 
 - Downloaded origin/yw/map-assets at cd9a191 and merged its application, generated bindings, assets, tests and validation records into yq, starting from 1f404a9.

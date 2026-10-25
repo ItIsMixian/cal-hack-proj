@@ -1,11 +1,14 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { runInNewContext } from 'node:vm';
 import { test } from 'node:test';
 import ts from 'typescript';
 
-const asset = name => readFileSync(new URL(`../public/assets/town/${name}`, import.meta.url));
+const assetRoot = fileURLToPath(new URL('../public/assets/town/', import.meta.url));
+const asset = name => readFileSync(join(assetRoot, name));
 const scene = JSON.parse(asset('scene.json'));
 const source = asset('Town-map.tscn').toString();
 test('all authored sprites and packed TileMap cells survive conversion', () => {
@@ -39,7 +42,8 @@ test('authored loader uses shipped WebP files and never paints a partially faile
   class ImageStub {
     width = 192; height = 192;
     set src(url) {
-      const name = decodeURIComponent(url.split('/').pop());
+      // Vite's static server decodes URI paths, retaining encoded reserved commas.
+      const name = decodeURI(url.split('/').pop());
       const bytes = asset(name);
       assert.equal(bytes.toString('ascii', 8, 12), 'WEBP');
       requested.push(name);

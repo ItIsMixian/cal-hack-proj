@@ -18,7 +18,8 @@ export async function loadAuthoredTown(g: CanvasRenderingContext2D) {
     const timeout = setTimeout(() => reject(new Error(`Town texture timed out: ${file}`)), 20_000);
     image.onload = () => { clearTimeout(timeout); resolve([file, image]); };
     image.onerror = () => { clearTimeout(timeout); reject(new Error(`Town texture: ${file}`)); };
-    image.src = `/assets/town/${encodeURIComponent(file.replace(/\.png$/, '.webp'))}`;
+    // Keep filename commas literal so Vite's static-path decoding finds the asset.
+    image.src = `/assets/town/${encodeURI(file.replace(/\.png$/, '.webp'))}`;
   }))));
   // Commit to the cache only when all layers are ready; the UI offers retry on load errors.
   g.save();
