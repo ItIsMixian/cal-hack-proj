@@ -81,3 +81,4 @@ test('daily question remains reachable from the same desk and returns to its cho
   d.props.dailyAvailable = false;
   assert.equal(button(d.render(), 'Ask me something'), undefined);
 });
+

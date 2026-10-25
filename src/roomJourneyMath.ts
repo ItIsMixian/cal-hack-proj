@@ -64,3 +64,4 @@ export function sampleRoomRoute(points: RoomPoint[], distance: number): RoomPoin
   }
   return { ...points[points.length - 1], facing: 'down', done: true };
 }
+

@@ -301,6 +301,7 @@ const spacetimedb = schema({
   mirrorSummary,
   mirrorLearning,
   mirrorStyle,
+
   importStatus,
   importJob,
   tickTimer,

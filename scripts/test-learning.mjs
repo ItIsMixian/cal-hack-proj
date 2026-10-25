@@ -17,12 +17,13 @@ const schema = tables => {
   return Object.fromEntries(['reducer', 'procedure', 'view', 'init'].map(key => [key, (...args) => args.at(-1)]));
 };
 let verdict = null; let capturedPrompt = ''; let linePrompt = ''; let duringJudge = null;
+let activityResponse=null,activityPayload='',duringActivity=null;
 function load(path) {
   const exports = {};
   const require = name => {
     if (name === 'spacetimedb/server') return { schema, table: (options, columns) => ({ options, columns, rowType: builder }), t, SenderError: Error };
     if (name === 'spacetimedb') return { Timestamp, ScheduleAt: { time: x => x, interval: x => x } };
-    if (name === './llm') return { chatWithDeepSeek: (_ctx, _cfg, prompt) => { linePrompt = prompt; return 'Hello there.'; }, judge: (_ctx, _cfg, _system, prompt) => { capturedPrompt = prompt; duringJudge?.(); if (verdict instanceof Error) throw verdict; return JSON.stringify(verdict); }, parseJsonObject: JSON.parse };
+    if (name === './llm') return { chatWithDeepSeek: (_ctx, _cfg, prompt,messages) => { linePrompt = prompt; if ((prompt.includes('desktop activity into private') || prompt.includes('近况总结生成器'))) {activityPayload=messages[0].content;duringActivity?.();return JSON.stringify(typeof activityResponse==='function'?activityResponse():activityResponse);} return 'Hello there.'; }, judge: (_ctx, _cfg, _system, prompt) => { capturedPrompt = prompt; duringJudge?.(); if (verdict instanceof Error) throw verdict; return JSON.stringify(verdict); }, parseJsonObject: text => { try { return JSON.parse(text); } catch { return null; } } };
     return load(new URL(`../spacetimedb/src/${name.slice(2)}.ts`, import.meta.url));
   };
   const js = ts.transpileModule(readFileSync(path, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
@@ -34,7 +35,7 @@ function fixture(demo = false) {
   const db = {};
   for (const [name, def] of Object.entries(definitions)) {
     const rows = new Map(); let seq = 1n;
-    const pk = name === 'guestTransfer' ? 'owner' : ['mirrorProfile', 'mirrorRest', 'mirrorSummary', 'mirrorLearning', 'mirrorStyle'].includes(name) ? 'mirrorId' : ['tickTimer', 'llmJob', 'importJob'].includes(name) ? 'scheduledId' : 'id';
+    const pk = ['guestTransfer','activityBudget'].includes(name) ? 'owner' : ['mirrorProfile', 'mirrorRest', 'mirrorSummary', 'mirrorLearning', 'mirrorStyle'].includes(name) ? 'mirrorId' : ['tickTimer', 'llmJob', 'importJob'].includes(name) ? 'scheduledId' : 'id';
     const equal = (a, b) => typeof a?.equals === 'function' ? a.equals(b) : a === b;
     const table = {
       iter: () => rows.values(), count: () => BigInt(rows.size),
@@ -221,4 +222,40 @@ test('a later import retains the owner-written voice correction and its provenan
   const example = learning.readExamples(f.db.mirrorStyle.mirrorId.find(10n).examples).find(row => row.ownerWritten);
   assert.equal(example.text, 'Let me show you the little version first.');
   assert.equal(example.verdict, 'yes'); assert.match(example.prompt, /making or thinking/);
+});
+
+
+test('activity understanding authenticates selected profile, grounds output and leaves all facts untouched',()=>{
+ const f=fixture(),ctx=f.ctx(A),at=Number(ctx.timestamp.microsSinceUnixEpoch/1000n);
+ const episode={id:'a'.repeat(24),app:'code.exe',title:'Mirrorville desktop activity memory - VS Code',startAt:new Date(at-60_000).toISOString(),endAt:new Date(at).toISOString(),seconds:30};
+ activityResponse={themes:[{text:'可能正在开发 Mirrorville 的桌面活动记忆。',episodeIds:[episode.id],evidence:'Mirrorville desktop activity memory'}]};
+ assert.throws(()=>mod.understandActivity(f.ctx(B),{mirrorId:10n,episodes:[episode],previousMemory:''}),/Not your mirror/);
+ const before=f.db.mirrorProfile.mirrorId.find(10n).selfCard;
+ const result=mod.understandActivity(ctx,{mirrorId:10n,episodes:[episode],previousMemory:'Confirmed: I build game prototypes'});
+ assert.equal(result.length,1);assert.match(activityPayload,/accessible charts/);assert.match(activityPayload,/game prototypes/);
+ assert.equal(f.db.mirrorProfile.mirrorId.find(10n).selfCard,before);
+ assert.equal(f.db.mirrorCard.count(),0n);
+ assert.throws(()=>mod.understandActivity(ctx,{mirrorId:10n,episodes:[episode],previousMemory:''}),/wait/);
+ activityResponse=null;
+});
+
+test('activity understanding rejects fabricated references and a changed owner after the model call',()=>{
+ const make=()=>{const f=fixture(),ctx=f.ctx(A),at=Number(ctx.timestamp.microsSinceUnixEpoch/1000n);return {f,ctx,args:{mirrorId:10n,previousMemory:'',episodes:[{id:'a'.repeat(24),app:'code.exe',title:'Mirrorville activity memory - VS Code',startAt:new Date(at-60_000).toISOString(),endAt:new Date(at).toISOString(),seconds:30}]}};};
+ let v=make();activityResponse={themes:[{text:'Some invented update',episodeIds:['forged'],evidence:'invented'}]};
+ assert.throws(()=>mod.understandActivity(v.ctx,v.args),/evidence-based/);
+ v=make();activityResponse={themes:[{text:'A supported tentative update',episodeIds:[v.args.episodes[0].id],evidence:'Mirrorville activity memory'}]};
+ duringActivity=()=>{const old=v.f.db.mirrorProfile.mirrorId.find(10n);v.f.db.mirrorProfile.mirrorId.update({...old,owner:B});};
+ try {assert.throws(()=>mod.understandActivity(v.ctx,v.args),/Ownership changed/);}finally {duringActivity=null;activityResponse=null;}
+});
+
+test('period summary rewrites copied raw titles once and rejects a second raw copy',()=>{
+ const f=fixture(),ctx=f.ctx(A),at=Number(ctx.timestamp.microsSinceUnixEpoch/1000n);
+ const episode={id:'f'.repeat(24),app:'code.exe',title:'Synthetic town - independent background narrative capture',startAt:new Date(at-60_000).toISOString(),endAt:new Date(at).toISOString(),seconds:30};
+ const args={mirrorId:10n,episodes:[episode],previousMemory:JSON.stringify({mode:'period-report'})};
+ const bad={themes:[{text:'你在 '+episode.title+' 里持续工作，讨论后台观察和近况整理。',episodeIds:[episode.id],evidence:'Synthetic town'}]};
+ const good={themes:[{text:'你这个时段围绕桌面小镇的后台观察展开讨论，希望采集与近况归纳持续运行，打开小镇时再把这些材料带回角色。',episodeIds:[episode.id],evidence:'Synthetic town'}]};
+ let calls=0;activityResponse=()=>++calls===1?bad:good;
+ try{const result=mod.understandActivity(ctx,args);assert.equal(result[0].text,good.themes[0].text);assert.equal(calls,2);
+  activityResponse=bad;const other=fixture();assert.throws(()=>mod.understandActivity(other.ctx(A),args),/evidence-based/);
+ }finally{activityResponse=null;}
 });

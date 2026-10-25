@@ -39,10 +39,10 @@ export function useRoomJourney() {
   return { pose, walkTo, cancelWalk };
 }
 
-export default function RoomJourney({ pose, station, name, look, speech, paper, reflection, naming, deskItems, onStation, onLook, disabled, hasLetter, lookLocked = false, overview = false, expandedActivity = false, activity, allowedStations, onOverview, onFloor }: {
+export default function RoomJourney({ pose, station, name, look, speech, paper, reflection, naming, deskItems, onStation, onLook, disabled, hasLetter, lookLocked = false, overview = false, expandedActivity = false, speechActivity = false, tutorialControls, activity, allowedStations, onOverview, onFloor }: {
   pose: JourneyPose; station: RoomStation; name: string; look: number; speech: string; paper?: ReactNode; reflection?: ReactNode; naming?: ReactNode; deskItems?: ReactNode;
   onStation: (station: RoomStation) => void; onLook: () => void; disabled: boolean; hasLetter: boolean; lookLocked?: boolean;
-  overview?: boolean; expandedActivity?: boolean; activity?: ReactNode; allowedStations?: readonly RoomStation[]; onOverview?: () => void; onFloor?: (point: RoomPoint) => void;
+  tutorialControls?: ReactNode; overview?: boolean; expandedActivity?: boolean; speechActivity?: boolean; activity?: ReactNode; allowedStations?: readonly RoomStation[]; onOverview?: () => void; onFloor?: (point: RoomPoint) => void;
 }) {
   const viewport = useRef<HTMLDivElement>(null), panel = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ width: 720, height: 740 });
@@ -65,7 +65,7 @@ export default function RoomJourney({ pose, station, name, look, speech, paper, 
   };
   const focus = overview ? centers.entrance : pose.moving ? { x: pose.x, y: pose.y - 100 } : centers[station];
   const clamp = (value: number, half: number, max: number) => half * 2 >= max ? max / 2 : Math.max(half, Math.min(max - half, value));
-  const camera = { x: clamp(focus.x, size.width / scale / 2, 830), y: clamp(focus.y, size.height / scale / 2, 800) };
+  const camera = { x: clamp(focus.x, size.width / scale / 2, 830), y: speechActivity ? Math.max(clamp(focus.y, size.height / scale / 2, 800), pose.y - size.height * .1 / scale) : clamp(focus.y, size.height / scale / 2, 800) };
   const project = (x: number, y: number) => ({ x: (x - camera.x) * scale + size.width / 2, y: (y - camera.y) * scale + size.height / 2 });
   const actor = project(pose.x, pose.y);
   const stations = [
@@ -76,6 +76,7 @@ export default function RoomJourney({ pose, station, name, look, speech, paper, 
   ];
   const canVisit = (id: RoomStation) => !disabled && (!pose.moving || !!onFloor) && (!allowedStations || allowedStations.includes(id));
   const bubbleWidth = Math.min(280, size.width - 32);
+  const speechLeft = Math.max(12, Math.min(size.width - Math.min(350, size.width - 24) - 12, actor.x - Math.min(350, size.width - 24) / 2));
   const panelX: Record<RoomStation, number> = { entrance: 415, desk: 700, cards: 200, mirror: 220, diary: 300, door: 340 };
   const panelTop = size.width < 500 ? 72 : Math.max(64, Math.min(size.height - 420, project(centers[station].x, centers[station].y).y - 180));
   const panelHeight = size.width < 500 ? Math.max(140, Math.min(330, size.height - 240)) : Math.max(100, size.height - panelTop - 24);
@@ -111,11 +112,12 @@ export default function RoomJourney({ pose, station, name, look, speech, paper, 
     </div>
     {naming && !pose.moving && <div className="journey-name-tag" style={{ left: Math.max(12, Math.min(size.width - 250, actor.x - 125)), top: Math.min(size.height - 110, actor.y + 12) }}>{naming}</div>}
     {!content && !naming && speech && <div className="journey-speech" style={{ width: bubbleWidth, left: Math.max(16, Math.min(size.width - bubbleWidth - 16, actor.x - bubbleWidth / 2)), top: Math.max(64, Math.min(size.height - 140, actor.y - 185)) }} role="status">{speech}</div>}
-    {deskItems && !pose.moving && <div className="journey-stationery" style={{ left: Math.max(12, Math.min(size.width - 304, actor.x - 152)), top: Math.max(72, actor.y - 250), flexWrap: 'wrap', width: Math.min(304, size.width - 24), gap: 12 }}>{deskItems}</div>}
-    {content && !pose.moving && <div ref={panel} tabIndex={-1} className={`journey-activity room-content ${station === 'mirror' ? 'at-mirror' : ''} ${expandedActivity ? 'journey-reading' : ''}`} aria-label={`${station} interaction`} key={station}
-      style={expandedActivity ? { left: Math.max(12, (size.width - 1000) / 2), top: 60, width: Math.min(1000, size.width - 24), height: size.height - 76, maxHeight: size.height - 76 } : { left: Math.max(12, Math.min(size.width - Math.min(350, size.width - 24) - 12, project(panelX[station], centers[station].y).x - 175)), top: panelTop, maxHeight: panelHeight, width: Math.min(350, size.width - 24) }}>
-      {content}
+    {deskItems && !pose.moving && <div className="journey-stationery" style={{ left: Math.max(12, Math.min(size.width - 304, actor.x - 152)), top: tutorialControls ? actor.y + 26 : Math.max(72, actor.y - 250), flexWrap: 'wrap', width: Math.min(304, size.width - 24), gap: 12 }}>{deskItems}</div>}
+    {content && !pose.moving && <div ref={panel} tabIndex={-1} className={`journey-activity room-content ${station === 'mirror' ? 'at-mirror' : ''} ${expandedActivity ? station === 'diary' ? 'journey-reading' : 'journey-sheet' : ''} ${speechActivity ? 'journey-dialogue' : ''}`} aria-label={`${station} interaction`} key={station}
+      style={speechActivity ? { ...({ '--speech-tail': `${actor.x - speechLeft - 8}px` } as CSSProperties), left: speechLeft, bottom: size.height - actor.y + 80 * scale + 14, maxHeight: Math.max(110, actor.y - 80 * scale - 64), width: Math.min(350, size.width - 24), overflow: 'visible' } : expandedActivity ? { left: Math.max(12, (size.width - 1000) / 2), top: 60, width: Math.min(1000, size.width - 24), height: size.height - (tutorialControls ? 160 : 76), maxHeight: size.height - (tutorialControls ? 160 : 76) } : { left: Math.max(12, Math.min(size.width - Math.min(350, size.width - 24) - 12, project(panelX[station], centers[station].y).x - 175)), top: panelTop, maxHeight: panelHeight, width: Math.min(350, size.width - 24) }}>
+      {speechActivity ? <div className="journey-dialogue-body">{content}</div> : content}
     </div>}
+    {tutorialControls}
     {!overview && onOverview && <button className="journey-overview" onClick={onOverview}>← Back to the room</button>}
   </div>;
 }

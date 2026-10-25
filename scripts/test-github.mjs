@@ -110,13 +110,15 @@ test('UI requires owner declaration, edits exact redacted preview, sends only ex
   find(h.render(), node => node.type === 'input' && node.props.type === 'checkbox').props.onChange({ target: { checked: true } });
   await h.button('Read my GitHub').props.onClick(); await tick();
   assert.equal(h.calls, 1); assert.equal(h.emitted, undefined);
+  assert.equal(h.button('Hand over selected records ✉').props.disabled, true);
+  h.button('Select project backgrounds').props.onClick();
   find(h.render(), node => node.type === 'textarea').props.onChange({ target: { value: 'My robot project is a hobby. Contact edited@example.test for details.' } });
   const preview = find(h.render(), node => node.type === 'pre').props.children;
   assert.ok(!preview.includes('edited@example.test'));
-  h.button('Hand over selected pieces ✉').props.onClick();
+  h.button('Hand over selected records ✉').props.onClick();
   assert.equal(h.emitted.text, preview); assert.equal(h.emitted.inputKind, 'facts');
   assert.equal(h.emitted.relation, 'other');
   find(h.render(), node => node.type === 'input' && node.props['aria-label'] === 'GitHub username or profile URL').props.onChange({ target: { value: 'other' } });
-  assert.equal(h.button('Hand over selected pieces ✉'), undefined);
+  assert.equal(h.button('Hand over selected records ✉'), undefined);
   assert.equal(h.button('Read my GitHub').props.disabled, true);
 });

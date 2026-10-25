@@ -169,3 +169,54 @@
 .room-hanging-sign { top: 8px; width: 220px; height: 58px; background: url('/assets/ui/room-nameplate.png') center / 100% 100% no-repeat; }
 .room-stage-header .room-hanging-sign h1 { inset: 18% 13%; font-size: 19px; }
 @media (max-width: 600px) { .room-hanging-sign { width: 196px; height: 54px; top: 6px; } .room-stage-header .room-hanging-sign h1 { font-size: 17px; } }
+
+/* The tutorial uses the same book vocabulary without manufacturing diary data. */
+.journey-reading:has(.tour-book) { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
+.tour-book { flex: 1; height: auto; min-height: 360px; }
+.tour-book p { font: 17px/1.55 Georgia, serif; }
+.tour-book .tour-arrival { font-size: 22px; }
+.tour-book small { line-height: 1.5; }
+.journey-reading:has(.tour-book) > .tour-progress { margin: 0; }
+.journey-reading:has(.tour-book) > .tour-next { align-self: flex-end; flex-shrink: 0; }
+
+.tour-book .diary-leaf { overflow-y: auto; }
+.journey-reading:has(.tour-book) > .tour-progress { align-self: flex-start; background: #f8edcf; padding: 4px 10px; border-radius: 3px; }
+
+.tour-book p { margin: 10px 0; font-size: 16px; line-height: 1.45; }
+.tour-book .diary-leaf { gap: 8px; }
+.tour-book .diary-leaf-heading { flex-shrink: 0; margin-bottom: 8px; }
+.tour-book .diary-encounter { flex-shrink: 0; }
+
+.journey-activity.journey-dialogue { padding: 12px 16px; background: #fff8e8; border: 2px solid #9b8056; }
+.journey-dialogue::after { content: ''; position: absolute; bottom: -9px; left: calc(50% - 8px); width: 14px; height: 14px; transform: rotate(-45deg); background: #fff8e8; border-left: 2px solid #9b8056; border-bottom: 2px solid #9b8056; }
+.journey-dialogue-body { max-height: inherit; overflow-y: auto; }
+.journey-dialogue-body p { margin: 8px 0; font-size: 16px; line-height: 1.4; }
+.journey-dialogue-body h2 { margin: 8px 0; font-size: 21px; }
+.github-records { display: grid; gap: 12px; }
+.github-records .source-piece { padding: 12px; border: 1px solid #bca77c; }
+.github-records textarea { width: 100%; box-sizing: border-box; }
+
+/* Onboarding introduces the current room tools; it does not turn forms into speech. */
+.tour-current-ui .room-dialog-head h2 { display: none; }
+.tour-current-ui .journey-stationery { justify-content: center; }
+.tour-current-ui .journey-stationery button { width: 64px; height: 64px; padding: 4px; }
+.tour-current-ui .journey-stationery b { font-size: 23px; line-height: 1; }
+.tour-current-ui .journey-stationery span { font-size: 11px; line-height: 1.1; }
+.tour-current-ui .journey-dialogue { box-shadow: 3px 4px 0 #6b4f3426; }
+.tour-current-ui .journey-dialogue .tour-hint { margin: 0; font: 18px/1.4 'Pixelify Sans', sans-serif; }
+.tour-controls { position: absolute; z-index: 20; bottom: 12px; left: 12px; right: 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 12px; background: #f8edcfee; border: 1px solid #b49b72; color: #59432f; }
+.tour-controls > span { font: 13px 'Pixelify Sans', sans-serif; white-space: nowrap; }
+.tour-controls > small { font: 12px/1.3 system-ui; }
+.tour-controls > button { font-size: 14px; padding: 8px; }
+@media(max-width:600px) { .tour-controls { flex-wrap: wrap; } .tour-controls > small { order: 3; width: 100%; } }
+
+.tour-current-ui .room-dialog-head { justify-content: flex-end; }
+
+.journey-dialogue::after { left: var(--speech-tail, calc(50% - 8px)); }
+
+/* Expanded forms are opaque paper; only the self-framed diary uses transparency. */
+.journey-activity.journey-sheet { padding: 22px; border: 2px solid #aa9063; background: #fff3d9; box-shadow: 4px 5px 0 #5c493441; overflow: auto; overscroll-behavior: contain; }
+.journey-sheet .source-choices > button { background: #fff9eb; }
+.journey-sheet .source-offering { width: 100%; min-width: 0; }
+.journey-sheet > h2 { margin-bottom: 14px; }
+@media (max-width: 600px) { .journey-activity.journey-sheet { padding: 16px; } }

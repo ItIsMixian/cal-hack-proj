@@ -18,7 +18,7 @@ export default function GitHubOffering({ onReady, onBack, busy }: { onReady: (gi
     clear(); const next = new AbortController(); controller.current = next; setWorking(true);
     try {
       const value = await readGitHub(username, next.signal);
-      if (mounted.current && !next.signal.aborted) { setMaterial(value); setSelected(value.pieces.map(piece => piece.id)); }
+      if (mounted.current && !next.signal.aborted) { setMaterial(value); setSelected([]); }
     } catch (e) { if (mounted.current && !next.signal.aborted) setError(e instanceof Error ? e.message : 'GitHub could not be read.'); }
     finally { if (mounted.current && controller.current === next) setWorking(false); }
   };
@@ -32,10 +32,13 @@ export default function GitHubOffering({ onReady, onBack, busy }: { onReady: (gi
     {material?.pieces.length === 0 && <p role="status">No eligible public project or recent activity was found. You can bring a project description in your own words instead.</p>}
     {!!material?.pieces.length && <>
       <p className="quiet-note">Review your account {material.login}. Project ownership does not establish your role or skill. Edit your contribution and remove anything about other people before handing over.</p>
-      <div className="source-pieces">{material.pieces.map(piece => <div key={piece.id} className="source-piece"><label><input type="checkbox" aria-label={`Include ${piece.kind} ${piece.id}`} checked={selected.includes(piece.id)} disabled={working || busy} onChange={event => setSelected(values => event.target.checked ? [...values, piece.id] : values.filter(id => id !== piece.id))} />{piece.kind === 'activity' ? 'Account action' : 'Project background'} · {piece.dateLabel}</label><textarea aria-label={`Edit GitHub ${piece.kind} ${piece.id}`} rows={3} maxLength={2_000} value={piece.text} disabled={working || busy} onChange={event => setMaterial(value => value ? { ...value, pieces: value.pieces.map(item => item.id === piece.id ? { ...item, text: event.target.value } : item) } : null)} /></div>)}</div>
-      <p className="quiet-note">This letter includes {letter.included} of {selected.length} selected pieces, up to 29,000 characters. Dates describe recorded actions or repository creation, not when a narrated life event happened.</p>
+      <p role="status">Found {material.pieces.filter(p => p.kind === 'background').length} projects and {material.pieces.filter(p => p.kind === 'activity').length} public activity records. These are source records, not learned facts. Choose what matters to you.</p>
+      <button disabled={working || busy} onClick={() => setSelected(material.pieces.filter(p => p.kind === 'background').map(p => p.id))}>Select project backgrounds</button>
+      <button disabled={working || busy} onClick={() => setSelected([])}>Clear selection</button>
+      <div className="github-records">{material.pieces.map(piece => <div key={piece.id} className="source-piece"><label><input type="checkbox" aria-label={`Include ${piece.kind} ${piece.id}`} checked={selected.includes(piece.id)} disabled={working || busy} onChange={event => setSelected(values => event.target.checked ? [...values, piece.id] : values.filter(id => id !== piece.id))} />{piece.kind === 'activity' ? 'Account action' : 'Project background'} · {piece.dateLabel}</label><details><summary>{piece.text.split('. ')[0].slice(0, 140)} — review / edit</summary><textarea aria-label={`Edit GitHub ${piece.kind} ${piece.id}`} rows={3} maxLength={2_000} value={piece.text} disabled={working || busy} onChange={event => setMaterial(value => value ? { ...value, pieces: value.pieces.map(item => item.id === piece.id ? { ...item, text: event.target.value } : item) } : null)} /></details></div>)}</div>
+      <p className="quiet-note">This letter includes {letter.included} of {selected.length} selected records, up to 29,000 characters. Dates describe recorded actions or repository creation, not when a narrated life event happened.</p>
       <details className="quiet-note"><summary>Preview the exact letter</summary><pre className="source-letter">{letter.text || 'Choose at least one piece.'}</pre></details>
-      <button className="exchange-primary" disabled={working || busy || !ownAccount || letter.characters < 40} onClick={() => onReady({ text: letter.text, latestAt: letter.latestAt, inputKind: 'facts', relation: 'other', source: 'GitHub · public projects & activity' })}>Hand over selected pieces ✉</button>
+      <button className="exchange-primary" disabled={working || busy || !ownAccount || letter.characters < 40} onClick={() => onReady({ text: letter.text, latestAt: letter.latestAt, inputKind: 'facts', relation: 'other', source: 'GitHub · public projects & activity' })}>Hand over selected records ✉</button>
       {letter.characters < 40 && <p className="quiet-note">Bring at least 40 characters of your own information.</p>}
     </>}
     {error && <p role="alert" className="error">{error}</p>}

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useReducer, useSpacetimeDB, useTable } from 'spacetimedb/react';
 import { reducers, tables } from './module_bindings';
 import RoomDialog from './RoomDialog';
+import TourDiary from './TourDiary';
 import RoomJourney, { useRoomJourney } from './RoomJourney';
 import { nextTourStation, TOUR_STATIONS, type RoomStation } from './roomJourneyMath';
 import { readRoomTour, roomTourKey, saveRoomTour } from './roomTour';
@@ -15,9 +16,9 @@ import { FactConversation } from './MirrorExchanges';
 import './first-meeting.css';
 import './room-journey.css';
 
-type Stage = 'name' | 'walking' | 'station' | 'paper' | 'reading' | 'rehearsal';
+type Stage = 'name' | 'walking' | 'station' | 'paper' | 'reading' | 'rehearsal' | 'review';
 export default function CreateMirror(props: {
-  onClose: () => void; onCreated: (name: string) => void;
+  preview?: boolean; onClose: () => void; onCreated: (name: string) => void;
   sharedDraft?: MobileShareDraft | null; onSharedConsumed?: () => void;
 }) {
   const create = useReducer(reducers.createMirrorOnboarding);
@@ -69,6 +70,7 @@ export default function CreateMirror(props: {
   }, [stage, latest?.id, latest?.status, mirrorId]);
   const give = async (letter: WordGift) => {
     if (busy) return;
+    if (props.preview) { setGift(null); setStage('station'); setError('Preview only · reviewed, not saved or sent to AI.'); return; }
     setSaving(true); setError(''); setGift(letter); previousImport.current = latest?.id ?? null;
     try {
       if (mirrorId !== null) await read({ mirrorId, ...letter });
@@ -80,6 +82,7 @@ export default function CreateMirror(props: {
   };
   const leave = async () => {
     if (busy || station !== 'door') return;
+    if (props.preview) { finished.current = true; saveRoomTour(storageKey, null); props.onCreated(name.trim()); return; }
     setSaving(true); setError('');
     try {
       if (mirrorId !== null) { await hold.current; await activate({ mirrorId, active: true }); }
@@ -90,11 +93,12 @@ export default function CreateMirror(props: {
   };
   const next = nextTourStation(station);
   const labels: Partial<Record<RoomStation, string>> = { cards: 'Continue to the card collection', mirror: 'Continue to the mirror', diary: 'Continue to the diary', door: 'Walk to the door' };
+  const intro = stage === 'station' && station !== 'diary';
+  const hints: Partial<Record<RoomStation, string>> = { desk: 'Bring a little of your world. Choose a letter below.', cards: 'Your cards live here. Check what I learned and what I can share.', mirror: 'Try a new look, or help me sound more like you.', door: 'I can meet others while you are away. Come back to your diary whenever you like.' };
   const content = stage !== 'name' && stage !== 'walking' ? <>
-    <p className="tour-progress">Getting to know your room · {Math.min(4, TOUR_STATIONS.indexOf(station as typeof TOUR_STATIONS[number]) + 1)} / 4</p>
     {station === 'desk' && <>
       <h2>Your words</h2>
-      {stage === 'paper' ? <SourceOffering busy={busy} initialGift={gift} sharedDraft={props.sharedDraft} onBack={() => setStage('station')} onReady={value => void give(value)} />
+      {stage === 'paper' ? <SourceOffering mirrorId={mirrorId ?? undefined} busy={busy} initialGift={gift} sharedDraft={props.sharedDraft} onBack={() => setStage('station')} onReady={value => void give(value)} />
         : stage === 'reading' ? <><p role="status">{canReadResult && latest.status === 'failed' ? 'I could not read that letter. Your earlier cards are safe.' : 'Reading your letter… You can continue the tour while I read.'}</p>{canReadResult && latest.status === 'failed' && <button disabled={!gift || busy} onClick={() => { if (gift) void give(gift); }}>Try reading it again</button>}</>
         : <><p>Bring a little of your world. You can add computer activity, GitHub projects, an AI introduction, or your own update here.</p><button onClick={() => setStage('paper')}>Bring a letter</button></>}
     </>}
@@ -108,15 +112,22 @@ export default function CreateMirror(props: {
       {stage === 'rehearsal' && mirrorId !== null ? <VoiceRehearsal mirrorId={mirrorId} doneLabel="Back to the mirror" onDone={() => setStage('station')} />
         : mirrorId !== null ? <button onClick={() => setStage('rehearsal')}>Try a reply</button> : <p>After you bring some information, we can practise replies here. You can do that later.</p>}
     </>}
-    {station === 'diary' && <><h2>Your diary</h2><article className="tour-diary"><small>First page · Example</small><blockquote>今天，我来到了 Mirrorville。</blockquote></article><p>This is where you will find who I met and what we talked about. Come back whenever you want to catch up.</p></>}
-    {station === 'door' && <><h2>The town is just outside</h2><p>You have visited all four places. Come back and choose any furniture whenever you like.</p><button disabled={busy} onClick={() => void leave()}>Step into town →</button></>}
-    {next && <button className="tour-next" disabled={busy} onClick={() => void travel(next)}>{labels[next]} →</button>}
+    {station === 'diary' && <TourDiary />}
+    {station === 'door' && <><h2>See you in town</h2><p>You can close this window and come back later. While active in town, your mirror can meet others even when you are away.</p><p>Open Diary when you return: see who you met, then choose a conversation. Interest labels help you notice who wants to connect.</p><p>To pause town activity, choose Move out for your mirror in Residents. Its cards and diary stay saved. Computer observation has its own start and pause controls.</p><button disabled={busy} onClick={() => void leave()}>Step into town →</button></>}
+    {station !== 'diary' && stage !== 'paper' && <button onClick={() => { setChoosingLook(false); setStage('station'); }}>← Back</button>}
     {error && <p role="alert">{error}</p>}
   </> : undefined;
-  return <RoomDialog title="Your reflection’s room" className="room-journey-dialog" footer={false} onClose={() => { if (!busy) props.onClose(); }}>
-    <RoomJourney pose={pose} station={station} overview={stage === 'name'} name={name} look={displayLook}
+  return <RoomDialog title="Your reflection’s room" className="room-journey-dialog tour-current-ui" footer={false} onClose={() => { if (!busy) props.onClose(); }}>
+    <RoomJourney pose={pose} station={station} overview={stage === 'name'} expandedActivity={!intro && stage !== 'name' && stage !== 'walking'} speechActivity={intro} name={name} look={displayLook}
       speech={pose.moving ? 'Let’s take a look over here.' : ''} disabled={busy || !name.trim()} lookLocked hasLetter={!!gift}
-      allowedStations={stage === 'name' ? [] : [station]} onStation={target => { if (target === 'door' && station === 'door') void leave(); }} onLook={() => {}} activity={content}
+      allowedStations={stage === 'name' ? [] : [station]} onStation={target => { if (target === 'door' && station === 'door') void leave(); }} onLook={() => {}} activity={intro ? <p className="tour-hint">{hints[station]}</p> : content}
+      tutorialControls={stage !== 'name' && stage !== 'walking' ? <div className="tour-controls"><span>{props.preview ? 'Preview · ' : ''}{Math.min(4, TOUR_STATIONS.indexOf(station as typeof TOUR_STATIONS[number]) + 1)} / 4</span>{error && <small role="status">{error}</small>}{(next ? <button disabled={busy} onClick={() => void travel(next)}>{labels[next]} →</button> : <button disabled={busy} onClick={() => void leave()}>Step into town →</button>)}</div> : undefined}
+      deskItems={intro ? <>
+        {station === 'desk' && <button title="Bring a letter" onClick={() => setStage('paper')}><b aria-hidden="true">✉</b><span>Bring a letter</span></button>}
+        {station === 'cards' && <button title="Review cards" onClick={() => setStage('review')}><b aria-hidden="true">▤</b><span>Review cards</span></button>}
+        {station === 'mirror' && <><button title="Change appearance" onClick={() => { setChoosingLook(true); if (mirrorId === null) setStage('review'); }}><b aria-hidden="true">☆</b><span>Appearance</span></button><button title="Try a reply" onClick={() => setStage('rehearsal')}><b aria-hidden="true">♫</b><span>Voice</span></button></>}
+        {station === 'door' && <button title="While you are away" onClick={() => setStage('review')}><b aria-hidden="true">☾</b><span>While away</span></button>}
+      </> : undefined}
       naming={stage === 'name' ? <form onSubmit={event => { event.preventDefault(); void travel('desk'); }}><label>Name on the tag<input data-autofocus autoFocus aria-label="Name on your reflection's tag" maxLength={24} value={name} placeholder="You can call me…" onChange={event => setName(event.target.value)} /></label><button type="submit" disabled={!name.trim()} aria-label="Fasten the name tag and walk to the desk">✓</button></form> : undefined} />
     {choosingLook && mirrorId !== null && own && <ChangeAppearanceDialog mirrorId={mirrorId} name={name} savedLook={own.look} onClose={() => setChoosingLook(false)} />}
   </RoomDialog>;
