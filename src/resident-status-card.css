@@ -1,0 +1,36 @@
+.resident-status-card { color: #4d4839; overflow-wrap: anywhere; }
+.resident-card-identity { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+.resident-card-identity .character-avatar { border-color: #9c9877; border-radius: 2px; }
+.room-dialog .resident-card-identity h3 { margin: 0 0 6px; font: 32px/1.1 'Pixelify Sans', monospace; }
+.resident-card-connection { font-size: 12px; color: #74815e; }
+.resident-current-status { padding: 14px 16px; border: 1px solid #cbd0ad; border-left: 4px solid #8b9b72; background: #edf0df; }
+.room-dialog .resident-current-status h3 { margin: 0 0 8px; font-size: 18px; color: #74815e; }
+.resident-current-status .resident-activity { font-size: 19px; margin: 0; }
+.resident-current-status .resident-place { margin: 4px 0 0; font-size: 14px; }
+.resident-current-status .resident-last-chat { margin: 8px 0 0; font-size: 12px; color: #7b725f; }
+.resident-intent { font-size: 14px; }
+.resident-chat-history { margin-top: 24px; }
+.room-dialog .resident-chat-history > h3 { margin-bottom: 4px; }
+.resident-chat-history .resident-history-scope { font-size: 12px; color: #7b725f; margin: 0 0 14px; }
+.resident-conversation-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.resident-conversation { padding: 14px 16px; background: #fff9e9; border: 1px solid #d8c8a4; }
+.resident-conversation-heading { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; }
+.resident-conversation-heading > strong { font: 21px 'Pixelify Sans', monospace; }
+.resident-conversation-heading > span { font-size: 12px; color: #74815e; }
+.resident-conversation .resident-conversation-meta { margin: 6px 0 12px; font-size: 12px; color: #7b725f; }
+.resident-topic-hint { font-size: 14px; margin: 0 0 12px; }
+.resident-topic-tags { display: flex; flex-wrap: wrap; gap: 9px; }
+.room-dialog .resident-topic-tags button { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 6px 13px; border: 1px solid #acb58e; border-radius: 4px; background: #edf0df; box-shadow: 0 2px 0 #bdc4a5; color: #4b5d3d; font: 18px/1.2 'Pixelify Sans', monospace; overflow-wrap: anywhere; max-width: 100%; }
+.room-dialog .resident-topic-tags button:hover { background: #e0e8c9; }
+.room-dialog .resident-topic-tags button[aria-pressed=true] { background: #657951; border-color: #4d623b; color: #fff9e9; box-shadow: 0 2px 0 #405332; }
+.resident-topic-tags button > span { font: 11px/1.2 monospace; opacity: .8; }
+.room-dialog .resident-view-all { display: block; margin: 14px 0 0; padding: 4px 0; border: 0; background: transparent; box-shadow: none; color: #61734b; font-size: 13px; text-decoration: underline; }
+.resident-topic-results > h4 { font: 22px 'Pixelify Sans', monospace; color: #61734b; margin: 20px 0 12px; }
+.resident-conversation .town-transcript { font-size: 14px; }
+.resident-conversation .town-transcript p { padding: 6px 9px; border-left: 3px solid transparent; }
+.resident-conversation .town-transcript .resident-topic-match { background: #edf0df; border-left-color: #8b9b72; }
+.resident-history-empty { color: #7b725f; font-size: 14px; }
+@media (max-width: 600px) {
+  .resident-conversation { padding: 12px; }
+  .resident-topic-tags { gap: 8px; }
+}

@@ -19,7 +19,6 @@ export default function MirrorRoom(props: { mirrorId: bigint; onBack: () => void
   const [activeObject, setActiveObject] = useState<RoomObject | null>(null);
   const [myMirrors] = useTable(tables.myMirrors);
   const [allCards] = useTable(tables.myCards);
-  const [summaries] = useTable(tables.mySummaries);
   const [imports] = useTable(tables.myImports);
   const mirror = myMirrors.find((m) => m.id === props.mirrorId);
   const cards = useMemo(
@@ -37,17 +36,15 @@ export default function MirrorRoom(props: { mirrorId: bigint; onBack: () => void
 
   const titles: Record<RoomObject, string> = {
     mirror: 'Looking in the mirror', diary: 'Your diary', cards: 'Your card collection',
-    desk: 'At the writing desk', contacts: 'Your address book',
+    desk: 'At the writing desk',
   };
   return (
-    <section className="pixel-room" aria-label={`${mirror.name}'s Mirror Room`}>
+    <section className="pixel-room room-fullscreen" aria-label={`${mirror.name}'s Mirror Room`}>
       <div className="room-hud">
         <button className="room-exit" autoFocus onClick={props.onBack}>← Back to town</button>
         <div><p className="room-kicker">MIRRORVILLE / HOME</p><h1>{mirror.name}'s room</h1></div>
-        <span className="room-private">Just for you</span>
       </div>
-      <p className="room-summary">{ownerWords(summaries.find(summary => summary.mirrorId === mirror.id)?.text || mirror.selfCard)}</p>
-      <PixelRoom name={mirror.name} look={mirror.look} onOpen={object => {
+      <PixelRoom onOpen={object => {
         setActiveObject(object);
         if (object === 'diary') props.onDiaryOpen?.();
       }} />
@@ -60,9 +57,12 @@ export default function MirrorRoom(props: { mirrorId: bigint; onBack: () => void
           <p className="muted">Today: {mirror.intent || 'No intent set. A little room to wander.'}</p>
           <p className="muted small">Showing {sharedHere} of {cards.length} cards at Cal Hacks. You decide which sides of you your mirror brings along.</p>
           <button onClick={() => setActiveObject('cards')}>Open the card collection →</button>
+          <section className="room-contact-details" aria-labelledby="room-contact-heading">
+            <h3 id="room-contact-heading">Contact details</h3>
+            <ContactField key={String(mirror.id)} mirrorId={mirror.id} saved={mirror.contact} />
+          </section>
         </>}
         {activeObject === 'diary' && <Diary mirrorId={mirror.id} />}
-        {activeObject === 'contacts' && <ContactField key={String(mirror.id)} mirrorId={mirror.id} saved={mirror.contact} />}
         {activeObject === 'cards' && <>
           {cards.length === 0 && <div className="room-empty"><h3>A collection waiting to grow</h3>
             <p>Your personality check is already part of your mirror. Add your own writing at the desk to help it get to know you.</p>

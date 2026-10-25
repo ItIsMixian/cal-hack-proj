@@ -738,7 +738,7 @@ ${transcript}
    - shared_interest: a specific shared interest or project, not a generic one. "Both like AI/tech/coffee" does not count.
    Friendliness, curiosity, or politeness alone never count. Most conversations should have no connection.
    For evidence, copy a short exact phrase from each person's information above (not from the transcript).
-3. For EVERY conversation, write diaryForA and diaryForB, each from that mirror to its owner: 2-3 sentences in first person. Say where I was, what I was doing, who I talked to, and what actually came up. Be warm and low-key. Never invent facts, promise, make plans, or ask the human to act. Do this even when connection is null.
+3. For EVERY conversation, write diaryForA and diaryForB as short factual conversation notes from each mirror to its owner. Prioritize WHAT WAS DISCUSSED: 2-4 concrete topics, questions, examples, named things, preferences or ideas actually mentioned in THIS transcript, using 1-3 short sentences and preferably under 60 words. Preserve meaningful specifics and attribute who said what when useful. Do not rate the person or fill space with generic impressions such as "friendly", "thoughtful" or "I enjoyed the conversation". Use only what was said in the transcript; never bring in facts from a profile/card that were not mentioned aloud. If it was only a greeting, say that briefly instead of inventing topics. Name, time and venue are displayed separately, so do not repeat the setting. Never invent facts, promise, make plans on anyone's behalf, or ask the human to act. Do this even when connection is null.
 
 Reply with only JSON:
 {"noteForA": "...", "noteForB": "...", "diaryForA": "...", "diaryForB": "...", "connection": null}
@@ -788,7 +788,7 @@ or
     for (const [me, other, raw] of [[s.a, s.b, verdict?.diaryForA], [s.b, s.a, verdict?.diaryForB]] as const) {
       if ([...tx.db.diaryEntry.by_conversation_mirror.filter([s.conv.id, me.id])].length) continue;
       // If the model fails, report only facts from the simulation, without inventing a verdict.
-      const fallback = `I was ${me.activity} at the ${findLandmark(s.conv.place).label}, where I talked with ${other.name}. I couldn't put together a fuller diary this time.`;
+      const fallback = `I was ${me.activity} at the ${findLandmark(s.conv.place).label}, where I talked with ${other.name}.`;
       tx.db.diaryEntry.insert({
         id: 0n, conversationId: s.conv.id, mirrorId: me.id, owner: me.owner,
         otherMirrorId: other.id, place: s.conv.place,

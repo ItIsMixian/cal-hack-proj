@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { useSpacetimeDB, useTable } from 'spacetimedb/react';
 import { tables } from './module_bindings';
 import { clockLabel, currentEvent, findLandmark, townHour } from '../spacetimedb/src/world';
@@ -14,6 +14,7 @@ import './pixel-room.css';
 import './town-game.css';
 
 const SEEN_KEY = 'mirrorville-diary-seen';
+const ResidentStatusCard = lazy(() => import('./ResidentStatusCard'));
 
 function readSeen(key: string): bigint {
   try {
@@ -93,19 +94,11 @@ export default function App({ sessionLabel, onExit, accountMode = false }: {
   }, [conversations, lines]);
 
   const focus = selected !== null ? byId.get(selected) : undefined;
-  const focusConversation = focus
-    ? [...conversations].filter((c) => c.a === focus.id || c.b === focus.id).sort((a, b) => Number(b.id - a.id))[0]
-    : undefined;
-  const focusLines = focusConversation
-    ? lines
-        .filter((l) => l.conversationId === focusConversation.id)
-        .sort((a, b) => (a.at.microsSinceUnixEpoch < b.at.microsSinceUnixEpoch ? -1 : 1))
-    : [];
   const myCard = focus ? myMirrors.find((m) => m.id === focus.id) : undefined;
 
   if (roomFor !== null) {
     return (
-      <div className="app">
+      <div className="app mirror-room-app">
         <MirrorRoom mirrorId={roomFor} onBack={() => setRoomFor(null)} onDiaryOpen={() => {
           setSeen(newestEntry);
           try { localStorage.setItem(seenKey, String(newestEntry)); } catch { /* Private mode. */ }
@@ -137,7 +130,7 @@ export default function App({ sessionLabel, onExit, accountMode = false }: {
             {myMirrors.map(m => <option key={String(m.id)} value={String(m.id)}>{m.name}</option>)}
           </select> : <strong>Following {followedMirror.name}</strong>}
           <span>{followedMirror.conversationId !== 0n ? 'Talking' : followedMirror.activity} · {findLandmark(followedMirror.place).label}</span>
-        </> : <><strong>{mirrors.length} mirrors in town</strong><span>{followed ? 'Tap a mirror to listen in' : 'Make a mirror to follow its day'}</span></>}
+        </> : <><strong>{mirrors.length} mirrors in town</strong><span>{followed ? 'Tap a mirror for its status card' : 'Make a mirror to follow its day'}</span></>}
       </aside>
       <nav className="town-dock" aria-label="Town actions">
         <button onClick={() => setGamePanel('diary')}><span className="dock-icon" aria-hidden="true">▤</span>Diary{hasNew && <span className="dot" aria-label="new" />}</button>
@@ -165,14 +158,9 @@ export default function App({ sessionLabel, onExit, accountMode = false }: {
           <li>Visit your Mirror Room to add your own words and choose what your mirror shares.</li>
         </ol><p className="muted">Character art: Cup Nooble · Sprout Lands</p></div>}
       </RoomDialog>}
-      {focus && <RoomDialog title={focus.name} onClose={() => setSelected(null)}>
-        <div className="room-portrait"><CharacterAvatar look={focus.look} name={focus.name} /><div><h3>{focus.name}</h3><p>{mine.has(focus.id) ? 'Your mirror' : focus.demo ? 'Demo mirror' : 'A mirror in town'}</p></div></div>
-        {focus.intent && <p><b>Today:</b> {focus.intent}</p>}
-        <p className="muted">{focus.conversationId !== 0n ? 'Talking' : focus.activity} at the {findLandmark(focus.place).label}</p>
-        {myCard && <button onClick={() => { setSelected(null); setRoomFor(myCard.id); }}>Open Mirror Room</button>}
-        <h3>{focusConversation?.active ? 'Talking now' : 'Last conversation'}</h3>
-        {focusLines.length === 0 && <p className="muted">No conversations yet. A new day is just beginning.</p>}
-        <div className="town-transcript">{focusLines.map(line => <p key={String(line.id)}><b>{byId.get(line.speaker)?.name ?? '?'}:</b> {line.text}</p>)}</div>
+      {focus && <RoomDialog key={String(focus.id)} title="Status card" onClose={() => setSelected(null)}>
+        <Suspense fallback={<p className="muted">Loading status card…</p>}><ResidentStatusCard mirror={focus} mirrors={mirrors} mine={mine} conversations={conversations} lines={lines} isLive={isActive}
+          onOpenRoom={myCard ? () => { setSelected(null); setRoomFor(myCard.id); } : undefined} /></Suspense>
       </RoomDialog>}
       {creating && <CreateMirror onClose={() => setCreating(false)} onCreated={name => {
         setCreating(false); setNotice(`${name} is walking into Mirrorville. Open your diary later to see how the day went.`);

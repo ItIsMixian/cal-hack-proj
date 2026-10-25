@@ -1,5 +1,20 @@
 # 变更记录
 
+## 2026-10-24：建筑人物 tag 打开 Status card
+
+- 增加姓名、当前活动／地点、最近聊天时间，以及用户角色与该人物近期交流的内容要点和可展开原文。按角色 ID 匹配，默认近 7 天最多 5 次；没有记录时显示空状态。
+- 构建、7 项测试及真实地图组件的桌面／窄屏模拟数据点击检查通过；未写共享数据库或调用模型。见 [Status card 验证](validation/2026-10-24-resident-status-card.md)。
+
+## 2026-10-24: restore local preview using the user-provided shared address
+
+- Verified the supplied temporary origin, updated only ignored local connection/public-client settings, and confirmed local authored-map rendering, 7 live mirrors, Residents navigation and the hosted login form.
+- No email, mirror changes, database publication, source changes or remote push were performed. Initial failure and recovery evidence remain together in [runtime validation](validation/2026-10-24-local-frontend-runtime.md).
+
+## 2026-10-24: check the existing local frontend after merging
+
+- Confirmed the local login screen and images load, then reproduced guest connection failure caused by the configured temporary backend hostname no longer resolving; local account login also lacks a client ID.
+- Saved browser evidence and separated historical successful preview results from current connectivity. No application, environment or shared database changes were made. See [runtime validation](validation/2026-10-24-local-frontend-runtime.md).
+
 ## 2026-10-24: update local yq from yw/map-assets 7509d4b
 
 - Merged the latest movement/navigation, town HUD, resident-exit controls and compressed/preloaded Home art into yq, retaining the authored Godot project and previous local login/map repair.
@@ -84,6 +99,83 @@
 # Devlog
 
 Complete deliveries and important changes only.
+
+## Diary records discussed content — 2026-10-24
+
+Changed Diary from selecting a latest appraisal to listing concrete content from all notes
+in a merged visit, with normalized repeat removal and an honest missing-topics state. The
+local generation prompt now prioritizes transcript-only topics, questions and examples;
+it remains unpublished. Build, backend typecheck, 25 tests and desktop/portrait previews
+passed. See [validation](validation/2026-10-24-diary-comments.md#conversation-content-instead-of-appraisal-2026-10-24).
+
+## Nearby diary exchanges merged — 2026-10-24
+
+Merged nearby exchanges with the same displayed person, own mirror and venue into one comment,
+using a 30-minute total-span default. A venue change starts a separate visit. The comment shows
+the latest reflection, timestamp range and exchange count; stored records remain intact.
+Build, 23 diary tests and desktop/portrait previews passed. See [validation](validation/2026-10-24-diary-comments.md#nearby-exchanges-in-one-comment-2026-10-24).
+
+## Diary grouped by person — 2026-10-24
+
+Grouped diary comments under each displayed name, keeping every exchange with its own time
+and place. Groups sort by their most recent conversation; notes inside each group sort newest
+first. Build, 19 diary tests and desktop/portrait previews passed. See [validation](validation/2026-10-24-diary-comments.md#grouping-by-person-2026-10-24).
+
+## Comment-style Diary — 2026-10-24
+
+Replaced book pagination with a newest-first list of names, one-sentence reflections and
+time/place metadata. Historical text is reduced by selecting an existing sentence; interest
+and mutual-contact controls remain. Updated the local backend prompt for future short
+reflections; it is not published. Build, 18 diary tests, backend typecheck and desktop/portrait
+preview checks passed. See [validation](validation/2026-10-24-diary-comments.md).
+
+## Larger, raised furniture labels — 2026-10-24
+
+Enlarged all four furniture names and scroll frames together by 30%, shifting their centers
+upward by 32 CSS pixels. Build and all four label clicks in desktop/portrait previews passed.
+See [validation](validation/authored-mirror-room.md#larger-raised-nameplates-2026-10-24).
+
+## Scroll furniture nameplates — 2026-10-24
+
+Replaced the four Mirror Room furniture-name frames with the user's supplied scroll PNG,
+preserving its pixels/transparency and aspect ratio. Labels remain live text; long names
+widen the frame. Checked all four label clicks on desktop/portrait, and raised the mirror
+label clear of the bottom hint. See [validation](validation/authored-mirror-room.md#scroll-nameplates-2026-10-24).
+
+## Contact editing in the mirror — 2026-10-24
+
+Moved the existing contact form into the mirror's profile panel and removed the independent
+Address book hotspot. The contact reducer, length limit and mutual-interest sharing rules
+are retained. Build and 16 diary/Home tests passed; isolated desktop/portrait browser checks
+verified the actual merged UI and local mocked save/reopen/clear behavior. See [validation](validation/authored-mirror-room.md#contact-editing-merged-into-the-mirror-2026-10-24).
+
+## Simplified Mirror Room controls — 2026-10-24
+
+Removed “About your mirror”, “Just for you” and all bottom shortcut buttons at the user's
+request. Updated the remaining hint to describe direct furniture interaction. Build passed;
+all five in-scene objects opened and closed their matching preview panels on desktop and
+portrait. See [validation](validation/authored-mirror-room.md#simplified-room-controls-2026-10-24).
+
+## Full-screen Mirror Room — 2026-10-24
+
+Made the authored room cover the viewport with its original proportions. Added bounded
+drag/keyboard exploration and fixed furniture shortcuts; heading, return and collapsible
+owner summary sit over the scene. Build, 3 Home tests and desktop/portrait component preview
+checks passed. See [validation and screenshots](validation/authored-mirror-room.md#full-screen-room-2026-10-24).
+
+## Remove standing Mirror Room character — 2026-10-24
+
+Removed the room's standing character/name button and unused styles/props. Build passed;
+the actual room component rendered without the character and all five furniture callbacks
+worked in an isolated browser preview. See [validation](validation/authored-mirror-room.md#remove-standing-room-character-2026-10-24).
+
+## Larger building resident portraits — 2026-10-24
+
+Enlarged indoor resident portrait frames/art by 50%, including click bounds, row spacing and conversation-indicator offsets. Build passed; checked the eight-resident two-row layout and selecting a portrait from its enlarged edge in the local browser. See [validation](validation/2026-10-24-building-resident-pins.md).
+
+## General wheel zoom — 2026-10-24
+
+Added cursor-anchored wheel zoom in General mode, with a viewport-cover minimum and bounded camera position during dragging, easing and resizing. Production build and 14 scene/camera tests passed; actual desktop and portrait browser wheel/drag checks confirmed no exposed map border. See [validation and screenshots](validation/2026-10-24-general-wheel-zoom.md).
 
 ## 2026-10-24
 

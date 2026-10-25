@@ -4,7 +4,7 @@ import { loadAuthoredTown, projectTownPosition } from './AuthoredTown';
 import { findTownPath, nearestWalkPoint, walkTownPath } from './TownNavigation';
 import type { MotionPoint } from './TownMotion';
 import { BUILDING_PINS, enteredBuilding } from './TownBuildings';
-import { cameraTarget, screenToTown, type CameraMode, type CameraFrame } from './TownCamera';
+import { cameraTarget, clampGeneralCamera, screenToTown, zoomGeneralCamera, type CameraMode, type CameraFrame } from './TownCamera';
 import type { Mirror } from './module_bindings/types';
 
 const TILE = 24;
@@ -14,6 +14,7 @@ const CHARACTER_W = 24;
 const CHARACTER_H = 48;
 const FOOT_Y = 10;
 const WALK_ROWS = [0, 1, 2, 1];
+const BUILDING_PIN_SCALE = 1.5;
 // Atlas coordinates from the teammate's Player1.tscn on origin/yq.
 const FACING_X = { up: 0, right: 32, down: 64, left: 96 };
 type Facing = keyof typeof FACING_X;
@@ -39,10 +40,36 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, cameraMo
   live.current = { mirrors, bubbles, mine, selected, cameraMode, followed };
   const camera = useRef<CameraFrame | null>(null);
   const pan = useRef({ x: 0, y: 0 });
+  const generalZoom = useRef(1);
+  const zoomAnchor = useRef<{ frame: CameraFrame; x: number; y: number } | null>(null);
   const drag = useRef({ x: 0, y: 0, active: false, moved: false });
   const pinHits = useRef<Array<{ id: bigint; x: number; y: number }>>([]);
   // Server movement runs at 5Hz; rendered characters follow destination routes each frame.
   const shown = useRef(new Map<bigint, ShownMirror>());
+
+  useEffect(() => {
+    const canvas = canvasRef.current!;
+    const wheel = (event: WheelEvent) => {
+      const current = camera.current;
+      const { cameraMode, followed } = live.current;
+      if (!current || (cameraMode === 'follow' && followed !== null && shown.current.has(followed))
+        || event.ctrlKey || event.deltaY === 0) return;
+      event.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const x = event.clientX - rect.left, y = event.clientY - rect.top;
+      const delta = event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? current.height : 1);
+      const minimum = cameraTarget(current.width, current.height, 'general').zoom;
+      const next = zoomGeneralCamera(current, minimum * generalZoom.current * Math.exp(-delta * 0.0015), x, y);
+      generalZoom.current = next.zoom / minimum;
+      pan.current = { x: next.x - WIDTH / 2, y: next.y - HEIGHT / 2 };
+      zoomAnchor.current = { frame: current, x, y };
+    };
+    // React's delegated wheel listener is passive; the map must consume this scroll.
+    canvas.addEventListener('wheel', wheel, { passive: false });
+    return () => canvas.removeEventListener('wheel', wheel);
+  }, []);
+
+  useEffect(() => { zoomAnchor.current = null; }, [cameraMode, followed]);
 
   useEffect(() => {
     const canvas = canvasRef.current!;
@@ -110,19 +137,35 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, cameraMo
       }
       const player = followed === null ? undefined : shown.current.get(followed);
       const targetCamera = cameraTarget(cssWidth, cssHeight, cameraMode, player ? { x: player.x * TILE, y: player.y * TILE - 14 } : undefined);
-      if (cameraMode === 'general' || !player) {
-        const halfW = cssWidth / targetCamera.zoom / 2, halfH = cssHeight / targetCamera.zoom / 2;
-        targetCamera.x = Math.max(halfW, Math.min(WIDTH - halfW, targetCamera.x + pan.current.x));
-        targetCamera.y = Math.max(halfH, Math.min(HEIGHT - halfH, targetCamera.y + pan.current.y));
+      const isGeneral = cameraMode === 'general' || !player;
+      if (isGeneral) {
+        targetCamera.zoom *= generalZoom.current;
+        targetCamera.x += pan.current.x;
+        targetCamera.y += pan.current.y;
       }
       const previousCamera = camera.current ?? targetCamera;
       const cameraEase = reducedMotion.matches ? 1 : 1 - Math.exp(-dt * 8);
-      const view = { ...targetCamera,
+      let view = { ...targetCamera,
         x: targetCamera.x,
         y: targetCamera.y,
         zoom: previousCamera.zoom + (targetCamera.zoom - previousCamera.zoom) * cameraEase };
+      if (isGeneral) {
+        const anchor = zoomAnchor.current;
+        view = anchor && anchor.frame.width === cssWidth && anchor.frame.height === cssHeight
+          ? zoomGeneralCamera(anchor.frame, view.zoom, anchor.x, anchor.y)
+          : clampGeneralCamera(view);
+        // Clamp the rendered frame, including during easing and viewport changes.
+        if (!anchor || anchor.frame.width !== cssWidth || anchor.frame.height !== cssHeight
+          || Math.abs(view.zoom - targetCamera.zoom) < 0.0001) {
+          pan.current = { x: view.x - WIDTH / 2, y: view.y - HEIGHT / 2 };
+          zoomAnchor.current = null;
+        }
+      }
       camera.current = view;
       canvas.dataset.cameraMode = cameraMode === 'follow' && player ? 'follow' : 'general';
+      canvas.dataset.cameraZoom = String(view.zoom);
+      canvas.dataset.cameraX = String(view.x);
+      canvas.dataset.cameraY = String(view.y);
       canvas.dataset.followedMirror = player ? String(followed) : '';
       g.setTransform(dpr, 0, 0, dpr, 0, 0);
       g.fillStyle = '#c6d9dc'; g.fillRect(0, 0, cssWidth, cssHeight);
@@ -158,11 +201,11 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, cameraMo
         occupants.forEach((m, i) => {
           const columns = Math.min(6, occupants.length);
           const rowSize = Math.min(columns, occupants.length - Math.floor(i / columns) * columns);
-          const x = (anchor.x - view.x) * view.zoom + cssWidth / 2 + (i % columns - (rowSize - 1) / 2) * 28;
-          const y = (anchor.y - view.y) * view.zoom + cssHeight / 2 - Math.floor(i / columns) * 38;
+          const x = (anchor.x - view.x) * view.zoom + cssWidth / 2 + (i % columns - (rowSize - 1) / 2) * 28 * BUILDING_PIN_SCALE;
+          const y = (anchor.y - view.y) * view.zoom + cssHeight / 2 - Math.floor(i / columns) * 38 * BUILDING_PIN_SCALE;
           pinHits.current.push({ id: m.id, x, y });
           drawBuildingPin(g, x, y, m, mine.has(m.id), selected === m.id, sprite);
-          if (m.conversationId !== 0n) drawTalking(g, x + 12, y - 30, now, reducedMotion.matches);
+          if (m.conversationId !== 0n) drawTalking(g, x + 12 * BUILDING_PIN_SCALE, y - 30 * BUILDING_PIN_SCALE, now, reducedMotion.matches);
           if (m.id === followed && cameraMode === 'follow') {
             g.fillStyle = '#fff9e9'; g.fillRect(x - 50, y + 3, 100, 16);
             g.fillStyle = '#404d36'; g.font = '11px "Pixelify Sans", monospace'; g.textAlign = 'center';
@@ -193,7 +236,8 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, cameraMo
     const rect = e.currentTarget.getBoundingClientRect();
     if (!camera.current) return;
     const screenX = e.clientX - rect.left, screenY = e.clientY - rect.top;
-    const pin = [...pinHits.current].reverse().find(p => Math.abs(screenX - p.x) <= 13 && screenY >= p.y - 34 && screenY <= p.y + 2);
+    const pin = [...pinHits.current].reverse().find(p => Math.abs(screenX - p.x) <= 13 * BUILDING_PIN_SCALE
+      && screenY >= p.y - 35 * BUILDING_PIN_SCALE && screenY <= p.y + 2 * BUILDING_PIN_SCALE);
     if (pin) { onSelect(pin.id); return; }
     const { x, y } = screenToTown(e.clientX - rect.left, e.clientY - rect.top, camera.current);
     let best: bigint | null = null;
@@ -214,7 +258,11 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, cameraMo
     <canvas ref={canvasRef} className="world" onClick={artStatus === 'ready' ? handleClick : undefined}
       onPointerDown={e => {
         drag.current = { x: e.clientX, y: e.clientY, active: true, moved: false };
-        if (camera.current) pan.current = { x: camera.current.x - WIDTH / 2, y: camera.current.y - HEIGHT / 2 };
+        if (camera.current && (cameraMode === 'general' || followed === null || !shown.current.has(followed))) {
+          pan.current = { x: camera.current.x - WIDTH / 2, y: camera.current.y - HEIGHT / 2 };
+          generalZoom.current = camera.current.zoom / cameraTarget(camera.current.width, camera.current.height, 'general').zoom;
+          zoomAnchor.current = null;
+        }
         e.currentTarget.setPointerCapture(e.pointerId);
       }}
       onPointerMove={e => {
@@ -229,7 +277,7 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, cameraMo
         pan.current.y = Math.max(halfH - HEIGHT / 2, Math.min(HEIGHT / 2 - halfH, pan.current.y - dy / camera.current.zoom));
       }}
       onPointerUp={() => { drag.current.active = false; }} onPointerCancel={() => { drag.current.active = false; }}
-      aria-label="Map of Mirrorville. Drag in General view to explore." data-character-renderer="loading" data-town-renderer="loading" />
+      aria-label="Map of Mirrorville. Drag to explore and scroll to zoom in General view." data-character-renderer="loading" data-town-renderer="loading" />
     {artStatus !== 'ready' && <div className="town-art-status" role="status">
       <p>{artStatus === 'error' ? 'The town artwork could not load.' : 'Opening Mirrorville…'}</p>
       <button onClick={() => setLoadAttempt(n => n + 1)}>Retry map</button>
@@ -303,7 +351,10 @@ function drawMirrorLabel(g: CanvasRenderingContext2D, m: Mirror, x: number, y: n
 }
 
 function drawBuildingPin(g: CanvasRenderingContext2D, x: number, y: number, mirror: Mirror, own: boolean, selected: boolean, sprite: HTMLImageElement) {
-  x = Math.round(x); y = Math.round(y);
+  g.save();
+  g.translate(Math.round(x), Math.round(y));
+  g.scale(BUILDING_PIN_SCALE, BUILDING_PIN_SCALE);
+  x = 0; y = 0;
   g.fillStyle = selected ? '#fff9e9' : '#4d5e41';
   // Stepped silhouette rather than an antialiased web map marker.
   g.fillRect(x - 7, y - 35, 14, 3); g.fillRect(x - 11, y - 32, 22, 3);
@@ -321,6 +372,7 @@ function drawBuildingPin(g: CanvasRenderingContext2D, x: number, y: number, mirr
     g.fillStyle = '#4d5e41'; g.font = '14px "Pixelify Sans", monospace'; g.textAlign = 'center';
     g.fillText(mirror.name.slice(0, 1), x, y - 15);
   }
+  g.restore();
 }
 
 // Small screen-space pixel marks; transcript text stays in the character panel.

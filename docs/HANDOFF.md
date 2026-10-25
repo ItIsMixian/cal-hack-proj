@@ -1,5 +1,11 @@
 # Handoff / 必要交接
 
+- Status card history is explicitly scoped by the user's choice to their own mirrors' exchanges with the selected resident, matched by participant IDs. Guest/empty history must not substitute other public conversations. Current client defaults are 7 real days / 5 exchanges with extractive source highlights; see [implementation and validation](validation/2026-10-24-resident-status-card.md).
+
+- Diary now records discussed content rather than person appraisals, gathering distinct topic sentences from every note in a merged visit. Name grouping and the 30-minute same-venue rule remain. Build, backend typecheck and 25 diary tests passed. The topic-focused `spacetimedb/src/index.ts` generation prompt remains unpublished; existing notes use a client-side content filter. See [current behavior and limits](validation/2026-10-24-diary-comments.md#conversation-content-instead-of-appraisal-2026-10-24).
+
+- Local preview recovery: the user supplied frequent-converter-stockings-place.trycloudflare.com; ignored .env.local now uses its wss origin for mirrorville and the documented public auth client. Local guest map / 7 mirrors / Residents and the hosted login entry were checked; real sign-in and writes were not exercised. See [runtime validation](validation/2026-10-24-local-frontend-runtime.md).
+
 - 当前检出个人分支 yq；本次从 origin/yw/map-assets（7509d4b）下载并合并应用代码，保留 Godot 工程、历史文档与个人 Proposed，不修改 main。
 - 用户明确：ADR 是双方已经形成共识的确定文件；只有 Proposed 是最近在考虑的想法。汇报两者必须分开，未实现的 ADR 也不是新的 Proposed。
 - 从 [PROGRESS](PROGRESS.md)、[团队原则](core/principles.md) 与 [决策索引](decisions/README.md) 开始；原对话背景在 [discussion-context](core/discussion-context.md)，不能据此覆盖共识。
