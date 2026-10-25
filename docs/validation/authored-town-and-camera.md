@@ -102,3 +102,14 @@ cafe and login signboard as style references. Transparent 1774x887 PNG retained;
 is 111,596 bytes. Runtime time stays live over the blank face. Generation output inspected: Pass.
 Production build: Pass. In-page desktop/phone placement and aesthetic acceptance: Pending
 (owner validation). Full prompt/provenance: `public/assets/ui/README.md`.
+
+## One-second snapshot pacing correction
+
+Server cadence is 1Hz. Fixed-speed chasing could finish small projected steps early, then
+stand still awaiting the next snapshot. A one-second snapshot playback now spreads each
+update across frames, with existing speed/stall caps retained and no future extrapolation.
+Walk animation uses elapsed moving time at 8 frames/second instead of distance-normalized
+time at 5, with a 150ms idle grace to avoid phase resets at packet boundaries. Regression
+checks a 0.36-unit step moves on at least 59 of 60 frames, stays within its endpoint and
+retargets without snapping. Build: Pass. Town tests: Pass (10 tests). Phone FPS and subjective
+smoothness: Pending; no CPU/GPU performance improvement is claimed without device profiling.

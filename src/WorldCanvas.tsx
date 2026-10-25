@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { WORLD_W, WORLD_H, LOOK_COLORS } from '../spacetimedb/src/world';
 import { loadAuthoredTown, projectTownPosition } from './AuthoredTown';
-import { advanceTownPosition } from './TownMotion';
+import { advanceTownPosition, sampleTownSnapshot, type TownSnapshot } from './TownMotion';
 import { BUILDING_PINS, enteredBuilding } from './TownBuildings';
 import { cameraTarget, screenToTown, type CameraMode, type CameraFrame } from './TownCamera';
 import type { Mirror } from './module_bindings/types';
@@ -16,7 +16,7 @@ const WALK_ROWS = [0, 1, 2, 1];
 // Atlas coordinates from the teammate's Player1.tscn on origin/yq.
 const FACING_X = { up: 0, right: 32, down: 64, left: 96 };
 type Facing = keyof typeof FACING_X;
-type ShownMirror = { x: number; y: number; facing: Facing; walkTime: number; moving: boolean };
+type ShownMirror = { x: number; y: number; facing: Facing; walkTime: number; moving: boolean; snapshot?: TownSnapshot; lastMovedAt?: number };
 
 type Props = {
   mirrors: readonly Mirror[];
@@ -77,16 +77,20 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, cameraMo
       for (const id of shown.current.keys()) if (!present.has(id)) shown.current.delete(id);
       for (const m of mirrors) {
         const target = authored ? projectTownPosition(m.x, m.y) : m;
-        const p = shown.current.get(m.id) ?? { x: target.x, y: target.y, facing: 'down' as Facing, walkTime: 0, moving: false };
-        const next = advanceTownPosition(p, target, dt);
+        const p: ShownMirror = shown.current.get(m.id) ?? { x: target.x, y: target.y, facing: 'down', walkTime: 0, moving: false };
+        const sampled = sampleTownSnapshot(p.snapshot, p, target, now);
+        p.snapshot = sampled.snapshot;
+        const next = advanceTownPosition(p, sampled.point, dt);
         const dx = next.x - p.x;
         const dy = next.y - p.y;
         const travelled = Math.hypot(dx, dy);
-        p.moving = travelled > 0.0001;
-        if (p.moving) {
+        if (travelled > 0.0001) {
+          p.lastMovedAt = now;
           p.facing = Math.abs(dx) > Math.abs(dy) ? dx > 0 ? 'right' : 'left' : dy > 0 ? 'down' : 'up';
-          p.walkTime += travelled / 1.8;
-        } else p.walkTime = 0;
+        }
+        p.moving = now - (p.lastMovedAt ?? -Infinity) < 150;
+        if (p.moving) p.walkTime += dt;
+        else p.walkTime = 0;
         p.x = next.x;
         p.y = next.y;
         shown.current.set(m.id, p);
@@ -234,7 +238,7 @@ function drawMirror(g: CanvasRenderingContext2D, m: Mirror, p: ShownMirror, isMi
     g.strokeStyle = LOOK_COLORS[m.look % LOOK_COLORS.length];
     g.lineWidth = isMine || isSelected ? 2.5 : 1.5;
     g.stroke();
-    const row = p.moving && !reducedMotion ? WALK_ROWS[Math.floor(p.walkTime * 5) % WALK_ROWS.length] : 1;
+    const row = p.moving && !reducedMotion ? WALK_ROWS[Math.floor(p.walkTime * 8) % WALK_ROWS.length] : 1;
     g.save();
     g.imageSmoothingEnabled = false;
     g.drawImage(sprite, FACING_X[p.facing], row * 32, 16, 32,

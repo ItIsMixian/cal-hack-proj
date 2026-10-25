@@ -1,4 +1,19 @@
 export type MotionPoint = { x: number; y: number };
+export type TownSnapshot = { from: MotionPoint; to: MotionPoint; receivedAt: number };
+
+// Play a server step across its one-second update interval instead of finishing
+// a small step early and standing still until the next packet. No extrapolation.
+export function sampleTownSnapshot(previous: TownSnapshot | undefined, rendered: MotionPoint, target: MotionPoint, now: number) {
+  const changed = !previous || previous.to.x !== target.x || previous.to.y !== target.y;
+  const snapshot: TownSnapshot = changed
+    ? { from: { x: rendered.x, y: rendered.y }, to: { ...target }, receivedAt: now }
+    : previous;
+  const progress = Math.max(0, Math.min(1, (now - snapshot.receivedAt) / 1000));
+  return { snapshot, point: {
+    x: snapshot.from.x + (snapshot.to.x - snapshot.from.x) * progress,
+    y: snapshot.from.y + (snapshot.to.y - snapshot.from.y) * progress,
+  } };
+}
 
 // Database snapshots arrive once a second. Never turn a projection jump or delayed
 // snapshot into a burst of speed; walk toward the latest destination at a fixed pace.

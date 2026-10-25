@@ -132,3 +132,22 @@ test('walking speed is stable across frame rates and stops exactly at its target
     assert.equal(stopped.x, point.x);
   }
 });
+
+test('small one-second updates keep moving between packets without overshooting or snapping on retarget', () => {
+  const target = { x: 0.36, y: 0 };
+  let point = { x: 0, y: 0 }, snapshot, movingFrames = 0;
+  for (let i = 0; i <= 60; i++) {
+    const sample = motionExports.sampleTownSnapshot(snapshot, point, target, i * 1000 / 60);
+    snapshot = sample.snapshot;
+    const next = motionExports.advanceTownPosition(point, sample.point, 1 / 60);
+    if (next.x > point.x + 1e-9) movingFrames++;
+    assert.ok(next.x <= target.x + 1e-9);
+    point = next;
+  }
+  assert.ok(movingFrames >= 59, `only ${movingFrames} moving frames`);
+  const before = point.x;
+  const changed = motionExports.sampleTownSnapshot(snapshot, point, { x: -1, y: 0 }, 1100);
+  assert.equal(changed.point.x, before);
+  const stopped = motionExports.sampleTownSnapshot(changed.snapshot, point, { x: -1, y: 0 }, 4000);
+  assert.equal(stopped.point.x, -1);
+});
