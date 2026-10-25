@@ -15,6 +15,9 @@ explicit browser guests are integrated; see `validation/login-figma-and-auth.md`
 login, verified guest compatibility and Pending cross-browser/expiry checks. The auth project is
 configured on Maincloud, while the town simulation remains local.
 
+Phone entry layout, compressed production sharing and the current tunnel's exact auth callbacks
+were repaired after phone feedback; see `validation/mobile-login-and-share-performance.md`.
+
 ## Next
 
 Teammate-authored town art and full-screen General/Follow cameras are integrated on

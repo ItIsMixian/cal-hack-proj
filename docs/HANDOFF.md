@@ -2,6 +2,15 @@
 
 Things that are not obvious from the code.
 
+- **Shared preview performance / login**: public `*.trycloudflare.com` requests now serve the
+  production `dist/` build through `scripts/share-preview.ts`, gzip-compressed, with no dev module
+  graph. Localhost keeps HMR. Run `npm.cmd run build` after changes to update the share URL.
+  After restart, start the local database/dev server and create a new tunnel before sharing.
+  The old tunnel URL is temporary. Town artwork uses WebP and explicit loading/retry (no old-map fallback).
+  Login images have smaller WebP variants and the mobile form is in normal flow; originals remain.
+  The current tunnel's exact login/logout callbacks were saved in SpacetimeAuth with owner approval;
+  a replacement tunnel needs replacement exact entries. See `validation/mobile-login-and-share-performance.md`.
+
 - **Authored Mirror Room** (`yw/map-assets`): `origin/yq` commit `1f404a9` supplies `Home.tscn`
   and five PNGs. Regenerate with `node scripts/import-home-scene.mjs 1f404a9`. Keep generated
   `src/homeScene.json` in sync. All existing room actions remain connected; no data migration.
@@ -13,7 +22,8 @@ Things that are not obvious from the code.
   Existing server coordinates are projected onto forecourts; this does not add collision/pathfinding.
   See `validation/authored-town-and-camera.md`. For temporary HTTPS sharing, Vite proxies only
   the SDK subscribe and websocket-token routes; client connections use the share origin.
-  Guest access is checked; account callback registration on temporary domains is Pending.
+  Guest access and current temporary-domain callback registration are checked; full phone account
+  magic-link completion remains Pending.
 
 - **Run locally**: `spacetime start`, then `spacetime publish mirrorville --module-path spacetimedb --server local --yes`,
   `spacetime generate --lang typescript --out-dir src/module_bindings --module-path spacetimedb`, `npm run dev`.

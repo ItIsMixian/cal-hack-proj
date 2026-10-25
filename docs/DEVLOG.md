@@ -51,3 +51,11 @@ HTTPS preview supports guest access when venue Wi-Fi blocks direct LAN access. P
 build and 55 regression/scene tests pass; desktop/portrait interactions were checked. No database
 publish/reset or mixian edits. Evidence and Pending device checks: `validation/authored-town-and-camera.md`
 and `validation/authored-mirror-room.md`.
+
+## Phone login and temporary sharing — 2026-10-24
+
+Fixed phone entry clipping and removed the second input-frame appearance. Original PNGs remain;
+phone artwork now totals about 121KB, with inline WOFF2 and gzip production delivery on share URLs.
+Retained localhost HMR. Saved exact share-domain auth callbacks after owner confirmation and verified
+the hosted email-login page opens. Build and 59 tests pass; actual phone speed and complete email
+magic-link return still need owner validation. See `validation/mobile-login-and-share-performance.md`.

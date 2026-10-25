@@ -14,12 +14,14 @@ As of the diary and Figma login implementations on `yw/diary` (2026-10-24). Fact
 | `spacetimedb/src/llm.ts` | Raw HTTP calls: DeepSeek chat, Claude Messages, JSON parsing |
 | `src/SessionRoot.tsx` | Entry gate, SpacetimeAuth OIDC sessions, separate guest credential and database connection |
 | `src/LoginScreen.tsx`, `src/login.css` | Figma pixel-art entry screen, email hint, hosted account login/signup and guest entry |
-| `public/assets/login/` | Six exported original Figma image layers and source manifest |
+| `public/assets/login/` | Original Figma image layers plus compressed desktop/mobile WebP delivery variants |
+| `scripts/optimize-login-assets.py`, `src/pixel-font.css` | Reproducible delivery variants and embedded WOFF2 font (originals/licenses retained) |
+| `scripts/share-preview.ts` | Gzipped production build for temporary share domains; localhost keeps Vite HMR |
 | `public/fonts/` | Locally hosted Pixelify Sans and OFL license |
 | `src/App.tsx`, `src/town-game.css` | Game town shell: clock, live map, action dock, resident/guide panels, diary overlay and Mirror Room entry |
 | `src/WorldCanvas.tsx`, `src/TownCamera.ts` | Full-viewport Canvas with General/Follow cameras, owned-mirror selection, walking sprites, inverse-camera picking and screen-sized speech bubbles |
 | `src/AuthoredTown.ts`, `public/assets/town/` | Teammate's complete Godot town layout (11 sprite instances, 220 House/Decoration cells), original textures/provenance, client-only forecourt projection |
-| `src/TownArt.ts` | Cached fallback scenery if the authored town cannot load |
+| `src/TownArt.ts` | Legacy scenery retained as source; live map uses authored art with loading/retry UI |
 | `scripts/import-town-scene.mjs`, `scripts/test-town-scene.mjs` | Reproducible scene conversion and layout/hash/projection/camera checks |
 | `src/CharacterAvatar.tsx` | Shared idle character preview for Mirror Room and creation form |
 | `public/assets/characters/` | Original Cup Nooble PNG from teammate branch, source mapping and license |

@@ -20,3 +20,8 @@ projection adapts the existing simulation to this artwork: café, gym, restauran
 clock hall (workshop) and farm (lounge). These last two are temporary venue mappings.
 No server positions, pathfinding or collision rules are changed. The illustrated sprites
 remain whole images, so their internal trees/roofs do not provide separate occlusion masks.
+
+Runtime delivery uses WebP derivatives from `python scripts/optimize-town-assets.py` (Pillow).
+Dimensions and alpha are unchanged; tile atlases are lossless, illustrated sprites use quality 82.
+Original PNGs and provenance remain unchanged. Delivery totals 1,365,282 bytes versus 11,255,664
+original bytes. Failed loads show a retry control instead of displaying the old map.

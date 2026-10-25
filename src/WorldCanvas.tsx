@@ -1,6 +1,5 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { WORLD_W, WORLD_H, LOOK_COLORS } from '../spacetimedb/src/world';
-import { drawTown } from './TownArt';
 import { loadAuthoredTown, projectTownPosition } from './AuthoredTown';
 import { cameraTarget, screenToTown, type CameraMode, type CameraFrame } from './TownCamera';
 import type { Mirror } from './module_bindings/types';
@@ -28,6 +27,8 @@ type Props = {
 };
 
 export default function WorldCanvas({ mirrors, bubbles, mine, selected, cameraMode, followed, onSelect }: Props) {
+  const [artStatus, setArtStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   // Latest props for the animation loop, which runs outside React renders.
   const live = useRef({ mirrors, bubbles, mine, selected, cameraMode, followed });
@@ -47,14 +48,12 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, cameraMo
     sprite.src = '/assets/characters/cup-nooble-character.png';
     const town = document.createElement('canvas');
     town.width = WIDTH; town.height = HEIGHT;
-    const paintTown = () => drawTown(town.getContext('2d')!);
-    paintTown();
+    setArtStatus('loading');
     let disposed = false;
     let authored = false;
-    void document.fonts.ready.then(() => { if (!disposed && !authored) paintTown(); });
     void loadAuthoredTown(town.getContext('2d')!).then(() => {
-      if (!disposed) { authored = true; canvas.dataset.townRenderer = 'authored'; shown.current.clear(); }
-    }).catch(() => { if (!disposed) canvas.dataset.townRenderer = 'fallback'; });
+      if (!disposed) { authored = true; setArtStatus('ready'); canvas.dataset.townRenderer = 'authored'; shown.current.clear(); }
+    }).catch(() => { if (!disposed) { setArtStatus('error'); canvas.dataset.townRenderer = 'error'; } });
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
     const draw = (now: number) => {
@@ -135,7 +134,7 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, cameraMo
     };
     frame = requestAnimationFrame(draw);
     return () => { disposed = true; cancelAnimationFrame(frame); sprite.onload = null; sprite.onerror = null; };
-  }, []);
+  }, [loadAttempt]);
 
   const handleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -154,7 +153,13 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, cameraMo
     onSelect(best);
   };
 
-  return <canvas ref={canvasRef} className="world" onClick={handleClick} aria-label="Map of Mirrorville" data-character-renderer="loading" data-town-renderer="loading" />;
+  return <>
+    <canvas ref={canvasRef} className="world" onClick={artStatus === 'ready' ? handleClick : undefined} aria-label="Map of Mirrorville" data-character-renderer="loading" data-town-renderer="loading" />
+    {artStatus !== 'ready' && <div className="town-art-status" role="status">
+      <p>{artStatus === 'error' ? 'The town artwork could not load.' : 'Opening Mirrorville…'}</p>
+      <button onClick={() => setLoadAttempt(n => n + 1)}>Retry map</button>
+    </div>}
+  </>;
 }
 
 function drawMirror(g: CanvasRenderingContext2D, m: Mirror, p: ShownMirror, isMine: boolean, isSelected: boolean,

@@ -32,6 +32,35 @@ test('all texture copies retain original bytes', () => {
   for (const file of provenance.textures) assert.equal(createHash('sha256').update(asset(file.file)).digest('hex'), file.sha256);
 });
 
+test('authored loader uses shipped WebP files and never paints a partially failed map', async () => {
+  const loaderCode = readFileSync(new URL('../src/AuthoredTown.ts', import.meta.url), 'utf8').replace(/import .*?;\r?\n/, '');
+  const requested = [];
+  let fail = false;
+  class ImageStub {
+    width = 192; height = 192;
+    set src(url) {
+      const name = decodeURIComponent(url.split('/').pop());
+      const bytes = asset(name);
+      assert.equal(bytes.toString('ascii', 8, 12), 'WEBP');
+      requested.push(name);
+      queueMicrotask(() => fail ? this.onerror() : this.onload());
+    }
+  }
+  const loaded = {};
+  runInNewContext(ts.transpileModule(loaderCode, {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+  }).outputText, { exports: loaded, Image: ImageStub, setTimeout, clearTimeout, AbortSignal,
+    fetch: async () => ({ ok: true, json: async () => scene }) });
+  let paints = 0;
+  const context = { save() {}, restore() {}, clearRect() {}, translate() {}, transform() {}, drawImage() { paints++; } };
+  await loaded.loadAuthoredTown(context);
+  assert.equal(new Set(requested).size, 11);
+  assert.equal(paints, 231);
+  paints = 0; fail = true;
+  await assert.rejects(loaded.loadAuthoredTown(context), /Town texture:/);
+  assert.equal(paints, 0);
+});
+
 const world = readFileSync(new URL('../spacetimedb/src/world.ts', import.meta.url), 'utf8');
 const projection = readFileSync(new URL('../src/AuthoredTown.ts', import.meta.url), 'utf8').replace(/import .*?;\r?\n/, '');
 const exports = {};

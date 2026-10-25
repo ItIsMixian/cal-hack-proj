@@ -9,17 +9,18 @@ type TileLayer = { type: 'tiles'; name: string; cells: { x: number; y: number; t
 type Scene = { tileSize: number; nodes: (SpriteLayer | TileLayer)[] };
 
 export async function loadAuthoredTown(g: CanvasRenderingContext2D) {
-  const response = await fetch('/assets/town/scene.json');
+  const response = await fetch('/assets/town/scene.json', { signal: AbortSignal.timeout(20_000) });
   if (!response.ok) throw new Error(`Town manifest: ${response.status}`);
   const scene = await response.json() as Scene;
   const files = new Set(scene.nodes.flatMap(n => n.type === 'sprite' ? [n.texture] : n.cells.map(c => c.texture)));
   const images = new Map(await Promise.all([...files].map(file => new Promise<[string, HTMLImageElement]>((resolve, reject) => {
     const image = new Image();
-    image.onload = () => resolve([file, image]);
-    image.onerror = () => reject(new Error(`Town texture: ${file}`));
-    image.src = `/assets/town/${file}`;
+    const timeout = setTimeout(() => reject(new Error(`Town texture timed out: ${file}`)), 20_000);
+    image.onload = () => { clearTimeout(timeout); resolve([file, image]); };
+    image.onerror = () => { clearTimeout(timeout); reject(new Error(`Town texture: ${file}`)); };
+    image.src = `/assets/town/${encodeURIComponent(file.replace(/\.png$/, '.webp'))}`;
   }))));
-  // Commit to the cache only when all layers are ready; keep the fallback on load errors.
+  // Commit to the cache only when all layers are ready; the UI offers retry on load errors.
   g.save();
   g.clearRect(0, 0, 960, 672);
   g.translate(CAMERA_X, CAMERA_Y);
