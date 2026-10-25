@@ -9,6 +9,22 @@ Do it after Part A of `mirror-fidelity.md` (imports must merge before people imp
 It touches the same files (`src/MirrorRoom.tsx`, `src/importers.ts`, `src/CreateMirror.tsx`), so the
 same person does both, one after the other.
 
+## The four steps, by the premise's bar
+
+The premise orders the bar: true facts, then never misrepresenting the owner, then sounding like them.
+Importing follows the same order:
+
+| Step | What | Serves |
+| --- | --- | --- |
+| 1. Ask your AI (main path) | The assistant summarizes what you work on, care about and have been doing lately, with dates | True facts |
+| 2. You check | Read the cards in the Mirror Room and fix anything wrong ("That's not me") | No misrepresentation |
+| 3. Your own messages (optional) | A chat export, or a dozen messages you sent recently, pasted | Sounding like you (style card, `mirror-fidelity.md` part D) |
+| 4. Staying current | The "before you head out" ritual and one question a day | True facts over time |
+
+An AI's summary contains none of the owner's own wording, so it cannot produce a style card; say so
+next to step 3 ("Want it to sound like you? Add a few of your own messages"). Its memory can also be
+stale or flattering, which is why the prompt asks for dates and step 2 is never skipped.
+
 ## Outcome
 
 Someone scans the QR code at the venue and, in under a minute on their phone, has a mirror built from
@@ -36,7 +52,15 @@ mirror in a few seconds, and it says honestly how little it knows.
    self-card. `createMirror` takes either; `buildSelfCard` works from the three words alone.
 5. **Honest about thin mirrors.** A mirror with no imported cards says so in its room ("It only knows the
    three words you gave it") with a link to the desk. No progress bars, percentages or reminders.
-6. Record the onboarding change as a decision when it lands (the personality check becomes optional).
+6. **One question a day.** Once a day, when the owner opens the app, the mirror asks one short question
+   in the room (no notification, no badge): what are you busy with lately, what would you like to talk
+   about with someone this week, what do you usually do on weekends, then gradually deeper ones in the
+   spirit of Aron's 36 questions. Skipping is fine and nothing reminds them. A one- or two-sentence answer
+   goes through the normal import (merged, dated today), so `recent` stays current and the owner's own
+   words feed the style card.
+7. **Before you head out.** When the owner sets today's intent, also offer one optional line: "anything
+   you'd like it to bring up?". It is used as a topic for today only.
+8. Record the onboarding change as a decision when it lands (the personality check becomes optional).
 
 ## Not doing
 
@@ -49,6 +73,8 @@ Sign-in with Spotify, GitHub or other accounts; Web Share Target; an MCP server;
 - The owner of a test mirror built only from the AI summary says the cards sound like them; record what
   they rejected.
 - A mirror made with three words and no import walks the town, talks, and shows the "only knows" note.
+- Answering the daily question updates or adds a card dated today; skipping it changes nothing and
+  shows nothing.
 - The optional check still updates the self-card; typechecks pass; results in `docs/validation/`.
 
 ## Gotchas
