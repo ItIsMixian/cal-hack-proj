@@ -103,21 +103,17 @@ were repaired after phone feedback; see `validation/mobile-login-and-share-perfo
 
 ## Next
 
-Teammate-authored town art and full-screen General/Follow cameras are integrated on
-`yw/map-assets`; see `validation/authored-town-and-camera.md`. Teammate's Home scene is also
-integrated; see `validation/authored-mirror-room.md`.
+The integrated web and desktop demo is deployed; see
+`validation/2026-10-25-integrated-cloud-demo.md`. Fidelity A/B, onboarding, guest lifecycle
+and the host demo toggle are implemented. Main's accepted 0010 and fidelity C remain
+unimplemented; merging their documents does not change runtime evidence checks.
 
-Mirror fidelity Parts A/B are implemented and locally tested on `yw/fidelity`; see
-`validation/mirror-fidelity-a-b.md`. Owner judgment of the summary/cards and the rebase after diary
-merges into main remain Pending. Part C is not included.
+1. Complete remaining live acceptance checks recorded in `validation/`.
+2. Review the remaining proposed decisions and accepted-but-unimplemented work
 
-1. Diary, visible interest, contact unlock and Mirror Room contact field implemented (0008); see
-   `validation/0008-diary-and-mutual-interest.md` for acceptance results and remaining checks.
-2. Public deployment (0007): first check that a Maincloud procedure can call DeepSeek.
-3. Agree on the remaining drafts on branch `yw/proposals`: postcard privacy, CREAO team brief
    (`npm run check-decisions` lists drafts on every branch).
-4. Anthropic key → validate the Claude judgment path (0002).
-5. Pitch: demo script, video backup, Devpost page; collect real usage at the venue.
+3. Anthropic configured; complete cloud application-path acceptance (0002).
+4. Pitch: demo script, video backup, Devpost page; collect real usage at the venue.
 
 Ideas nobody has evaluated yet live in `backlog.md`. Branch and decision-numbering rules are in
 `decisions/README.md`.
