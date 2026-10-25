@@ -70,8 +70,8 @@ Sign-in with Spotify, GitHub or other accounts; Web Share Target; an MCP server;
 
 - On a 375 px wide phone, from opening the link to a mirror with at least five imported cards takes
   under 60 seconds, measured once with ChatGPT and once with Claude.
-- The owner of a test mirror built only from the AI summary says the cards sound like them; record what
-  they rejected.
+- The owner of a test mirror built only from the AI summary confirms the facts are right and nothing
+  misrepresents them; record what they corrected or rejected.
 - A mirror made with three words and no import walks the town, talks, and shows the "only knows" note.
 - Answering the daily question updates or adds a card dated today; skipping it changes nothing and
   shows nothing.
