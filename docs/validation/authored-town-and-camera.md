@@ -113,3 +113,18 @@ time at 5, with a 150ms idle grace to avoid phase resets at packet boundaries. R
 checks a 0.36-unit step moves on at least 59 of 60 frames, stays within its endpoint and
 retargets without snapping. Build: Pass. Town tests: Pass (10 tests). Phone FPS and subjective
 smoothness: Pending; no CPU/GPU performance improvement is claimed without device profiling.
+
+## Navigation and constant-speed travel
+
+Supersedes the previous direct projection/snapshot-following motion and the earlier no-pathfinding
+limitation. `scripts/build-town-navigation.py` derives a connected 4px collision grid from
+authored terrain and sprite/tile alpha, with 4px clearance and explicit conservative tree/bench
+masks for the baked park illustration. Weighted A* prefers roads and permits clear grass for
+approaches, rejecting water, solid artwork and off-map cells. Server destinations snap to this
+connected terrain. Routes recalculate only when destination changes. Rendered movement consumes
+a constant 1.8 world-units/second across path corners; no straight-line fallback on route failure.
+The collision grid is presentation-only: server social-distance checks still use abstract
+simulation coordinates. Pixel masks/park footprints require regeneration/review after art edits.
+Build: Pass. Navigation tests: Pass (3: all 36 venue pairs and sampled path segments; known
+building/water/cloud blockers; constant arc-length speed at 30/60/120Hz). Device visual path
+acceptance and alignment of every baked decoration: Pending (owner validation).

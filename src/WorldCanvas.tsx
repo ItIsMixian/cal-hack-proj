@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { WORLD_W, WORLD_H, LOOK_COLORS } from '../spacetimedb/src/world';
 import { loadAuthoredTown, projectTownPosition } from './AuthoredTown';
-import { advanceTownPosition, sampleTownSnapshot, type TownSnapshot } from './TownMotion';
+import { findTownPath, nearestWalkPoint, walkTownPath } from './TownNavigation';
+import type { MotionPoint } from './TownMotion';
 import { BUILDING_PINS, enteredBuilding } from './TownBuildings';
 import { cameraTarget, screenToTown, type CameraMode, type CameraFrame } from './TownCamera';
 import type { Mirror } from './module_bindings/types';
@@ -16,7 +17,8 @@ const WALK_ROWS = [0, 1, 2, 1];
 // Atlas coordinates from the teammate's Player1.tscn on origin/yq.
 const FACING_X = { up: 0, right: 32, down: 64, left: 96 };
 type Facing = keyof typeof FACING_X;
-type ShownMirror = { x: number; y: number; facing: Facing; walkTime: number; moving: boolean; snapshot?: TownSnapshot; lastMovedAt?: number };
+type ShownMirror = { x: number; y: number; facing: Facing; walkTime: number; moving: boolean; lastMovedAt?: number;
+  goalKey?: string; goal?: MotionPoint; path?: MotionPoint[]; pathIndex?: number };
 
 type Props = {
   mirrors: readonly Mirror[];
@@ -76,11 +78,20 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, cameraMo
       const indoors = new Map<bigint, string>();
       for (const id of shown.current.keys()) if (!present.has(id)) shown.current.delete(id);
       for (const m of mirrors) {
-        const target = authored ? projectTownPosition(m.x, m.y) : m;
-        const p: ShownMirror = shown.current.get(m.id) ?? { x: target.x, y: target.y, facing: 'down', walkTime: 0, moving: false };
-        const sampled = sampleTownSnapshot(p.snapshot, p, target, now);
-        p.snapshot = sampled.snapshot;
-        const next = advanceTownPosition(p, sampled.point, dt);
+        let p = shown.current.get(m.id);
+        if (!p) {
+          const start = nearestWalkPoint(authored ? projectTownPosition(m.x, m.y) : m);
+          p = { ...start, facing: 'down', walkTime: 0, moving: false };
+        }
+        const goalKey = `${m.targetX}/${m.targetY}`;
+        if (p.goalKey !== goalKey) {
+          const destination = authored ? projectTownPosition(m.targetX, m.targetY) : { x: m.targetX, y: m.targetY };
+          p.path = findTownPath(p, destination); p.pathIndex = 0; p.goalKey = goalKey;
+          p.goal = p.path.at(-1) ?? { x: p.x, y: p.y };
+        }
+        const walked = walkTownPath(p, p.path ?? [], p.pathIndex ?? 0, dt);
+        p.pathIndex = walked.index;
+        const next = walked.position;
         const dx = next.x - p.x;
         const dy = next.y - p.y;
         const travelled = Math.hypot(dx, dy);
@@ -94,7 +105,7 @@ export default function WorldCanvas({ mirrors, bubbles, mine, selected, cameraMo
         p.x = next.x;
         p.y = next.y;
         shown.current.set(m.id, p);
-        const building = authored ? enteredBuilding(m, Math.hypot(target.x - p.x, target.y - p.y)) : null;
+        const building = authored ? enteredBuilding(m, Math.hypot(p.goal!.x - p.x, p.goal!.y - p.y)) : null;
         if (building) indoors.set(m.id, building);
       }
       const player = followed === null ? undefined : shown.current.get(followed);
