@@ -47,7 +47,7 @@ Per-visitor views: `my_mirrors`, `my_diary`, `my_cards`, `my_summaries`, `my_imp
 
 ## Implemented
 
-- Five demo mirrors seeded on init; visitors create up to 3 mirrors each, 60 total.
+- No automatic demo residents on init/reset. Existing residents can reversibly exit through admin-only `set_resident_active`; inactive rows retain profiles/cards but leave simulation and the visible roster. Visitors create up to 3 mirrors each, 60 active total.
 - Daily rhythm, visible activities, extraversion-weighted initiative, relationship sightings/talks,
   conversation length by familiarity, natural endings (`[END]`).
 - Diaries for both sides of each wrapped conversation, including non-matches; model failure uses a factual fallback.

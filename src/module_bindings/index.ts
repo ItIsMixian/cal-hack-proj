@@ -45,6 +45,7 @@ import SetCardRoomReducer from "./set_card_room_reducer";
 import SetContactReducer from "./set_contact_reducer";
 import SetLlmConfigReducer from "./set_llm_config_reducer";
 import SetModelsReducer from "./set_models_reducer";
+import SetResidentActiveReducer from "./set_resident_active_reducer";
 import ShowInterestReducer from "./show_interest_reducer";
 import UndoCardEditReducer from "./undo_card_edit_reducer";
 import UpdateIntentReducer from "./update_intent_reducer";
@@ -151,6 +152,7 @@ const reducersSchema = __reducers(
   __reducerSchema("set_contact", SetContactReducer),
   __reducerSchema("set_llm_config", SetLlmConfigReducer),
   __reducerSchema("set_models", SetModelsReducer),
+  __reducerSchema("set_resident_active", SetResidentActiveReducer),
   __reducerSchema("show_interest", ShowInterestReducer),
   __reducerSchema("undo_card_edit", UndoCardEditReducer),
   __reducerSchema("update_intent", UpdateIntentReducer),

@@ -186,3 +186,17 @@ test('arrival holds a destination for the chosen dwell period before moving agai
   assert.notEqual(f.db.mirror.id.find(40n).targetX, 5);
   assert.equal(f.db.mirror.id.find(40n).activity, 'walking');
 });
+
+
+test('resident exit is admin-only and reversible, retaining profile and ending live conversations', () => {
+  const f = fixture(true);
+  f.db.config.id.update({ ...f.db.config.id.find(0), admin: A });
+  const profile = { ...f.db.mirrorProfile.mirrorId.find(20n) };
+  assert.throws(() => mod.setResidentActive(f.ctx(B), { mirrorId: 20n, active: false }), /admin/);
+  mod.setResidentActive(f.ctx(A), { mirrorId: 20n, active: false });
+  assert.equal(f.db.mirror.id.find(20n).active, false);
+  assert.equal(f.db.conversation.id.find(30n).active, false);
+  assert.deepEqual(f.db.mirrorProfile.mirrorId.find(20n), profile);
+  mod.setResidentActive(f.ctx(A), { mirrorId: 20n, active: true });
+  assert.equal(f.db.mirror.id.find(20n).active, true);
+});

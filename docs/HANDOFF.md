@@ -54,8 +54,11 @@ Things that are not obvious from the code.
 - **On the original dev machine** the SpacetimeDB CLI was installed inside the coding agent's sandbox,
   so it is not on the real PATH. Anyone else should install the CLI normally (spacetimedb.com/install).
 - **PowerShell** blocks `npm`/`npx` scripts on that machine; use `npm.cmd` / `npx.cmd`.
-- **Demo mirrors** (Yun, Marco, Priya, Sam, Lena) are owned by the publisher, always wave back, and only
-  chat among themselves at a reduced rate.
+- **Resident exits**: five publisher-owned system demo mirrors (ids 1–5) are now inactive.
+  No demos are automatically seeded. Admin `set_resident_active(id, active)` reversibly hides/restores
+  a resident, ending active conversations on exit and retaining all data. Test mirrors remain pending
+  owner clarification; mixian id9 remains active. Latest temporary public origin is
+  `https://frequent-converter-stockings-place.trycloudflare.com`; exact auth callbacks saved.
 - **Docs reader**: `python .agents/skills/orrery-docs-local/scripts/orrery_docs.py build --target .`, then open
   `docs/_site/orrery-docs.html` (generated, gitignored).
 

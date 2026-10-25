@@ -36,7 +36,8 @@ export default function App({ sessionLabel, onExit, accountMode = false }: {
 }) {
   const { isActive, identity } = useSpacetimeDB();
   const seenKey = `${SEEN_KEY}/${identity?.toHexString() ?? 'connecting'}`;
-  const [mirrors] = useTable(tables.mirror);
+  const [allMirrors] = useTable(tables.mirror);
+  const mirrors = useMemo(() => allMirrors.filter(m => m.active !== false), [allMirrors]);
   const [conversations] = useTable(tables.conversation);
   const [lines] = useTable(tables.line);
   const [myMirrors] = useTable(tables.myMirrors);

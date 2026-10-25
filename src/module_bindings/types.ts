@@ -161,6 +161,7 @@ export const Mirror = __t.object("Mirror", {
   conversationId: __t.u64(),
   demo: __t.bool(),
   lastChatAt: __t.timestamp(),
+  active: __t.bool(),
 });
 export type Mirror = __Infer<typeof Mirror>;
 
