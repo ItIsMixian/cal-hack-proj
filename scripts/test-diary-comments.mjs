@@ -220,3 +220,12 @@ test('selected visit changes independently while the people index stays visible'
  assert.equal((html.match(/<article/g) || []).length, 1);
  assert.match(html, /Conversation 2 \/ 2/);
 });
+
+test('interest is visible beside people before opening a conversation', () => {
+ const html = render([at(0, {otherName: 'Inbound', theyAreInterested: true}), at(1, {otherName: 'Both', mutual: true, theyAreInterested: true, iAmInterested: true}), at(2, {otherName: 'Quiet'})]);
+ assert.equal((html.match(/class="diary-interest-mark/g) || []).length, 2);
+ assert.match(html, /Interested in you/);
+ assert.match(html, /Mutual interest/);
+ assert.ok(!html.includes('PRIVATE_CONTACT'));
+ assert.ok(!html.includes('Time and source'));
+});

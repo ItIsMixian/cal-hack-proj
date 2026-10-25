@@ -68,7 +68,9 @@ export default function Diary({ mirrorId }: { mirrorId?: bigint } = {}) {
         return <button className="diary-encounter" key={name} aria-pressed={person === name}
           onClick={() => { setPerson(name); setVisitIndex(0); }} aria-label={`Read conversations with ${name}`}>
           <span className="diary-portrait" aria-hidden="true">{matches.length === 1 ? <CharacterSprite look={matches[0].look} /> : <span className="diary-monogram">{Array.from(name)[0]}</span>}</span>
-          <span className="diary-encounter-copy"><strong>{name}</strong><span className="diary-teaser">{teaser}</span></span>
+          <span className="diary-encounter-copy"><span className="diary-name-line"><strong>{name}</strong>
+            {rank(sessions) > 0 && <span className={`diary-interest-mark ${rank(sessions) === 2 ? 'mutual' : ''}`}><span aria-hidden="true">♥</span> {rank(sessions) === 2 ? 'Mutual interest' : 'Interested in you'}</span>}
+          </span><span className="diary-teaser">{teaser}</span></span>
           <span className="diary-selection-mark" aria-hidden="true">❧</span>
         </button>;
       })}</div>
@@ -82,7 +84,9 @@ export default function Diary({ mirrorId }: { mirrorId?: bigint } = {}) {
     <section className="diary-leaf diary-right" aria-label="Conversation page">
       {visits && visit ? <>
         <header className="diary-leaf-heading"><button className="diary-mobile-back" onClick={() => setPerson(null)}>← People I met</button>
-          <h3>A conversation with {person}</h3><p>{findLandmark(visit.entries[0].place).label} · {timeFormat.format(dateOf(visit.entries[0]))}</p>
+          <h3>A conversation with {person}</h3>
+          {rank(visits) > 0 && <span className={`diary-interest-mark ${rank(visits) === 2 ? 'mutual' : ''}`}><span aria-hidden="true">♥</span> {rank(visits) === 2 ? 'Mutual interest' : 'Interested in you'}</span>}
+          <p>{findLandmark(visit.entries[0].place).label} · {timeFormat.format(dateOf(visit.entries[0]))}</p>
         </header>
         <div className="diary-leaf-body" key={`${person}:${visitIndex}`}><DiaryEntry session={visit} showMirror={false} /></div>
         {visits.length > 1 && <nav className="diary-visit-pages" aria-label="Conversations with this person">

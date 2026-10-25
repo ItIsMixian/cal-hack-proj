@@ -61,3 +61,10 @@
 
 .diary-mobile-date { display: none; }
 @media (max-width: 600px) { .diary-mobile-date { display: block; } }
+
+.diary-name-line { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 9px; }
+.diary-spread .diary-interest-mark { display: inline-flex; align-items: center; gap: 4px; width: fit-content; padding: 3px 7px; border: 1px solid #be987c; border-radius: 3px; background: #f1dfc8; color: #7c4c3c; font: 11px/1.3 system-ui, sans-serif; text-decoration: none; }
+.diary-spread .diary-interest-mark.mutual { background: #e1e7c9; border-color: #9ca877; color: #4d623d; }
+.diary-leaf-heading > .diary-interest-mark { margin: 0 auto 10px; }
+.diary-encounter[aria-pressed='true'] .diary-encounter-copy { text-decoration: none; }
+.diary-encounter[aria-pressed='true'] .diary-name-line > strong { text-decoration: underline; text-decoration-color: #a4b078; text-underline-offset: 7px; }

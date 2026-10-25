@@ -156,3 +156,16 @@
 }
 .pixel-room.room-stage { background: #6f5140; }
 .room-stage-header { margin-bottom: 0; }
+
+/* A small plaque close to the room replaces the oversized suspended sign. */
+.room-stage-header { flex-basis: 64px; }
+.room-hanging-sign { width: 210px; height: 68px; aspect-ratio: auto; background-size: 210px 105px; background-position: center bottom; }
+.room-stage-header .room-hanging-sign h1 { inset: 18% 12% 16%; font-size: 19px; }
+@media (max-width: 600px) {
+ .room-stage-header { flex-basis: 60px; }
+ .room-hanging-sign { width: 196px; height: 64px; background-size: 196px 98px; }
+ .room-stage-header .room-hanging-sign h1 { font-size: 18px; }
+}
+.room-hanging-sign { top: 8px; width: 220px; height: 58px; background: url('/assets/ui/room-nameplate.png') center / 100% 100% no-repeat; }
+.room-stage-header .room-hanging-sign h1 { inset: 18% 13%; font-size: 19px; }
+@media (max-width: 600px) { .room-hanging-sign { width: 196px; height: 54px; top: 6px; } .room-stage-header .room-hanging-sign h1 { font-size: 17px; } }
